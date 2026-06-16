@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medicine Reminder</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4CAF50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #333; max-width: 500px; margin: 0 auto; padding: 16px; padding-bottom: 80px; }
+        h1 { text-align: center; color: #4CAF50; margin: 16px 0; font-size: 1.5rem; }
+        .tab-bar { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #ddd; z-index: 100; }
+        .tab-bar button { flex: 1; padding: 12px; border: none; background: none; font-size: 0.8rem; cursor: pointer; color: #666; }
+        .tab-bar button.active { color: #4CAF50; font-weight: bold; }
+        .tab-bar button span { display: block; font-size: 1.3rem; }
+        .page { display: none; }
+        .page.active { display: block; }
+        .card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .card.missed { border-left: 4px solid #e53935; }
+        .card.taken-all { border-left: 4px solid #4CAF50; }
+        .med-name { font-weight: bold; font-size: 1.1rem; }
+        .med-dose { color: #666; font-size: 0.9rem; }
+        .med-times { color: #4CAF50; font-size: 0.85rem; margin-top: 4px; }
+        .missed-badge { display: inline-block; background: #ffebee; color: #e53935; font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; margin-top: 4px; }
+        .taken-badge { display: inline-block; background: #e8f5e9; color: #4CAF50; font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; margin-top: 4px; }
+        .btn { background: #4CAF50; color: #fff; border: none; padding: 12px 24px; border-radius: 8px; font-size: 1rem; cursor: pointer; width: 100%; margin-top: 12px; }
+        .btn:hover { background: #43A047; }
+        .btn-take { background: #2196F3; padding: 8px 16px; width: auto; margin: 8px 4px 0 0; font-size: 0.85rem; }
+        .btn-del { background: #e53935; padding: 8px 16px; width: auto; margin: 8px 0 0 0; font-size: 0.85rem; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; margin-top: 8px; }
+        label { font-size: 0.9rem; color: #555; display: block; margin-top: 12px; }
+        .time-slots { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+        .time-slots input[type="time"] { width: auto; flex: 1; min-width: 120px; }
+        .add-time-btn { background: #e8f5e9; color: #4CAF50; border: 1px solid #4CAF50; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; margin-top: 8px; }
+        .log-entry { padding: 8px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+        .log-entry:last-child { border: none; }
+        .log-time { color: #666; font-size: 0.8rem; }
+        .empty { text-align: center; color: #999; padding: 40px 16px; }
+        .notif-banner { background: #fff3e0; padding: 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.85rem; text-align: center; }
+        .notif-banner button { background: #FF9800; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; margin-left: 8px; cursor: pointer; }
+        .summary { display: flex; gap: 8px; margin-bottom: 16px; }
+        .summary-card { flex: 1; background: #fff; border-radius: 10px; padding: 12px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+        .summary-card .num { font-size: 1.5rem; font-weight: bold; }
+        .summary-card .lbl { font-size: 0.7rem; color: #666; }
+    </style>
+</head>
+<body>
+    <h1>💊 Medicine Reminder</h1>
+
+    <div id="notif-banner" class="notif-banner" style="display:none;">
+        Notifications are off. <button onclick="requestNotifPermission()">Enable</button>
+    </div>
+
+    <!-- Home Page -->
+    <div id="page-home" class="page active">
+        <div id="summary" class="summary"></div>
+        <div id="med-list"></div>
+    </div>
+
+    <!-- Add Medicine Page -->
+    <div id="page-add" class="page">
+        <div class="card">
+            <h2 style="margin-bottom:8px;">Add Medicine</h2>
+            <label>Medicine Name</label>
+            <input type="text" id="med-name" placeholder="e.g. Paracetamol">
+            <label>Dosage</label>
+            <input type="text" id="med-dosage" placeholder="e.g. 500mg, 1 tablet">
+            <label>Reminder Times</label>
+            <div id="time-slots" class="time-slots">
+                <input type="time" class="time-input" value="08:00">
+            </div>
+            <button class="add-time-btn" onclick="addTimeSlot()">+ Add Time</button>
+            <label>Recurring</label>
+            <select id="med-recurring">
+                <option value="daily">Daily</option>
+                <option value="weekdays">Weekdays Only</option>
+                <option value="weekends">Weekends Only</option>
+                <option value="alternate">Alternate Days</option>
+            </select>
+            <button class="btn" onclick="saveMedicine()">Save Medicine</button>
+        </div>
+    </div>
+
+    <!-- History Page -->
+    <div id="page-log" class="page">
+        <div class="card">
+            <h2 style="margin-bottom:12px;">Today's History</h2>
+            <div id="log-list"></div>
+        </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+        <button class="active" onclick="showPage('home')"><span>💊</span>Medicines</button>
+        <button onclick="showPage('add')"><span>➕</span>Add</button>
+        <button onclick="showPage('log')"><span>📋</span>History</button>
+    </div>
+
+    <script>
+        function getMedicines() { return JSON.parse(localStorage.getItem('medicines') || '[]'); }
+        function saveMedicines(m) { localStorage.setItem('medicines', JSON.stringify(m)); }
+        function getLogs() { return JSON.parse(localStorage.getItem('med_logs') || '[]'); }
+        function saveLogs(l) { localStorage.setItem('med_logs', JSON.stringify(l)); }
+        function today() { return new Date().toISOString().split('T')[0]; }
+
+        function showPage(name) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + name).classList.add('active');
+            document.querySelectorAll('.tab-bar button').forEach((b, i) => b.classList.toggle('active', ['home','add','log'][i] === name));
+            if (name === 'home') renderMedicines();
+            if (name === 'log') renderLogs();
+        }
+
+        // Check if medicine should be taken today based on recurring schedule
+        function isDueToday(med) {
+            const dow = new Date().getDay(); // 0=Sun
+            const dayNum = Math.floor((Date.now() - new Date('2026-01-01')) / 86400000);
+            switch(med.recurring || 'daily') {
+                case 'daily': return true;
+                case 'weekdays': return dow >= 1 && dow <= 5;
+                case 'weekends': return dow === 0 || dow === 6;
+                case 'alternate': return dayNum % 2 === 0;
+            }
+            return true;
+        }
+
+        // Get today's logs for a medicine
+        function todayLogs(medName) {
+            const d = today();
+            return getLogs().filter(l => l.name === medName && l.time.startsWith(d));
+        }
+
+        // Check if a dose time was missed (past time, not taken)
+        function getMissedDoses(med) {
+            if (!isDueToday(med)) return [];
+            const now = new Date();
+            const taken = todayLogs(med.name);
+            return med.times.filter(t => {
+                const [h, m] = t.split(':').map(Number);
+                const doseTime = new Date(); doseTime.setHours(h, m, 0, 0);
+                // Missed if > 30 min past and not taken
+                return (now - doseTime > 30 * 60000) && !taken.some(l => {
+                    const lt = new Date(l.time);
+                    return Math.abs(lt.getHours() * 60 + lt.getMinutes() - (h * 60 + m)) < 60;
+                });
+            });
+        }
+
+        function renderMedicines() {
+            const meds = getMedicines();
+            const el = document.getElementById('med-list');
+            const sum = document.getElementById('summary');
+
+            if (!meds.length) { el.innerHTML = '<div class="empty">No medicines added yet.<br>Tap ➕ to add one.</div>'; sum.innerHTML = ''; return; }
+
+            // Summary counts
+            let totalDue = 0, totalTaken = 0, totalMissed = 0;
+            meds.forEach(m => {
+                if (!isDueToday(m)) return;
+                totalDue += m.times.length;
+                totalTaken += todayLogs(m.name).length;
+                totalMissed += getMissedDoses(m).length;
+            });
+            sum.innerHTML = `
+                <div class="summary-card"><div class="num" style="color:#2196F3">${totalDue}</div><div class="lbl">Due Today</div></div>
+                <div class="summary-card"><div class="num" style="color:#4CAF50">${totalTaken}</div><div class="lbl">Taken</div></div>
+                <div class="summary-card"><div class="num" style="color:#e53935">${totalMissed}</div><div class="lbl">Missed</div></div>
+            `;
+
+            el.innerHTML = meds.map((m, i) => {
+                const missed = getMissedDoses(m);
+                const taken = todayLogs(m.name);
+                const due = isDueToday(m);
+                const cls = !due ? '' : missed.length ? 'missed' : taken.length >= m.times.length ? 'taken-all' : '';
+                const badge = !due ? '<span class="taken-badge">Not scheduled today</span>' :
+                    missed.length ? `<span class="missed-badge">⚠️ Missed: ${missed.join(', ')}</span>` :
+                    taken.length >= m.times.length ? '<span class="taken-badge">✅ All taken</span>' : '';
+                const recLabel = {daily:'Daily',weekdays:'Weekdays',weekends:'Weekends',alternate:'Alternate days'}[m.recurring||'daily'];
+                return `<div class="card ${cls}">
+                    <div class="med-name">${m.name}</div>
+                    <div class="med-dose">${m.dosage} • ${recLabel}</div>
+                    <div class="med-times">⏰ ${m.times.join(', ')}</div>
+                    ${badge}
+                    <div><button class="btn btn-take" onclick="logTaken(${i})">✅ Taken Now</button><button class="btn btn-del" onclick="deleteMed(${i})">🗑️</button></div>
+                </div>`;
+            }).join('');
+        }
+
+        function addTimeSlot() {
+            const slot = document.createElement('input');
+            slot.type = 'time'; slot.className = 'time-input'; slot.value = '12:00';
+            document.getElementById('time-slots').appendChild(slot);
+        }
+
+        function saveMedicine() {
+            const name = document.getElementById('med-name').value.trim();
+            const dosage = document.getElementById('med-dosage').value.trim();
+            const times = [...document.querySelectorAll('.time-input')].map(t => t.value).filter(Boolean);
+            const recurring = document.getElementById('med-recurring').value;
+            if (!name) { alert('Please enter medicine name'); return; }
+            if (!times.length) { alert('Add at least one time'); return; }
+            const meds = getMedicines();
+            meds.push({ name, dosage, times, recurring });
+            saveMedicines(meds);
+            document.getElementById('med-name').value = '';
+            document.getElementById('med-dosage').value = '';
+            document.getElementById('time-slots').innerHTML = '<input type="time" class="time-input" value="08:00">';
+            showPage('home');
+            scheduleNotifications();
+        }
+
+        function deleteMed(i) {
+            if (!confirm('Delete this medicine?')) return;
+            const meds = getMedicines(); meds.splice(i, 1); saveMedicines(meds);
+            renderMedicines(); scheduleNotifications();
+        }
+
+        function logTaken(i) {
+            const meds = getMedicines();
+            const now = new Date();
+            const logs = getLogs();
+            logs.unshift({ name: meds[i].name, dosage: meds[i].dosage, time: now.toISOString() });
+            saveLogs(logs);
+            renderMedicines();
+        }
+
+        function renderLogs() {
+            const d = today();
+            const logs = getLogs().filter(l => l.time.startsWith(d));
+            const el = document.getElementById('log-list');
+            if (!logs.length) { el.innerHTML = '<div class="empty">Nothing taken today yet.</div>'; return; }
+            el.innerHTML = logs.map(l => {
+                const t = new Date(l.time);
+                return `<div class="log-entry"><strong>${l.name}</strong> (${l.dosage})<br><span class="log-time">${t.toLocaleTimeString()}</span></div>`;
+            }).join('');
+        }
+
+        // --- Notifications ---
+        function requestNotifPermission() {
+            if ('Notification' in window) {
+                Notification.requestPermission().then(p => {
+                    if (p === 'granted') { document.getElementById('notif-banner').style.display = 'none'; scheduleNotifications(); }
+                });
+            }
+        }
+
+        let notifTimers = [];
+        function scheduleNotifications() {
+            notifTimers.forEach(t => clearTimeout(t)); notifTimers = [];
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            const now = new Date();
+            getMedicines().filter(isDueToday).forEach(med => {
+                med.times.forEach(time => {
+                    const [h, m] = time.split(':').map(Number);
+                    const target = new Date(); target.setHours(h, m, 0, 0);
+                    if (target <= now) target.setDate(target.getDate() + 1);
+                    const delay = target - now;
+                    if (delay < 86400000) {
+                        notifTimers.push(setTimeout(() => {
+                            new Notification('💊 ' + med.name, { body: `Time to take ${med.dosage}`, icon: 'icon.svg' });
+                            scheduleNotifications();
+                        }, delay));
+                    }
+                });
+            });
+        }
+
+        // Check missed doses every minute and update UI
+        setInterval(() => { if (document.querySelector('#page-home.active')) renderMedicines(); }, 60000);
+
+        // Init
+        if ('Notification' in window && Notification.permission !== 'granted') document.getElementById('notif-banner').style.display = 'block';
+        renderMedicines();
+        scheduleNotifications();
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+    </script>
+</body>
+</html>
