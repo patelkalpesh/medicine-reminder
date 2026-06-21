@@ -454,6 +454,31 @@
         sessionStorage.setItem('unlocked','1');
         document.getElementById('login-screen').style.display='none';
         document.getElementById('app-container').style.display='block';
+        showInstallBanner();
+    }
+    function showInstallBanner(){
+        // Don't show if already installed as PWA or dismissed before
+        if(window.matchMedia('(display-mode: standalone)').matches)return;
+        if(localStorage.getItem('install_banner_dismissed'))return;
+        const banner=document.createElement('div');
+        banner.id='install-banner-top';
+        banner.style.cssText='position:fixed;top:0;left:0;right:0;background:linear-gradient(135deg,#4CAF50,#2E7D32);color:#fff;padding:14px 16px;z-index:9998;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.3);';
+        banner.innerHTML=`<div style="font-size:0.9rem;font-weight:bold;margin-bottom:6px;">📲 Install this app on your phone!</div>
+            <div style="font-size:0.75rem;opacity:0.9;margin-bottom:10px;">Works offline, faster, home screen icon</div>
+            <button onclick="installFromBanner()" style="background:#fff;color:#2E7D32;border:none;padding:8px 20px;border-radius:20px;font-size:0.85rem;font-weight:bold;cursor:pointer;margin-right:8px;">📲 Install Now</button>
+            <button onclick="dismissInstallBanner()" style="background:transparent;color:#fff;border:1px solid #fff;padding:8px 16px;border-radius:20px;font-size:0.8rem;cursor:pointer;">Later</button>`;
+        document.body.prepend(banner);
+    }
+    function installFromBanner(){
+        dismissInstallBanner();
+        if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>{deferredPrompt=null});return}
+        const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
+        if(isIOS){alert('📲 To install:\n\n1. Tap Share button (⬆️) at bottom\n2. Tap "Add to Home Screen"\n3. Tap Add ✅')}
+        else{alert('📲 Tap your browser menu (⋮) → "Install app" or "Add to Home Screen"')}
+    }
+    function dismissInstallBanner(){
+        localStorage.setItem('install_banner_dismissed','1');
+        const b=document.getElementById('install-banner-top');if(b)b.remove();
     }
     function changePin(){
         const current=prompt('Enter current PIN:');
