@@ -603,7 +603,7 @@
             html+=`<div class="slot-group"><h3>${icons[group]} ${group}</h3>`;
             pending.forEach(d=>{
                 html+=`<div class="dose-card"><div><strong>${d.icon} ${d.name}</strong><br><small>${d.dosage} • ${d.timing}${d.time?' • 🕐'+formatTime12(d.time):''}</small></div>
-                <div><button class="btn-sm btn-take" onclick="logDose('${d.id}','${d.timing}','taken')">Take</button><button class="btn-sm" style="background:#FF9800;font-size:0.65rem;" onclick="snoozeDose('${d.name}','${d.timing}')">⏰ Snooze</button></div></div>`;
+                <div><button class="btn-sm btn-take" onclick="logDose('${d.id}','${d.timing}','taken')">Take</button><button class="btn-sm" style="background:#FF9800;font-size:0.65rem;" data-snooze-key="${d.name}_${d.timing}" onclick="snoozeDose('${d.name}','${d.timing}',this)">⏰ Snooze</button></div></div>`;
             });
             if(done.length){
                 html+=`<div class="done-group"><div class="done-header" onclick="this.nextElementSibling.classList.toggle('open')"><span>✅ ${done.length} done</span><span>▼</span></div><div class="done-list">`;
@@ -623,6 +623,7 @@
             sosHtml+='</div>';el.innerHTML+=sosHtml;
         }
         renderNextDoseWidget();
+        resumeSnoozes();
     }
     function logDose(medId,timing,action){
         logDoseWithNote(medId,timing,action);
@@ -781,17 +782,40 @@
     }
 
     // === SNOOZE ===
-    function snoozeDose(medName,timing){
+    function getSnoozed(){return JSON.parse(sessionStorage.getItem('snoozed')||'{}')}
+    function snoozeDose(medName,timing,btn){
         const mins=prompt('Snooze for how many minutes?\n\nEnter: 10 or 30','10');
         if(!mins)return;
         const m=parseInt(mins);if(!m||m<1)return;
-        alert('⏰ Will remind you in '+m+' minutes for '+medName);
-        setTimeout(()=>{
-            if('Notification' in window&&Notification.permission==='granted'){
-                new Notification('⏰ Snoozed reminder: '+medName,{body:timing+' — Take now!',icon:'icon-192.png'});
-                playAlertSound();
-            }else{alert('⏰ Time to take '+medName+'! ('+timing+')')}
-        },m*60000);
+        const key=medName+'_'+timing;
+        const snoozed=getSnoozed();
+        snoozed[key]=Date.now()+m*60000;
+        sessionStorage.setItem('snoozed',JSON.stringify(snoozed));
+        btn.disabled=true;btn.style.background='#ccc';btn.textContent='⏰ '+m+'m';
+        startSnoozeCountdown(btn,key,medName,timing);
+    }
+    function startSnoozeCountdown(btn,key,medName,timing){
+        const iv=setInterval(()=>{
+            const snoozed=getSnoozed();const end=snoozed[key];
+            if(!end){clearInterval(iv);return}
+            const left=Math.ceil((end-Date.now())/60000);
+            if(left<=0){
+                clearInterval(iv);btn.disabled=false;btn.style.background='#FF9800';btn.textContent='⏰ Snooze';
+                delete snoozed[key];sessionStorage.setItem('snoozed',JSON.stringify(snoozed));
+                if('Notification' in window&&Notification.permission==='granted'){new Notification('⏰ '+medName,{body:timing+' — Take now!',icon:'icon-192.png'});playAlertSound()}
+            }else{btn.textContent='⏰ '+left+'m'}
+        },10000);
+    }
+    // Resume active snoozes on render
+    function resumeSnoozes(){
+        const snoozed=getSnoozed();
+        Object.keys(snoozed).forEach(key=>{
+            const left=Math.ceil((snoozed[key]-Date.now())/60000);
+            if(left<=0){delete snoozed[key];return}
+            const btn=document.querySelector(`[data-snooze-key="${key}"]`);
+            if(btn){btn.disabled=true;btn.style.background='#ccc';btn.textContent='⏰ '+left+'m';startSnoozeCountdown(btn,key,key.split('_')[0],key.split('_').slice(1).join('_'))}
+        });
+        sessionStorage.setItem('snoozed',JSON.stringify(snoozed));
     }
 
     // === MONTHLY PDF EMAIL ===
