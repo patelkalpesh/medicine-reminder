@@ -15,34 +15,37 @@
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #333; max-width: 500px; margin: 0 auto; padding: 16px; padding-bottom: 80px; }
         h1 { text-align: center; color: #4CAF50; margin: 16px 0; font-size: 1.5rem; }
         .tab-bar { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #ddd; z-index: 100; }
-        .tab-bar button { flex: 1; padding: 12px; border: none; background: none; font-size: 0.8rem; cursor: pointer; color: #666; }
+        .tab-bar button { flex: 1; padding: 10px 4px; border: none; background: none; font-size: 0.7rem; cursor: pointer; color: #666; }
         .tab-bar button.active { color: #4CAF50; font-weight: bold; }
-        .tab-bar button span { display: block; font-size: 1.3rem; }
+        .tab-bar button span { display: block; font-size: 1.2rem; }
         .page { display: none; }
         .page.active { display: block; }
         .card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-        .card.missed { border-left: 4px solid #e53935; }
-        .card.taken-all { border-left: 4px solid #4CAF50; }
         .med-name { font-weight: bold; font-size: 1.1rem; }
         .med-dose { color: #666; font-size: 0.9rem; }
-        .med-times { color: #4CAF50; font-size: 0.85rem; margin-top: 4px; }
-        .missed-badge { display: inline-block; background: #ffebee; color: #e53935; font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; margin-top: 4px; }
-        .taken-badge { display: inline-block; background: #e8f5e9; color: #4CAF50; font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; margin-top: 4px; }
+        .med-timing { color: #4CAF50; font-size: 0.8rem; margin-top: 4px; }
         .btn { background: #4CAF50; color: #fff; border: none; padding: 12px 24px; border-radius: 8px; font-size: 1rem; cursor: pointer; width: 100%; margin-top: 12px; }
         .btn:hover { background: #43A047; }
-        .btn-take { background: #2196F3; padding: 8px 16px; width: auto; margin: 8px 4px 0 0; font-size: 0.85rem; }
-        .btn-del { background: #e53935; padding: 8px 16px; width: auto; margin: 8px 0 0 0; font-size: 0.85rem; }
+        .btn-sm { padding: 6px 12px; width: auto; font-size: 0.8rem; margin: 4px 4px 0 0; border-radius: 6px; border: none; color: #fff; cursor: pointer; }
+        .btn-edit { background: #FF9800; }
+        .btn-del { background: #e53935; }
+        .btn-take { background: #4CAF50; }
+        .btn-skip { background: #9E9E9E; }
+        .btn-export { background: #2196F3; margin: 4px; }
         input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; margin-top: 8px; }
         label { font-size: 0.9rem; color: #555; display: block; margin-top: 12px; }
-        .time-slots { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-        .time-slots input[type="time"] { width: auto; flex: 1; min-width: 120px; }
-        .add-time-btn { background: #e8f5e9; color: #4CAF50; border: 1px solid #4CAF50; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; margin-top: 8px; }
+        .timing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+        .timing-chip { padding: 8px; border: 2px solid #ddd; border-radius: 8px; text-align: center; font-size: 0.8rem; cursor: pointer; }
+        .timing-chip.selected { border-color: #4CAF50; background: #e8f5e9; color: #2e7d32; }
+        .slot-group { margin-bottom: 16px; }
+        .slot-group h3 { font-size: 0.9rem; color: #4CAF50; padding: 8px 0; border-bottom: 1px solid #eee; margin-bottom: 8px; }
+        .dose-card { display: flex; align-items: center; justify-content: space-between; padding: 10px; background: #fafafa; border-radius: 8px; margin-bottom: 6px; }
+        .dose-card.taken { opacity: 0.6; background: #e8f5e9; }
+        .dose-card.skipped { opacity: 0.5; background: #fafafa; text-decoration: line-through; }
         .log-entry { padding: 8px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; }
-        .log-entry:last-child { border: none; }
-        .log-time { color: #666; font-size: 0.8rem; }
+        .log-date-header { font-weight: bold; color: #4CAF50; padding: 12px 0 4px; font-size: 0.95rem; }
         .empty { text-align: center; color: #999; padding: 40px 16px; }
-        .notif-banner { background: #fff3e0; padding: 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.85rem; text-align: center; }
-        .notif-banner button { background: #FF9800; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; margin-left: 8px; cursor: pointer; }
+        .export-bar { display: flex; flex-wrap: wrap; justify-content: center; margin-top: 12px; }
         .summary { display: flex; gap: 8px; margin-bottom: 16px; }
         .summary-card { flex: 1; background: #fff; border-radius: 10px; padding: 12px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
         .summary-card .num { font-size: 1.5rem; font-weight: bold; }
@@ -52,59 +55,64 @@
 <body>
     <h1>💊 Medicine Reminder</h1>
 
-    <div id="notif-banner" class="notif-banner" style="display:none;">
-        Notifications are off. <button onclick="requestNotifPermission()">Enable</button>
-    </div>
-
-    <!-- Home Page -->
+    <!-- Home - Today's Schedule -->
     <div id="page-home" class="page active">
         <div id="summary" class="summary"></div>
-        <div id="med-list"></div>
+        <div id="today-schedule"></div>
     </div>
 
-    <!-- Add Medicine Page -->
+    <!-- Medicines Master List -->
+    <div id="page-meds" class="page">
+        <div id="meds-list"></div>
+        <button class="btn" onclick="showPage('add')">+ Add Medicine</button>
+    </div>
+
+    <!-- Add/Edit Medicine -->
     <div id="page-add" class="page">
         <div class="card">
-            <h2 style="margin-bottom:8px;">Add Medicine</h2>
+            <h2 id="form-title" style="margin-bottom:8px;">Add Medicine</h2>
+            <input type="hidden" id="edit-id" value="">
             <label>Medicine Name</label>
             <input type="text" id="med-name" placeholder="e.g. Paracetamol">
             <label>Dosage</label>
             <input type="text" id="med-dosage" placeholder="e.g. 500mg, 1 tablet">
-            <label>Reminder Times</label>
-            <div id="time-slots" class="time-slots">
-                <input type="time" class="time-input" value="08:00">
-            </div>
-            <button class="add-time-btn" onclick="addTimeSlot()">+ Add Time</button>
-            <label>Recurring</label>
-            <select id="med-recurring">
-                <option value="daily">Daily</option>
-                <option value="weekdays">Weekdays Only</option>
-                <option value="weekends">Weekends Only</option>
-                <option value="alternate">Alternate Days</option>
+            <label>How many times per day?</label>
+            <select id="med-freq" onchange="updateTimingOptions()">
+                <option value="1">Once daily</option>
+                <option value="2">Twice daily</option>
+                <option value="3">Three times daily</option>
             </select>
+            <div id="timing-sections"></div>
             <button class="btn" onclick="saveMedicine()">Save Medicine</button>
+            <button class="btn" style="background:#666;margin-top:8px;" onclick="cancelEdit()">Cancel</button>
         </div>
     </div>
 
-    <!-- History Page -->
-    <div id="page-log" class="page">
+    <!-- History -->
+    <div id="page-history" class="page">
         <div class="card">
-            <h2 style="margin-bottom:12px;">Today's History</h2>
-            <div id="log-list"></div>
+            <h2 style="margin-bottom:12px;">📋 History</h2>
+            <div id="history-list"></div>
+            <div class="export-bar">
+                <button class="btn-sm btn-export" onclick="exportWhatsApp()">📱 WhatsApp</button>
+                <button class="btn-sm btn-export" onclick="exportEmail()">📧 Email</button>
+                <button class="btn-sm btn-export" onclick="exportPDF()">📄 PDF</button>
+                <button class="btn-sm btn-export" onclick="exportExcel()">📊 Excel</button>
+            </div>
         </div>
     </div>
 
-    <!-- Sync Page -->
+    <!-- Sync -->
     <div id="page-sync" class="page">
         <div class="card">
             <h2 style="margin-bottom:12px;">☁️ Google Drive Sync</h2>
-            <p style="font-size:0.85rem;color:#666;margin-bottom:12px;">Sign in to sync your medicines across all your devices.</p>
+            <p style="font-size:0.85rem;color:#666;margin-bottom:12px;">Sign in to sync across devices.</p>
             <div id="sync-signed-out">
-                <button class="btn" onclick="gDriveSignIn()" id="btn-signin">🔑 Sign in with Google</button>
+                <button class="btn" onclick="gDriveSignIn()">🔑 Sign in with Google</button>
             </div>
             <div id="sync-signed-in" style="display:none;">
                 <div style="background:#e8f5e9;padding:12px;border-radius:8px;margin-bottom:12px;">
-                    <strong>✅ Signed in as</strong> <span id="sync-email"></span>
+                    <strong>✅</strong> <span id="sync-email"></span>
                 </div>
                 <button class="btn" onclick="syncNow()" style="background:#2196F3;">🔄 Sync Now</button>
                 <button class="btn" onclick="gDriveSignOut()" style="background:#666;margin-top:8px;">Sign Out</button>
@@ -115,334 +123,380 @@
 
     <!-- Tab Bar -->
     <div class="tab-bar">
-        <button class="active" onclick="showPage('home')"><span>💊</span>Medicines</button>
+        <button class="active" onclick="showPage('home')"><span>🏠</span>Today</button>
+        <button onclick="showPage('meds')"><span>💊</span>Medicines</button>
         <button onclick="showPage('add')"><span>➕</span>Add</button>
-        <button onclick="showPage('log')"><span>📋</span>History</button>
+        <button onclick="showPage('history')"><span>📋</span>History</button>
         <button onclick="showPage('sync')"><span>☁️</span>Sync</button>
     </div>
 
     <script>
-        function getMedicines() { return JSON.parse(localStorage.getItem('medicines') || '[]'); }
-        function saveMedicines(m) { localStorage.setItem('medicines', JSON.stringify(m)); }
-        function getLogs() { return JSON.parse(localStorage.getItem('med_logs') || '[]'); }
-        function saveLogs(l) { localStorage.setItem('med_logs', JSON.stringify(l)); }
+        // === DATA ===
+        function getMedicines() { return JSON.parse(localStorage.getItem('medicines2') || '[]'); }
+        function saveMedicines(m) { localStorage.setItem('medicines2', JSON.stringify(m)); markUpdated(); }
+        function getLogs() { return JSON.parse(localStorage.getItem('med_logs2') || '[]'); }
+        function saveLogs(l) { localStorage.setItem('med_logs2', JSON.stringify(l)); markUpdated(); }
         function today() { return new Date().toISOString().split('T')[0]; }
 
+        const TIMINGS = [
+            'Before Breakfast', 'After Breakfast',
+            'Before Lunch', 'After Lunch',
+            'Before Dinner', 'After Dinner',
+            'Bedtime'
+        ];
+        const TIMING_GROUPS = {
+            'Morning': ['Before Breakfast', 'After Breakfast'],
+            'Afternoon': ['Before Lunch', 'After Lunch'],
+            'Evening': ['Before Dinner', 'After Dinner', 'Bedtime']
+        };
+
+        // === NAVIGATION ===
+        const PAGES = ['home','meds','add','history','sync'];
         function showPage(name) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById('page-' + name).classList.add('active');
-            document.querySelectorAll('.tab-bar button').forEach((b, i) => b.classList.toggle('active', ['home','add','log','sync'][i] === name));
-            if (name === 'home') renderMedicines();
-            if (name === 'log') renderLogs();
+            document.querySelectorAll('.tab-bar button').forEach((b, i) => b.classList.toggle('active', PAGES[i] === name));
+            if (name === 'home') renderToday();
+            if (name === 'meds') renderMedsList();
+            if (name === 'history') renderHistory();
+            if (name === 'add') { if (!document.getElementById('edit-id').value) resetForm(); }
         }
 
-        // Check if medicine should be taken today based on recurring schedule
-        function isDueToday(med) {
-            const dow = new Date().getDay(); // 0=Sun
-            const dayNum = Math.floor((Date.now() - new Date('2026-01-01')) / 86400000);
-            switch(med.recurring || 'daily') {
-                case 'daily': return true;
-                case 'weekdays': return dow >= 1 && dow <= 5;
-                case 'weekends': return dow === 0 || dow === 6;
-                case 'alternate': return dayNum % 2 === 0;
-            }
-            return true;
-        }
-
-        // Get today's logs for a medicine
-        function todayLogs(medName) {
-            const d = today();
-            return getLogs().filter(l => l.name === medName && l.time.startsWith(d));
-        }
-
-        // Check if a dose time was missed (past time, not taken)
-        function getMissedDoses(med) {
-            if (!isDueToday(med)) return [];
-            const now = new Date();
-            const taken = todayLogs(med.name);
-            return med.times.filter(t => {
-                const [h, m] = t.split(':').map(Number);
-                const doseTime = new Date(); doseTime.setHours(h, m, 0, 0);
-                // Missed if > 30 min past and not taken
-                return (now - doseTime > 30 * 60000) && !taken.some(l => {
-                    const lt = new Date(l.time);
-                    return Math.abs(lt.getHours() * 60 + lt.getMinutes() - (h * 60 + m)) < 60;
+        // === MEDICINE FORM ===
+        function updateTimingOptions() {
+            const freq = parseInt(document.getElementById('med-freq').value);
+            const container = document.getElementById('timing-sections');
+            const labels = ['1st Dose', '2nd Dose', '3rd Dose'];
+            let html = '';
+            for (let i = 0; i < freq; i++) {
+                html += `<label>${labels[i]} - When?</label><div class="timing-grid">`;
+                TIMINGS.forEach(t => {
+                    html += `<div class="timing-chip" data-dose="${i}" data-timing="${t}" onclick="toggleTiming(this)">${t}</div>`;
                 });
-            });
+                html += '</div>';
+            }
+            container.innerHTML = html;
         }
 
-        function renderMedicines() {
-            const meds = getMedicines();
-            const el = document.getElementById('med-list');
-            const sum = document.getElementById('summary');
-
-            if (!meds.length) { el.innerHTML = '<div class="empty">No medicines added yet.<br>Tap ➕ to add one.</div>'; sum.innerHTML = ''; return; }
-
-            // Summary counts
-            let totalDue = 0, totalTaken = 0, totalMissed = 0;
-            meds.forEach(m => {
-                if (!isDueToday(m)) return;
-                totalDue += m.times.length;
-                totalTaken += todayLogs(m.name).length;
-                totalMissed += getMissedDoses(m).length;
-            });
-            sum.innerHTML = `
-                <div class="summary-card"><div class="num" style="color:#2196F3">${totalDue}</div><div class="lbl">Due Today</div></div>
-                <div class="summary-card"><div class="num" style="color:#4CAF50">${totalTaken}</div><div class="lbl">Taken</div></div>
-                <div class="summary-card"><div class="num" style="color:#e53935">${totalMissed}</div><div class="lbl">Missed</div></div>
-            `;
-
-            el.innerHTML = meds.map((m, i) => {
-                const missed = getMissedDoses(m);
-                const taken = todayLogs(m.name);
-                const due = isDueToday(m);
-                const cls = !due ? '' : missed.length ? 'missed' : taken.length >= m.times.length ? 'taken-all' : '';
-                const badge = !due ? '<span class="taken-badge">Not scheduled today</span>' :
-                    missed.length ? `<span class="missed-badge">⚠️ Missed: ${missed.join(', ')}</span>` :
-                    taken.length >= m.times.length ? '<span class="taken-badge">✅ All taken</span>' : '';
-                const recLabel = {daily:'Daily',weekdays:'Weekdays',weekends:'Weekends',alternate:'Alternate days'}[m.recurring||'daily'];
-                return `<div class="card ${cls}">
-                    <div class="med-name">${m.name}</div>
-                    <div class="med-dose">${m.dosage} • ${recLabel}</div>
-                    <div class="med-times">⏰ ${m.times.join(', ')}</div>
-                    ${badge}
-                    <div><button class="btn btn-take" onclick="logTaken(${i})">✅ Taken Now</button><button class="btn btn-del" onclick="deleteMed(${i})">🗑️</button></div>
-                </div>`;
-            }).join('');
+        function toggleTiming(el) {
+            // Only one timing per dose
+            const dose = el.dataset.dose;
+            document.querySelectorAll(`.timing-chip[data-dose="${dose}"]`).forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
         }
 
-        function addTimeSlot() {
-            const slot = document.createElement('input');
-            slot.type = 'time'; slot.className = 'time-input'; slot.value = '12:00';
-            document.getElementById('time-slots').appendChild(slot);
+        function resetForm() {
+            document.getElementById('form-title').textContent = 'Add Medicine';
+            document.getElementById('edit-id').value = '';
+            document.getElementById('med-name').value = '';
+            document.getElementById('med-dosage').value = '';
+            document.getElementById('med-freq').value = '1';
+            updateTimingOptions();
         }
 
         function saveMedicine() {
             const name = document.getElementById('med-name').value.trim();
             const dosage = document.getElementById('med-dosage').value.trim();
-            const times = [...document.querySelectorAll('.time-input')].map(t => t.value).filter(Boolean);
-            const recurring = document.getElementById('med-recurring').value;
-            if (!name) { alert('Please enter medicine name'); return; }
-            if (!times.length) { alert('Add at least one time'); return; }
-            const meds = getMedicines();
-            meds.push({ name, dosage, times, recurring });
-            saveMedicines(meds);
-            document.getElementById('med-name').value = '';
-            document.getElementById('med-dosage').value = '';
-            document.getElementById('time-slots').innerHTML = '<input type="time" class="time-input" value="08:00">';
-            showPage('home');
-            scheduleNotifications();
-        }
+            const freq = parseInt(document.getElementById('med-freq').value);
+            if (!name) { alert('Enter medicine name'); return; }
 
-        function deleteMed(i) {
-            if (!confirm('Delete this medicine?')) return;
-            const meds = getMedicines(); meds.splice(i, 1); saveMedicines(meds);
-            renderMedicines(); scheduleNotifications();
-        }
-
-        function logTaken(i) {
-            const meds = getMedicines();
-            const now = new Date();
-            const logs = getLogs();
-            logs.unshift({ name: meds[i].name, dosage: meds[i].dosage, time: now.toISOString() });
-            saveLogs(logs);
-            renderMedicines();
-        }
-
-        function renderLogs() {
-            const d = today();
-            const logs = getLogs().filter(l => l.time.startsWith(d));
-            const el = document.getElementById('log-list');
-            if (!logs.length) { el.innerHTML = '<div class="empty">Nothing taken today yet.</div>'; return; }
-            el.innerHTML = logs.map(l => {
-                const t = new Date(l.time);
-                return `<div class="log-entry"><strong>${l.name}</strong> (${l.dosage})<br><span class="log-time">${t.toLocaleTimeString()}</span></div>`;
-            }).join('');
-        }
-
-        // --- Notifications ---
-        function requestNotifPermission() {
-            if ('Notification' in window) {
-                Notification.requestPermission().then(p => {
-                    if (p === 'granted') { document.getElementById('notif-banner').style.display = 'none'; scheduleNotifications(); }
-                });
+            const timings = [];
+            for (let i = 0; i < freq; i++) {
+                const sel = document.querySelector(`.timing-chip[data-dose="${i}"].selected`);
+                if (!sel) { alert(`Select timing for dose ${i + 1}`); return; }
+                timings.push(sel.dataset.timing);
             }
+
+            const meds = getMedicines();
+            const editId = document.getElementById('edit-id').value;
+            if (editId) {
+                const idx = meds.findIndex(m => m.id === editId);
+                if (idx >= 0) meds[idx] = { ...meds[idx], name, dosage, freq, timings };
+            } else {
+                meds.push({ id: Date.now().toString(), name, dosage, freq, timings });
+            }
+            saveMedicines(meds);
+            resetForm();
+            showPage('meds');
         }
 
-        let notifTimers = [];
-        function scheduleNotifications() {
-            notifTimers.forEach(t => clearTimeout(t)); notifTimers = [];
-            if (!('Notification' in window) || Notification.permission !== 'granted') return;
-            const now = new Date();
-            getMedicines().filter(isDueToday).forEach(med => {
-                med.times.forEach(time => {
-                    const [h, m] = time.split(':').map(Number);
-                    const target = new Date(); target.setHours(h, m, 0, 0);
-                    if (target <= now) target.setDate(target.getDate() + 1);
-                    const delay = target - now;
-                    if (delay < 86400000) {
-                        notifTimers.push(setTimeout(() => {
-                            new Notification('💊 ' + med.name, { body: `Time to take ${med.dosage}`, icon: 'icon.svg' });
-                            scheduleNotifications();
-                        }, delay));
-                    }
+        function editMedicine(id) {
+            const med = getMedicines().find(m => m.id === id);
+            if (!med) return;
+            document.getElementById('form-title').textContent = 'Edit Medicine';
+            document.getElementById('edit-id').value = med.id;
+            document.getElementById('med-name').value = med.name;
+            document.getElementById('med-dosage').value = med.dosage;
+            document.getElementById('med-freq').value = med.freq;
+            updateTimingOptions();
+            // Set selected timings
+            med.timings.forEach((t, i) => {
+                const chip = document.querySelector(`.timing-chip[data-dose="${i}"][data-timing="${t}"]`);
+                if (chip) chip.classList.add('selected');
+            });
+            showPage('add');
+        }
+
+        function deleteMedicine(id) {
+            if (!confirm('Delete this medicine?')) return;
+            saveMedicines(getMedicines().filter(m => m.id !== id));
+            renderMedsList();
+        }
+
+        function cancelEdit() { resetForm(); showPage('meds'); }
+
+        // === MEDICINES LIST ===
+        function renderMedsList() {
+            const meds = getMedicines();
+            const el = document.getElementById('meds-list');
+            if (!meds.length) { el.innerHTML = '<div class="empty">No medicines yet. Tap + Add.</div>'; return; }
+            el.innerHTML = meds.map(m => `<div class="card">
+                <div class="med-name">${m.name}</div>
+                <div class="med-dose">${m.dosage} • ${m.freq}x daily</div>
+                <div class="med-timing">⏰ ${m.timings.join(', ')}</div>
+                <div><button class="btn-sm btn-edit" onclick="editMedicine('${m.id}')">✏️ Edit</button><button class="btn-sm btn-del" onclick="deleteMedicine('${m.id}')">🗑️ Delete</button></div>
+            </div>`).join('');
+        }
+
+        // === TODAY'S SCHEDULE ===
+        function getTodayStatus() {
+            const d = today();
+            return getLogs().filter(l => l.date === d);
+        }
+
+        function renderToday() {
+            const meds = getMedicines();
+            const logs = getTodayStatus();
+            const el = document.getElementById('today-schedule');
+            const sum = document.getElementById('summary');
+
+            if (!meds.length) { el.innerHTML = '<div class="empty">No medicines added yet.</div>'; sum.innerHTML = ''; return; }
+
+            // Build all doses for today
+            let allDoses = [];
+            meds.forEach(m => {
+                m.timings.forEach(timing => {
+                    allDoses.push({ id: m.id, name: m.name, dosage: m.dosage, timing });
                 });
             });
+
+            const taken = logs.filter(l => l.action === 'taken').length;
+            const skipped = logs.filter(l => l.action === 'skipped').length;
+            const total = allDoses.length;
+            sum.innerHTML = `
+                <div class="summary-card"><div class="num" style="color:#2196F3">${total}</div><div class="lbl">Total</div></div>
+                <div class="summary-card"><div class="num" style="color:#4CAF50">${taken}</div><div class="lbl">Taken</div></div>
+                <div class="summary-card"><div class="num" style="color:#e53935">${skipped}</div><div class="lbl">Skipped</div></div>`;
+
+            let html = '';
+            Object.entries(TIMING_GROUPS).forEach(([group, timings]) => {
+                const doses = allDoses.filter(d => timings.includes(d.timing));
+                if (!doses.length) return;
+                html += `<div class="slot-group"><h3>${group}</h3>`;
+                doses.forEach(d => {
+                    const log = logs.find(l => l.medId === d.id && l.timing === d.timing);
+                    const cls = log ? (log.action === 'taken' ? 'taken' : 'skipped') : '';
+                    const status = log ? (log.action === 'taken' ? ' ✅' : ' ⏭️') : '';
+                    html += `<div class="dose-card ${cls}">
+                        <div><strong>${d.name}</strong>${status}<br><small>${d.dosage} • ${d.timing}</small></div>
+                        <div>${log ? '' : `<button class="btn-sm btn-take" onclick="logDose('${d.id}','${d.timing}','taken')">Take</button><button class="btn-sm btn-skip" onclick="logDose('${d.id}','${d.timing}','skipped')">Skip</button>`}</div>
+                    </div>`;
+                });
+                html += '</div>';
+            });
+            el.innerHTML = html || '<div class="empty">All done for today! 🎉</div>';
         }
 
-        // Check missed doses every minute and update UI
-        setInterval(() => { if (document.querySelector('#page-home.active')) renderMedicines(); }, 60000);
+        function logDose(medId, timing, action) {
+            const logs = getLogs();
+            logs.push({ medId, timing, action, date: today(), time: new Date().toISOString() });
+            saveLogs(logs);
+            renderToday();
+        }
+
+        // === HISTORY ===
+        function renderHistory() {
+            const logs = getLogs();
+            const meds = getMedicines();
+            const el = document.getElementById('history-list');
+            if (!logs.length) { el.innerHTML = '<div class="empty">No history yet.</div>'; return; }
+
+            // Group by date
+            const grouped = {};
+            logs.forEach(l => {
+                if (!grouped[l.date]) grouped[l.date] = [];
+                const med = meds.find(m => m.id === l.medId);
+                grouped[l.date].push({ ...l, medName: med ? med.name : 'Unknown' });
+            });
+
+            let html = '';
+            Object.keys(grouped).sort().reverse().forEach(date => {
+                html += `<div class="log-date-header">${new Date(date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</div>`;
+                grouped[date].forEach(l => {
+                    const icon = l.action === 'taken' ? '✅' : '⏭️';
+                    const time = new Date(l.time).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+                    html += `<div class="log-entry">${icon} <strong>${l.medName}</strong> - ${l.timing} <span style="float:right;color:#666;font-size:0.8rem;">${time}</span></div>`;
+                });
+            });
+            el.innerHTML = html;
+        }
+
+        // === EXPORTS ===
+        function getExportText() {
+            const logs = getLogs();
+            const meds = getMedicines();
+            let text = '💊 Medicine History\n\n';
+            const grouped = {};
+            logs.forEach(l => {
+                if (!grouped[l.date]) grouped[l.date] = [];
+                const med = meds.find(m => m.id === l.medId);
+                grouped[l.date].push({ ...l, medName: med ? med.name : 'Unknown' });
+            });
+            Object.keys(grouped).sort().reverse().forEach(date => {
+                text += `📅 ${date}\n`;
+                grouped[date].forEach(l => {
+                    const icon = l.action === 'taken' ? '✅' : '⏭️';
+                    text += `  ${icon} ${l.medName} - ${l.timing}\n`;
+                });
+                text += '\n';
+            });
+            return text;
+        }
+
+        function exportWhatsApp() {
+            const text = getExportText();
+            window.open('https://wa.me/?text=' + encodeURIComponent(text));
+        }
+
+        function exportEmail() {
+            const text = getExportText();
+            window.open('mailto:?subject=Medicine History&body=' + encodeURIComponent(text));
+        }
+
+        function exportPDF() {
+            const w = window.open('', '_blank');
+            const logs = getLogs();
+            const meds = getMedicines();
+            let html = '<html><head><title>Medicine History</title><style>body{font-family:sans-serif;padding:20px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#4CAF50;color:#fff}</style></head><body>';
+            html += '<h1>💊 Medicine History</h1><table><tr><th>Date</th><th>Medicine</th><th>Timing</th><th>Status</th><th>Time</th></tr>';
+            logs.sort((a,b) => b.time.localeCompare(a.time)).forEach(l => {
+                const med = meds.find(m => m.id === l.medId);
+                html += `<tr><td>${l.date}</td><td>${med?med.name:'Unknown'}</td><td>${l.timing}</td><td>${l.action}</td><td>${new Date(l.time).toLocaleTimeString()}</td></tr>`;
+            });
+            html += '</table></body></html>';
+            w.document.write(html);
+            w.document.close();
+            setTimeout(() => w.print(), 500);
+        }
+
+        function exportExcel() {
+            const logs = getLogs();
+            const meds = getMedicines();
+            let csv = 'Date,Medicine,Dosage,Timing,Status,Time\n';
+            logs.sort((a,b) => b.time.localeCompare(a.time)).forEach(l => {
+                const med = meds.find(m => m.id === l.medId);
+                csv += `${l.date},"${med?med.name:'Unknown'}","${med?med.dosage:''}",${l.timing},${l.action},${new Date(l.time).toLocaleTimeString()}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'medicine-history.csv';
+            a.click();
+        }
+
+        // === SYNC ===
+        function markUpdated() {
+            localStorage.setItem('data_updated', String(Date.now()));
+            if (accessToken) setTimeout(syncNow, 1000);
+        }
 
         // Init
-        if ('Notification' in window && Notification.permission !== 'granted') document.getElementById('notif-banner').style.display = 'block';
-        renderMedicines();
-        scheduleNotifications();
+        updateTimingOptions();
+        renderToday();
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
     </script>
+
     <script src="https://accounts.google.com/gsi/client"></script>
     <script>
-        // ===== GOOGLE DRIVE SYNC =====
-        // ⚠️ REPLACE THIS with your OAuth Client ID from Google Cloud Console
         const GDRIVE_CLIENT_ID = '157005612520-70t1peegtr1uoinrnjv2g9uk1geni5j8.apps.googleusercontent.com';
         const GDRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.email';
         const SYNC_FILE = 'medicine-reminder-data.json';
-
-        let accessToken = null;
-        let tokenClient = null;
+        let accessToken = null, tokenClient = null;
 
         function initGIS() {
-            tokenClient = google.accounts.oauth2.initTokenClient({
-                client_id: GDRIVE_CLIENT_ID,
-                scope: GDRIVE_SCOPE,
-                callback: handleTokenResponse
-            });
-            // Auto-restore session
+            tokenClient = google.accounts.oauth2.initTokenClient({ client_id: GDRIVE_CLIENT_ID, scope: GDRIVE_SCOPE, callback: handleTokenResponse });
             const saved = localStorage.getItem('gdrive_token');
-            if (saved) {
-                const t = JSON.parse(saved);
-                if (t.expiry > Date.now()) {
-                    accessToken = t.token;
-                    showSignedIn(t.email);
-                }
-            }
+            if (saved) { const t = JSON.parse(saved); if (t.expiry > Date.now()) { accessToken = t.token; showSignedIn(t.email); } }
         }
-
         function gDriveSignIn() { tokenClient.requestAccessToken(); }
-
         function gDriveSignOut() {
             if (accessToken) google.accounts.oauth2.revoke(accessToken);
-            accessToken = null;
-            localStorage.removeItem('gdrive_token');
+            accessToken = null; localStorage.removeItem('gdrive_token');
             document.getElementById('sync-signed-in').style.display = 'none';
             document.getElementById('sync-signed-out').style.display = 'block';
-            setSyncStatus('Signed out');
         }
-
         async function handleTokenResponse(resp) {
-            if (resp.error) { alert('Sign-in failed: ' + resp.error); return; }
+            if (resp.error) { alert('Sign-in failed'); return; }
             accessToken = resp.access_token;
-            // Get user email
-            const info = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                headers: { Authorization: 'Bearer ' + accessToken }
-            }).then(r => r.json());
-            const email = info.email || 'Unknown';
-            localStorage.setItem('gdrive_token', JSON.stringify({
-                token: accessToken, email, expiry: Date.now() + (resp.expires_in * 1000)
-            }));
+            const info = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: 'Bearer ' + accessToken } }).then(r => r.json());
+            const email = info.email || '';
+            localStorage.setItem('gdrive_token', JSON.stringify({ token: accessToken, email, expiry: Date.now() + (resp.expires_in * 1000) }));
             showSignedIn(email);
             syncNow();
         }
-
         function showSignedIn(email) {
             document.getElementById('sync-signed-out').style.display = 'none';
             document.getElementById('sync-signed-in').style.display = 'block';
             document.getElementById('sync-email').textContent = email;
         }
+        function setSyncStatus(msg) { document.getElementById('sync-status').textContent = msg; }
 
-        function setSyncStatus(msg) {
-            document.getElementById('sync-status').textContent = msg;
-        }
-
-        // --- Drive API helpers ---
         async function driveRequest(url, opts = {}) {
             opts.headers = { ...opts.headers, Authorization: 'Bearer ' + accessToken };
             const r = await fetch(url, opts);
-            if (r.status === 401) { accessToken = null; localStorage.removeItem('gdrive_token'); gDriveSignOut(); throw new Error('Token expired'); }
+            if (r.status === 401) { gDriveSignOut(); throw new Error('Token expired'); }
             return r;
         }
-
         async function findSyncFile() {
-            const r = await driveRequest('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%27' + SYNC_FILE + '%27&fields=files(id,modifiedTime)');
-            const data = await r.json();
-            return data.files && data.files[0];
+            const r = await driveRequest('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%27' + SYNC_FILE + '%27&fields=files(id)');
+            const d = await r.json(); return d.files && d.files[0];
         }
-
         async function downloadSyncFile(fileId) {
-            const r = await driveRequest('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media');
-            return r.json();
+            return (await driveRequest('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media')).json();
         }
-
         async function uploadSyncFile(content, existingId) {
-            const metadata = { name: SYNC_FILE, ...(existingId ? {} : { parents: ['appDataFolder'] }) };
+            const meta = { name: SYNC_FILE, ...(existingId ? {} : { parents: ['appDataFolder'] }) };
             const form = new FormData();
-            form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+            form.append('metadata', new Blob([JSON.stringify(meta)], { type: 'application/json' }));
             form.append('file', new Blob([JSON.stringify(content)], { type: 'application/json' }));
-            const url = existingId
-                ? 'https://www.googleapis.com/upload/drive/v3/files/' + existingId + '?uploadType=multipart'
-                : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+            const url = existingId ? 'https://www.googleapis.com/upload/drive/v3/files/' + existingId + '?uploadType=multipart' : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
             await driveRequest(url, { method: existingId ? 'PATCH' : 'POST', body: form });
         }
-
-        // --- Sync logic (latest-wins) ---
         async function syncNow() {
             if (!accessToken) return;
             setSyncStatus('⏳ Syncing...');
             try {
-                const local = {
-                    medicines: getMedicines(),
-                    logs: getLogs(),
-                    updatedAt: parseInt(localStorage.getItem('data_updated') || '0')
-                };
+                const local = { medicines: getMedicines(), logs: getLogs(), updatedAt: parseInt(localStorage.getItem('data_updated') || '0') };
                 const file = await findSyncFile();
                 if (file) {
                     const remote = await downloadSyncFile(file.id);
                     if (remote.updatedAt > local.updatedAt) {
-                        // Remote is newer — use it
-                        saveMedicines(remote.medicines || []);
-                        saveLogs(remote.logs || []);
+                        localStorage.setItem('medicines2', JSON.stringify(remote.medicines || []));
+                        localStorage.setItem('med_logs2', JSON.stringify(remote.logs || []));
                         localStorage.setItem('data_updated', String(remote.updatedAt));
-                        renderMedicines();
-                        setSyncStatus('✅ Downloaded from cloud • ' + new Date().toLocaleTimeString());
+                        renderToday();
+                        setSyncStatus('✅ Downloaded • ' + new Date().toLocaleTimeString());
                     } else {
-                        // Local is newer — push it
                         await uploadSyncFile(local, file.id);
-                        setSyncStatus('✅ Uploaded to cloud • ' + new Date().toLocaleTimeString());
+                        setSyncStatus('✅ Uploaded • ' + new Date().toLocaleTimeString());
                     }
                 } else {
-                    // No file yet — upload
-                    local.updatedAt = Date.now();
-                    localStorage.setItem('data_updated', String(local.updatedAt));
+                    local.updatedAt = Date.now(); localStorage.setItem('data_updated', String(local.updatedAt));
                     await uploadSyncFile(local);
-                    setSyncStatus('✅ First sync done • ' + new Date().toLocaleTimeString());
+                    setSyncStatus('✅ First sync • ' + new Date().toLocaleTimeString());
                 }
-            } catch (e) {
-                setSyncStatus('❌ Sync failed: ' + e.message);
-            }
+            } catch (e) { setSyncStatus('❌ ' + e.message); }
         }
-
-        // Mark data as updated on any change
-        function markUpdated() {
-            localStorage.setItem('data_updated', String(Date.now()));
-            if (accessToken) setTimeout(syncNow, 1000); // Auto-sync after change
-        }
-
-        // Patch save functions to trigger sync
-        const _origSaveMedicines = saveMedicines;
-        saveMedicines = function(m) { _origSaveMedicines(m); markUpdated(); };
-        const _origSaveLogs = saveLogs;
-        saveLogs = function(l) { _origSaveLogs(l); markUpdated(); };
-
-        // Init GIS when library loads
         window.addEventListener('load', () => { if (window.google) initGIS(); });
     </script>
 </body>
