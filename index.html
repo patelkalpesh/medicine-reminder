@@ -603,7 +603,7 @@
             html+=`<div class="slot-group"><h3>${icons[group]} ${group}</h3>`;
             pending.forEach(d=>{
                 html+=`<div class="dose-card"><div><strong>${d.icon} ${d.name}</strong><br><small>${d.dosage} • ${d.timing}${d.time?' • 🕐'+formatTime12(d.time):''}</small></div>
-                <div><button class="btn-sm btn-take" onclick="logDose('${d.id}','${d.timing}','taken')">Take</button><button class="btn-sm btn-skip" onclick="logDose('${d.id}','${d.timing}','skipped')">Skip</button></div></div>`;
+                <div><button class="btn-sm btn-take" onclick="logDose('${d.id}','${d.timing}','taken')">Take</button><button class="btn-sm btn-skip" onclick="logDose('${d.id}','${d.timing}','skipped')">Skip</button><button class="btn-sm" style="background:#FF9800;font-size:0.65rem;" onclick="snoozeDose('${d.name}','${d.timing}')">⏰ Snooze</button></div></div>`;
             });
             if(done.length){
                 html+=`<div class="done-group"><div class="done-header" onclick="this.nextElementSibling.classList.toggle('open')"><span>✅ ${done.length} done</span><span>▼</span></div><div class="done-list">`;
@@ -781,10 +781,17 @@
     }
 
     // === SNOOZE ===
-    function snoozeReminder(medName,timing,minutes){
-        const snoozed=JSON.parse(sessionStorage.getItem('snoozed')||'{}');
-        snoozed[medName+'_'+timing]=Date.now()+minutes*60000;
-        sessionStorage.setItem('snoozed',JSON.stringify(snoozed));
+    function snoozeDose(medName,timing){
+        const mins=prompt('Snooze for how many minutes?\n\nEnter: 10 or 30','10');
+        if(!mins)return;
+        const m=parseInt(mins);if(!m||m<1)return;
+        alert('⏰ Will remind you in '+m+' minutes for '+medName);
+        setTimeout(()=>{
+            if('Notification' in window&&Notification.permission==='granted'){
+                new Notification('⏰ Snoozed reminder: '+medName,{body:timing+' — Take now!',icon:'icon-192.png'});
+                playAlertSound();
+            }else{alert('⏰ Time to take '+medName+'! ('+timing+')')}
+        },m*60000);
     }
 
     // === MONTHLY PDF EMAIL ===
