@@ -107,7 +107,12 @@
                 <option value="1">Once daily</option>
                 <option value="2">Twice daily</option>
                 <option value="3">Three times daily</option>
+                <option value="sos">🆘 SOS / As needed (Emergency)</option>
             </select>
+            <div id="sos-section" style="display:none;">
+                <label>When to take (Emergency instructions)</label>
+                <textarea id="med-sos-note" rows="2" placeholder="e.g. Take when BP goes above 160, or chest pain, or panic attack"></textarea>
+            </div>
             <div id="timing-sections"></div>
             <label>Course Duration</label>
             <select id="med-course">
@@ -264,12 +269,16 @@
 
     // === MEDICINE FORM ===
     function updateTimingOptions(){
-        const freq=parseInt(document.getElementById('med-freq').value);
+        const freq=document.getElementById('med-freq').value;
         const container=document.getElementById('timing-sections');
+        const sosSection=document.getElementById('sos-section');
+        if(freq==='sos'){sosSection.style.display='block';container.innerHTML='';return}
+        sosSection.style.display='none';
+        const f=parseInt(freq);
         const labels=['1st Dose','2nd Dose','3rd Dose'];
         const defaultTimes=['08:00','14:00','20:00'];
         let html='';
-        for(let i=0;i<freq;i++){
+        for(let i=0;i<f;i++){
             html+=`<label>${labels[i]} - When?</label><div class="timing-grid">`;
             TIMINGS.forEach(t=>{html+=`<div class="timing-chip" data-dose="${i}" data-timing="${t}" onclick="toggleTiming(this)">${t}</div>`});
             html+=`</div><label>${labels[i]} - Time</label><input type="time" id="dose-time-${i}" value="${defaultTimes[i]}">`;
@@ -286,31 +295,40 @@
         document.getElementById('med-freq').value='1';
         document.getElementById('med-course').value='ongoing';
         document.getElementById('med-stock').value='';
+        document.getElementById('med-sos-note').value='';
+        document.getElementById('sos-section').style.display='none';
         updateTimingOptions();
     }
     function saveMedicine(){
         const name=document.getElementById('med-name').value.trim();
         const dosage=document.getElementById('med-dosage').value.trim();
         const icon=document.getElementById('med-icon').value.trim()||'💊';
-        const freq=parseInt(document.getElementById('med-freq').value);
+        const freq=document.getElementById('med-freq').value;
         const course=document.getElementById('med-course').value;
         const stock=parseInt(document.getElementById('med-stock').value)||0;
         if(!name){alert('Enter medicine name');return}
-        const timings=[],times=[];
-        for(let i=0;i<freq;i++){
-            const sel=document.querySelector(`.timing-chip[data-dose="${i}"].selected`);
-            if(!sel){alert(`Select timing for dose ${i+1}`);return}
-            timings.push(sel.dataset.timing);
-            const tv=document.getElementById('dose-time-'+i).value;
-            if(!tv){alert(`Set time for dose ${i+1}`);return}
-            times.push(tv);
+
+        let timings=[],times=[],sosNote='';
+        if(freq==='sos'){
+            sosNote=document.getElementById('med-sos-note').value.trim();
+            if(!sosNote){alert('Enter when to take this SOS medicine');return}
+        }else{
+            const f=parseInt(freq);
+            for(let i=0;i<f;i++){
+                const sel=document.querySelector(`.timing-chip[data-dose="${i}"].selected`);
+                if(!sel){alert(`Select timing for dose ${i+1}`);return}
+                timings.push(sel.dataset.timing);
+                const tv=document.getElementById('dose-time-'+i).value;
+                if(!tv){alert(`Set time for dose ${i+1}`);return}
+                times.push(tv);
+            }
         }
         const meds=getMedicines();const editId=document.getElementById('edit-id').value;
         if(editId){
             const idx=meds.findIndex(m=>m.id===editId);
-            if(idx>=0)meds[idx]={...meds[idx],name,dosage,icon,freq,timings,times,course,stock};
+            if(idx>=0)meds[idx]={...meds[idx],name,dosage,icon,freq,timings,times,course,stock,sosNote};
         }else{
-            meds.push({id:Date.now().toString(),name,dosage,icon,freq,timings,times,course,stock,startDate:today()});
+            meds.push({id:Date.now().toString(),name,dosage,icon,freq,timings,times,course,stock,sosNote,startDate:today()});
         }
         saveMedicines(meds);resetForm();showPage('meds');
     }
@@ -325,11 +343,12 @@
         document.getElementById('med-course').value=med.course||'ongoing';
         document.getElementById('med-stock').value=med.stock||'';
         updateTimingOptions();
-        med.timings.forEach((t,i)=>{
+        if(med.freq==='sos'){document.getElementById('med-sos-note').value=med.sosNote||''}
+        else{med.timings.forEach((t,i)=>{
             const chip=document.querySelector(`.timing-chip[data-dose="${i}"][data-timing="${t}"]`);
             if(chip)chip.classList.add('selected');
             if(med.times&&med.times[i])document.getElementById('dose-time-'+i).value=med.times[i];
-        });
+        })}
         showPage('add');
     }
     function deleteMedicine(id){if(!confirm('Delete?'))return;saveMedicines(getMedicines().filter(m=>m.id!==id));renderMedsList()}
@@ -347,12 +366,19 @@
     function renderMedsList(){
         const meds=getMedicines();const el=document.getElementById('meds-list');
         if(!meds.length){el.innerHTML='<div class="empty">No medicines yet. Tap + Add.</div>';return}
-        el.innerHTML=meds.map(m=>`<div class="card"><div class="med-row">
+        el.innerHTML=meds.map(m=>{
+            if(m.freq==='sos')return`<div class="card" style="border-left:4px solid #e53935"><div class="med-row">
+                <div class="med-photo">${m.icon||'🆘'}</div>
+                <div class="med-info"><strong>🆘 ${m.name}</strong><br><small>${m.dosage} • SOS / As needed</small><br>
+                <small style="color:#e53935">⚠️ ${m.sosNote||''}</small>${m.stock?' • 📦 '+m.stock+' left':''}</div>
+            </div><div><button class="btn-sm btn-take" onclick="logDose('${m.id}','SOS','taken')">💊 Take Now</button><button class="btn-sm btn-edit" onclick="editMedicine('${m.id}')">✏️</button><button class="btn-sm btn-del" onclick="deleteMedicine('${m.id}')">🗑️</button></div></div>`;
+            return`<div class="card"><div class="med-row">
             <div class="med-photo">${m.icon||'💊'}</div>
             <div class="med-info"><strong>${m.name}</strong><br><small>${m.dosage} • ${m.freq}x daily</small><br>
             <small>⏰ ${m.timings.map((t,i)=>t+(m.times&&m.times[i]?' @ '+formatTime12(m.times[i]):'')).join(', ')}</small><br>
             ${getCourseInfo(m)}${m.stock?` • 📦 ${m.stock} left`:''}</div>
-        </div><div><button class="btn-sm btn-edit" onclick="editMedicine('${m.id}')">✏️ Edit</button><button class="btn-sm btn-del" onclick="deleteMedicine('${m.id}')">🗑️ Delete</button></div></div>`).join('');
+        </div><div><button class="btn-sm btn-edit" onclick="editMedicine('${m.id}')">✏️ Edit</button><button class="btn-sm btn-del" onclick="deleteMedicine('${m.id}')">🗑️ Delete</button></div></div>`;
+        }).join('');
     }
 
     // === TODAY ===
@@ -361,8 +387,10 @@
         const meds=getMedicines();const logs=getTodayStatus();
         const el=document.getElementById('today-schedule');const sum=document.getElementById('summary');
         if(!meds.length){el.innerHTML='<div class="empty">No medicines added yet.</div>';sum.innerHTML='';document.getElementById('adherence-box').innerHTML='';document.getElementById('refill-alerts').innerHTML='';return}
+        const regularMeds=meds.filter(m=>m.freq!=='sos');
+        const sosMeds=meds.filter(m=>m.freq==='sos');
         let allDoses=[];
-        meds.forEach(m=>{m.timings.forEach((timing,i)=>{allDoses.push({id:m.id,name:m.name,dosage:m.dosage,timing,time:(m.times&&m.times[i])||'',icon:m.icon||'💊'})})});
+        regularMeds.forEach(m=>{m.timings.forEach((timing,i)=>{allDoses.push({id:m.id,name:m.name,dosage:m.dosage,timing,time:(m.times&&m.times[i])||'',icon:m.icon||'💊'})})});
         const taken=logs.filter(l=>l.action==='taken').length;const skipped=logs.filter(l=>l.action==='skipped').length;
         const total=allDoses.length;const pending=total-taken-skipped;
         sum.innerHTML=`<div class="summary-card"><div class="num" style="color:#2196F3">${total}</div><div class="lbl">Total</div></div>
@@ -396,6 +424,12 @@
             html+='</div>';
         });
         el.innerHTML=html||'<div class="empty">All done for today! 🎉</div>';
+        // SOS section
+        if(sosMeds.length){
+            let sosHtml='<div class="slot-group"><h3 style="color:#e53935">🆘 SOS / Emergency</h3>';
+            sosMeds.forEach(m=>{sosHtml+=`<div class="dose-card" style="border-left:3px solid #e53935"><div><strong>${m.icon||'🆘'} ${m.name}</strong><br><small>${m.dosage} • ${m.sosNote||''}</small></div><div><button class="btn-sm btn-take" onclick="logDose('${m.id}','SOS','taken')">💊 Take</button></div></div>`});
+            sosHtml+='</div>';el.innerHTML+=sosHtml;
+        }
     }
     function logDose(medId,timing,action){
         const logs=getLogs();logs.push({medId,timing,action,date:today(),time:new Date().toISOString()});saveLogs(logs);
