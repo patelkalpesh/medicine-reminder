@@ -782,7 +782,7 @@
     }
 
     // === SNOOZE ===
-    function getSnoozed(){return JSON.parse(sessionStorage.getItem('snoozed')||'{}')}
+    function getSnoozed(){return JSON.parse(localStorage.getItem('snoozed')||'{}')}
     function snoozeDose(medName,timing,btn){
         const mins=prompt('Snooze for how many minutes?\n\nEnter: 10 or 30','10');
         if(!mins)return;
@@ -790,7 +790,7 @@
         const key=medName+'_'+timing;
         const snoozed=getSnoozed();
         snoozed[key]=Date.now()+m*60000;
-        sessionStorage.setItem('snoozed',JSON.stringify(snoozed));
+        localStorage.setItem('snoozed',JSON.stringify(snoozed));markUpdated();
         btn.disabled=true;btn.style.background='#ccc';btn.textContent='⏰ '+m+'m';
         startSnoozeCountdown(btn,key,medName,timing);
     }
@@ -801,7 +801,7 @@
             const left=Math.ceil((end-Date.now())/60000);
             if(left<=0){
                 clearInterval(iv);btn.disabled=false;btn.style.background='#FF9800';btn.textContent='⏰ Snooze';
-                delete snoozed[key];sessionStorage.setItem('snoozed',JSON.stringify(snoozed));
+                delete snoozed[key];localStorage.setItem('snoozed',JSON.stringify(snoozed));
                 if('Notification' in window&&Notification.permission==='granted'){new Notification('⏰ '+medName,{body:timing+' — Take now!',icon:'icon-192.png'});playAlertSound()}
             }else{btn.textContent='⏰ '+left+'m'}
         },10000);
@@ -815,7 +815,7 @@
             const btn=document.querySelector(`[data-snooze-key="${key}"]`);
             if(btn){btn.disabled=true;btn.style.background='#ccc';btn.textContent='⏰ '+left+'m';startSnoozeCountdown(btn,key,key.split('_')[0],key.split('_').slice(1).join('_'))}
         });
-        sessionStorage.setItem('snoozed',JSON.stringify(snoozed));
+        localStorage.setItem('snoozed',JSON.stringify(snoozed));
     }
 
     // === MONTHLY PDF EMAIL ===
@@ -1130,7 +1130,7 @@
     async function syncNow(){
         if(!accessToken)return;setSyncStatus('⏳ Syncing...');
         try{
-            const local={medicines:getMedicines(),logs:getLogs(),doctors:getDoctors(),caretakers:getCaretakers(),bpLogs:getBPLogs(),appointments:getAppointments(),notifSettings:getNotifSettings(),updatedAt:parseInt(localStorage.getItem('data_updated')||'0')};
+            const local={medicines:getMedicines(),logs:getLogs(),doctors:getDoctors(),caretakers:getCaretakers(),bpLogs:getBPLogs(),appointments:getAppointments(),snoozed:getSnoozed(),notifSettings:getNotifSettings(),updatedAt:parseInt(localStorage.getItem('data_updated')||'0')};
             const file=await findSyncFile();
             if(file){
                 const remote=await downloadSyncFile(file.id);
