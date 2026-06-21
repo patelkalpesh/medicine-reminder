@@ -357,11 +357,49 @@
                 ✅ App is installed! Open from your home screen.
             </div>
         </div>
+        <div class="card">
+            <h2>📢 Share This App</h2>
+            <p style="font-size:0.8rem;color:#666;margin-bottom:10px;">Share with family/friends — they get their own separate data with PIN protection.</p>
+            <button class="btn" onclick="shareApp('whatsapp')" style="background:#25D366;">📱 Share via WhatsApp</button>
+            <button class="btn" onclick="shareApp('copy')" style="background:#2196F3;margin-top:6px;">📋 Copy Link</button>
+        </div>
+        <div class="card">
+            <h2>✨ About This App</h2>
+            <p style="font-size:0.8rem;color:#666;margin-bottom:10px;">A complete medicine management app — built with ❤️</p>
+            <div style="font-size:0.75rem;color:#555;line-height:1.8;">
+                🏠 <strong>Today</strong> — Schedule with Take/Snooze, next dose widget<br>
+                💊 <strong>Medicines</strong> — Add/Edit/Pause, photo crop, SOS emergency<br>
+                📸 <strong>Photo</strong> — Camera upload with crop tool<br>
+                ⏰ <strong>Reminders</strong> — 30/15/5 min + sound alert<br>
+                ⏰ <strong>Snooze</strong> — 10/30 min with countdown<br>
+                📈 <strong>Adherence</strong> — Weekly % score<br>
+                📅 <strong>Calendar</strong> — Monthly green/yellow/red view<br>
+                📝 <strong>Notes</strong> — Record symptoms per dose<br>
+                ❤️ <strong>Health</strong> — BP/Heart rate log with history<br>
+                📅 <strong>Appointments</strong> — Doctor visits with reminders<br>
+                📦 <strong>Stock</strong> — Strips, balance, days left, timeline<br>
+                💰 <strong>Costs</strong> — Price per strip, future bills<br>
+                🛒 <strong>Order Planner</strong> — What to buy for 15/30/60 days<br>
+                ⚠️ <strong>Reorder Alerts</strong> — WhatsApp/Email/Notify when low<br>
+                🔁 <strong>Course Duration</strong> — Day X/Y progress<br>
+                🏥 <strong>Doctors</strong> — Contacts, tap-to-call<br>
+                💬 <strong>Caretaker Alerts</strong> — Auto WhatsApp if missed<br>
+                🖨️ <strong>Print Card</strong> — Fridge summary<br>
+                📊 <strong>Doctor Report</strong> — PDF with adherence + notes<br>
+                📋 <strong>History</strong> — Export WhatsApp/Email/PDF/Excel<br>
+                🔄 <strong>Backup</strong> — JSON export + WhatsApp share<br>
+                ☁️ <strong>Sync</strong> — Google Drive across devices<br>
+                🔐 <strong>PIN Lock</strong> — Secure login<br>
+                🌙 <strong>Dark Mode</strong> — Easy on eyes<br>
+                🌐 <strong>Languages</strong> — English, Hindi, Gujarati<br>
+                📲 <strong>Install</strong> — PWA, works offline<br>
+                🆕 <strong>Auto Updates</strong> — Blue banner on new version<br>
+                📧 <strong>Monthly Report</strong> — Auto email on 1st of month
+            </div>
+        </div>
         <div class="card" style="text-align:center;">
-            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v4.1</p>
-            <p style="font-size:0.7rem;color:#bbb;">Deployed: 21 Jun 2026, 12:59:00 PM IST</p>
-            <p style="font-size:0.65rem;color:#ccc;margin-top:4px;">✨ v4.1: BP log, doctor appointments, tap-to-call, snooze, monthly email</p>
-            <p style="font-size:0.65rem;color:#ccc;">v4.0: Sound, Hindi/Gujarati, dark mode, pause, notes, print card, doctor report, backup, widget</p>
+            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v4.2</p>
+            <p style="font-size:0.7rem;color:#bbb;">Deployed: 21 Jun 2026, 05:35:00 PM IST</p>
         </div>
     </div>
 
@@ -1207,6 +1245,14 @@
         openReport(html);
     }
 
+    // === SHARE ===
+    function shareApp(method){
+        const url='https://kalpeshpatel-mobilearts.github.io/medicine-reminder/';
+        const text='💊 Medicine Reminder — Free app to track medicines, get dose reminders, sync across devices.\n\n✅ No download needed\n✅ Works on any phone\n✅ Your own PIN-protected data\n\n👉 '+url;
+        if(method==='whatsapp')window.open('https://wa.me/?text='+encodeURIComponent(text));
+        else{navigator.clipboard.writeText(url).then(()=>alert('✅ Link copied!')).catch(()=>{prompt('Copy this link:',url)})}
+    }
+
     // === BACKUP / RESTORE ===
     function backupWhatsApp(){
         const data={medicines:getMedicines(),logs:getLogs(),doctors:getDoctors(),caretakers:getCaretakers(),backup_date:new Date().toISOString()};
@@ -1450,7 +1496,7 @@
     document.addEventListener('visibilitychange',()=>{if(!document.hidden){pullFromDrive();checkForUpdate()}});
 
     // === UPDATE CHECK ===
-    const APP_VERSION='4.1';
+    const APP_VERSION='4.2';
     async function checkForUpdate(){
         try{
             const r=await fetch('version.json?t='+Date.now());const d=await r.json();

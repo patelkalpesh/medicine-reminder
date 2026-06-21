@@ -1,5 +1,5 @@
 {
-  "version": "4.1",
-  "deployed": "21 Jun 2026, 12:59:00 PM IST",
-  "features": "BP/vitals log, doctor appointments with reminders, tap-to-call, monthly auto-email report"
+  "version": "4.2",
+  "deployed": "21 Jun 2026, 05:35:00 PM IST",
+  "features": "Showcase page, share app button, photo crop, order planner, configurable alerts"
 }
