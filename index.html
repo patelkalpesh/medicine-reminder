@@ -39,6 +39,11 @@
         .slot-group h3{font-size:0.85rem;color:#4CAF50;padding:6px 0;border-bottom:1px solid #eee;margin-bottom:6px}
         .dose-card{display:flex;align-items:center;justify-content:space-between;padding:10px;background:#fafafa;border-radius:8px;margin-bottom:6px}
         .dose-card.taken{opacity:0.6;background:#e8f5e9}.dose-card.skipped{opacity:0.5;text-decoration:line-through}
+        .done-group{background:#f0f0f0;border-radius:8px;margin-bottom:8px;overflow:hidden}
+        .done-header{padding:8px 12px;font-size:0.8rem;color:#666;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+        .done-list{display:none;padding:0 8px 8px}
+        .done-list.open{display:block}
+        .done-item{font-size:0.8rem;padding:4px 8px;opacity:0.7}
         .adherence-bar{height:20px;background:#eee;border-radius:10px;overflow:hidden;margin:8px 0}
         .adherence-fill{height:100%;background:linear-gradient(90deg,#4CAF50,#8BC34A);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.7rem;font-weight:bold}
         .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:0.7rem}
@@ -356,14 +361,21 @@
         Object.entries(TIMING_GROUPS).forEach(([group,timings])=>{
             const doses=allDoses.filter(d=>timings.includes(d.timing));if(!doses.length)return;
             const icons={Morning:'🌅',Afternoon:'🌤️',Evening:'🌙'};
+            const pending=doses.filter(d=>!logs.find(l=>l.medId===d.id&&l.timing===d.timing));
+            const done=doses.filter(d=>logs.find(l=>l.medId===d.id&&l.timing===d.timing));
             html+=`<div class="slot-group"><h3>${icons[group]} ${group}</h3>`;
-            doses.forEach(d=>{
-                const log=logs.find(l=>l.medId===d.id&&l.timing===d.timing);
-                const cls=log?(log.action==='taken'?'taken':'skipped'):'';
-                const status=log?(log.action==='taken'?' ✅':' ⏭️'):'';
-                html+=`<div class="dose-card ${cls}"><div><strong>${d.icon} ${d.name}</strong>${status}<br><small>${d.dosage} • ${d.timing}${d.time?' • 🕐'+formatTime12(d.time):''}</small></div>
-                <div>${log?'':`<button class="btn-sm btn-take" onclick="logDose('${d.id}','${d.timing}','taken')">Take</button><button class="btn-sm btn-skip" onclick="logDose('${d.id}','${d.timing}','skipped')">Skip</button>`}</div></div>`;
+            pending.forEach(d=>{
+                html+=`<div class="dose-card"><div><strong>${d.icon} ${d.name}</strong><br><small>${d.dosage} • ${d.timing}${d.time?' • 🕐'+formatTime12(d.time):''}</small></div>
+                <div><button class="btn-sm btn-take" onclick="logDose('${d.id}','${d.timing}','taken')">Take</button><button class="btn-sm btn-skip" onclick="logDose('${d.id}','${d.timing}','skipped')">Skip</button></div></div>`;
             });
+            if(done.length){
+                html+=`<div class="done-group"><div class="done-header" onclick="this.nextElementSibling.classList.toggle('open')"><span>✅ ${done.length} done</span><span>▼</span></div><div class="done-list">`;
+                done.forEach(d=>{
+                    const log=logs.find(l=>l.medId===d.id&&l.timing===d.timing);
+                    html+=`<div class="done-item">${log.action==='taken'?'✅':'⏭️'} ${d.icon} ${d.name} • ${d.timing}</div>`;
+                });
+                html+='</div></div>';
+            }
             html+='</div>';
         });
         el.innerHTML=html||'<div class="empty">All done for today! 🎉</div>';
