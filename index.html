@@ -416,6 +416,12 @@
     function saveCaretakers(c){localStorage.setItem('med_caretakers',JSON.stringify(c));markUpdated()}
     function today(){return new Date().toISOString().split('T')[0]}
     function formatTime12(t){const[h,m]=t.split(':');const hr=parseInt(h);return(hr%12||12)+':'+m+(hr<12?' AM':' PM')}
+    function openReport(html){
+        const backBtn='<div style="position:sticky;top:0;background:#fff;padding:10px;text-align:center;border-bottom:1px solid #ddd;z-index:99;"><button onclick="window.close();window.history.back();" style="background:#4CAF50;color:#fff;border:none;padding:8px 20px;border-radius:6px;font-size:1rem;cursor:pointer;">← Back to App</button> <button onclick="window.print()" style="background:#2196F3;color:#fff;border:none;padding:8px 20px;border-radius:6px;font-size:1rem;cursor:pointer;">🖨️ Print</button></div>';
+        const w=window.open('','_blank');
+        w.document.write(html.replace('<body>','<body>'+backBtn).replace('<body ','<body>'+backBtn+'<div '));
+        w.document.close();
+    }
 
     const TIMINGS=['Before Breakfast','After Breakfast','Before Lunch','After Lunch','Before Dinner','After Dinner','Bedtime'];
     const TIMING_GROUPS={'Morning':['Before Breakfast','After Breakfast'],'Afternoon':['Before Lunch','After Lunch'],'Evening':['Before Dinner','After Dinner','Bedtime']};
@@ -783,7 +789,7 @@
             html+=`<tr class="${cls}"><td>${m.name}</td><td>${strips}</td><td>${loose}</td><td><strong>${total}</strong></td><td>${consumed}</td><td>${freq||'SOS'}</td><td>${daysLeft<999?daysLeft:'—'}</td><td>${daysLeft<999?lastDate.toLocaleDateString('en-IN',{day:'numeric',month:'short'}):'—'}</td><td>${status}</td></tr>`;
         });
         html+='</table><div class="footer">Medicine Reminder App • Stock Statement</div></body></html>';
-        const w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(()=>w.print(),500);
+        openReport(html);
     }
 
     // === PAUSE ===
@@ -998,7 +1004,7 @@
             else{m.timings.forEach((t,i)=>{html+=`<tr><td>${m.name}</td><td>${m.dosage}</td><td>${t}</td><td>${m.times&&m.times[i]?formatTime12(m.times[i]):''}</td></tr>`})}
         });
         html+='</table><div class="footer">📌 Stick on fridge • Medicine Reminder App</div></body></html>';
-        const w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(()=>w.print(),500);
+        openReport(html);
     }
 
     // === DOCTOR REPORT ===
@@ -1028,7 +1034,7 @@
             html+='</table>';
         }
         html+='</body></html>';
-        const w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(()=>w.print(),500);
+        openReport(html);
     }
 
     // === BACKUP / RESTORE ===
@@ -1104,7 +1110,7 @@
     }
     function exportWhatsApp(){window.open('https://wa.me/?text='+encodeURIComponent(getExportText()))}
     function exportEmail(){window.open('mailto:?subject=Medicine History&body='+encodeURIComponent(getExportText()))}
-    function exportPDF(){const w=window.open('','_blank');const logs=getLogs();const meds=getMedicines();let h='<html><head><title>Medicine History</title><style>body{font-family:sans-serif;padding:20px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#4CAF50;color:#fff}</style></head><body><h1>💊 Medicine History</h1><table><tr><th>Date</th><th>Medicine</th><th>Timing</th><th>Status</th></tr>';logs.sort((a,b)=>b.time.localeCompare(a.time)).forEach(l=>{const med=meds.find(m=>m.id===l.medId);h+=`<tr><td>${l.date}</td><td>${med?med.name:'?'}</td><td>${l.timing}</td><td>${l.action}</td></tr>`});h+='</table></body></html>';w.document.write(h);w.document.close();setTimeout(()=>w.print(),500)}
+    function exportPDF(){const logs=getLogs();const meds=getMedicines();let h='<html><head><title>Medicine History</title><style>body{font-family:sans-serif;padding:20px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#4CAF50;color:#fff}</style></head><body><h1>💊 Medicine History</h1><table><tr><th>Date</th><th>Medicine</th><th>Timing</th><th>Status</th></tr>';logs.sort((a,b)=>b.time.localeCompare(a.time)).forEach(l=>{const med=meds.find(m=>m.id===l.medId);h+=`<tr><td>${l.date}</td><td>${med?med.name:'?'}</td><td>${l.timing}</td><td>${l.action}</td></tr>`});h+='</table></body></html>';openReport(h)}
     function exportExcel(){const logs=getLogs();const meds=getMedicines();let csv='Date,Medicine,Timing,Status,Time\n';logs.sort((a,b)=>b.time.localeCompare(a.time)).forEach(l=>{const med=meds.find(m=>m.id===l.medId);csv+=`${l.date},"${med?med.name:'?'}",${l.timing},${l.action},${new Date(l.time).toLocaleTimeString()}\n`});const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='medicine-history.csv';a.click()}
 
     // === NOTIFICATIONS ===
