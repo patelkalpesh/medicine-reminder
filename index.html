@@ -189,6 +189,7 @@
                 <div><label style="font-size:0.75rem;margin:0;">Tablets per strip</label><input type="number" id="med-per-strip" placeholder="e.g. 10" min="1"></div>
             </div>
             <div style="margin-top:8px;"><label style="font-size:0.75rem;margin:0;">Loose tablets (extra)</label><input type="number" id="med-loose" placeholder="0" min="0"></div>
+            <div style="margin-top:8px;"><label style="font-size:0.75rem;margin:0;">💰 Price per strip (₹)</label><input type="number" id="med-price" placeholder="e.g. 85" min="0" step="0.01"></div>
             <button class="btn" onclick="saveMedicine()">Save Medicine</button>
             <button class="btn" style="background:#666;margin-top:8px;" onclick="cancelEdit()">Cancel</button>
         </div>
@@ -501,6 +502,7 @@
         document.getElementById('med-strips').value='';
         document.getElementById('med-per-strip').value='';
         document.getElementById('med-loose').value='';
+        document.getElementById('med-price').value='';
         document.getElementById('med-sos-note').value='';
         document.getElementById('sos-section').style.display='none';
         updateTimingOptions();
@@ -515,6 +517,7 @@
         const strips=parseInt(document.getElementById('med-strips').value)||0;
         const perStrip=parseInt(document.getElementById('med-per-strip').value)||10;
         const loose=parseInt(document.getElementById('med-loose').value)||0;
+        const price=parseFloat(document.getElementById('med-price').value)||0;
         const stock=strips*perStrip+loose;
         if(!name){alert('Enter medicine name');return}
 
@@ -536,9 +539,9 @@
         const meds=getMedicines();const editId=document.getElementById('edit-id').value;
         if(editId){
             const idx=meds.findIndex(m=>m.id===editId);
-            if(idx>=0)meds[idx]={...meds[idx],name,dosage,icon,photo,freq,timings,times,course,stock,strips,perStrip,loose,sosNote};
+            if(idx>=0)meds[idx]={...meds[idx],name,dosage,icon,photo,freq,timings,times,course,stock,strips,perStrip,loose,price,sosNote};
         }else{
-            meds.push({id:Date.now().toString(),name,dosage,icon,photo,freq,timings,times,course,stock,strips,perStrip,loose,sosNote,startDate:today()});
+            meds.push({id:Date.now().toString(),name,dosage,icon,photo,freq,timings,times,course,stock,strips,perStrip,loose,price,sosNote,startDate:today()});
         }
         saveMedicines(meds);resetForm();showPage('meds');
     }
@@ -557,6 +560,7 @@
         document.getElementById('med-strips').value=med.strips||'';
         document.getElementById('med-per-strip').value=med.perStrip||'';
         document.getElementById('med-loose').value=med.loose||'';
+        document.getElementById('med-price').value=med.price||'';
         updateTimingOptions();
         if(med.freq==='sos'){document.getElementById('med-sos-note').value=med.sosNote||''}
         else{med.timings.forEach((t,i)=>{
@@ -776,18 +780,44 @@
         if(!meds.length){el.innerHTML='<p style="font-size:0.8rem;color:#999;text-align:center;">No active stock data.</p>';return}
         const maxDays=Math.max(...meds.map(m=>{const f=parseInt(m.freq)||1;return Math.floor((m.stock||0)/f)}),30);
         let html='<div style="font-size:0.7rem;color:#666;margin-bottom:8px;">📅 When each medicine runs out:</div>';
+        let totalCost15=0,totalCost30=0,totalCost60=0;
         meds.forEach(m=>{
             const freq=parseInt(m.freq)||1;
+            const perStrip=m.perStrip||10;
+            const price=m.price||0;
             const daysLeft=Math.floor((m.stock||0)/freq);
             const pct=Math.min(100,Math.round(daysLeft/maxDays*100));
             const endDate=new Date();endDate.setDate(endDate.getDate()+daysLeft);
             const dateStr=endDate.toLocaleDateString('en-IN',{day:'numeric',month:'short'});
             const barColor=daysLeft<=3?'#e53935':daysLeft<=7?'#FF9800':daysLeft<=14?'#FFC107':'#4CAF50';
-            html+=`<div style="margin-bottom:8px;">
-                <div style="display:flex;justify-content:space-between;font-size:0.75rem;"><span>${m.icon||'💊'} ${m.name}</span><span style="color:${barColor};font-weight:bold;">${dateStr} (${daysLeft}d)</span></div>
-                <div style="height:12px;background:#eee;border-radius:6px;overflow:hidden;margin-top:2px;"><div style="height:100%;width:${pct}%;background:${barColor};border-radius:6px;"></div></div>
+            // Calculate strips needed
+            const strips15=Math.ceil((freq*15)/perStrip);
+            const strips30=Math.ceil((freq*30)/perStrip);
+            const strips60=Math.ceil((freq*60)/perStrip);
+            totalCost15+=strips15*price;
+            totalCost30+=strips30*price;
+            totalCost60+=strips60*price;
+            html+=`<div style="margin-bottom:10px;padding:8px;background:#fafafa;border-radius:8px;">
+                <div style="display:flex;justify-content:space-between;font-size:0.75rem;"><span><strong>${m.icon||'💊'} ${m.name}</strong></span><span style="color:${barColor};font-weight:bold;">${dateStr} (${daysLeft}d)</span></div>
+                <div style="height:10px;background:#eee;border-radius:6px;overflow:hidden;margin:4px 0;"><div style="height:100%;width:${pct}%;background:${barColor};border-radius:6px;"></div></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;font-size:0.65rem;text-align:center;margin-top:4px;">
+                    <div style="background:#e3f2fd;padding:4px;border-radius:4px;"><strong>${strips15}</strong> strips<br>15 days${price?'<br>₹'+strips15*price:''}</div>
+                    <div style="background:#e8f5e9;padding:4px;border-radius:4px;"><strong>${strips30}</strong> strips<br>30 days${price?'<br>₹'+strips30*price:''}</div>
+                    <div style="background:#f3e5f5;padding:4px;border-radius:4px;"><strong>${strips60}</strong> strips<br>60 days${price?'<br>₹'+strips60*price:''}</div>
+                </div>
             </div>`;
         });
+        // Total cost summary
+        if(totalCost30>0){
+            html+=`<div style="background:#fff8e1;padding:10px;border-radius:8px;margin-top:8px;text-align:center;font-size:0.8rem;">
+                <strong>💰 Total Medicine Cost</strong><br>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:6px;font-size:0.75rem;">
+                    <div>15 days<br><strong>₹${totalCost15}</strong></div>
+                    <div>30 days<br><strong>₹${totalCost30}</strong></div>
+                    <div>60 days<br><strong>₹${totalCost60}</strong></div>
+                </div>
+            </div>`;
+        }
         el.innerHTML=html;
     }
     function buyStock(id){
