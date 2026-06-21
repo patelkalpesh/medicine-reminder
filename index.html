@@ -838,13 +838,19 @@
     function saveAppointments(a){localStorage.setItem('med_appointments',JSON.stringify(a));markUpdated()}
     function addAppointment(){
         const doctor=prompt('Doctor name:');if(!doctor)return;
-        const date=prompt('Date (e.g. 2026-07-01):');if(!date)return;
-        const time=prompt('Time (e.g. 10:30):')||'';
-        const note=prompt('Note (reason/test):')||'';
+        const date=prompt('Date (YYYY-MM-DD e.g. 2026-07-01)\nLeave blank if no date yet:')||'';
+        const time=prompt('Time (HH:MM e.g. 10:30)\nLeave blank if no time:')||'';
+        const note=prompt('Reason/Note:')||'';
         const appts=getAppointments();
         appts.push({id:Date.now().toString(),doctor,date,time,note});
-        appts.sort((a,b)=>a.date.localeCompare(b.date));
+        if(date)appts.sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'));
         saveAppointments(appts);renderAppointments();
+        // Also add to doctors list if not already there
+        const docs=getDoctors();
+        if(!docs.find(d=>d.name.toLowerCase()===doctor.toLowerCase())){
+            docs.push({name:doctor,phone:'',specialty:'',nextVisit:date||'',icon:'👨‍⚕️'});
+            saveDoctors(docs);
+        }
     }
     function removeAppointment(id){
         if(!confirm('Remove?'))return;
@@ -852,15 +858,22 @@
     }
     function renderAppointments(){
         const appts=getAppointments();const el=document.getElementById('appointment-list');
-        const upcoming=appts.filter(a=>a.date>=today());
-        if(!upcoming.length){el.innerHTML='<div class="empty">No upcoming appointments.</div>';return}
-        el.innerHTML=upcoming.map(a=>{
-            const d=new Date(a.date+'T00:00');
-            const days=Math.ceil((d-new Date())/(86400000));
-            const urgency=days<=2?'color:#e53935':days<=7?'color:#FF9800':'color:#4CAF50';
+        if(!appts.length){el.innerHTML='<div class="empty">No appointments.</div>';return}
+        el.innerHTML=appts.map(a=>{
+            let dateStr='',daysStr='';
+            if(a.date){
+                const d=new Date(a.date+'T00:00');
+                if(!isNaN(d)){
+                    dateStr=d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+                    const days=Math.ceil((d-new Date())/(86400000));
+                    const urgency=days<=0?'color:#e53935':days<=2?'color:#e53935':days<=7?'color:#FF9800':'color:#4CAF50';
+                    daysStr=`<span style="${urgency};font-size:0.8rem;font-weight:bold;">${days<=0?'Today!':days+' days'}</span>`;
+                }
+            }
+            const timeStr=a.time&&a.time.includes(':')?'at '+formatTime12(a.time):'';
             return`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#f0f7ff;border-radius:8px;margin-bottom:6px;">
-                <div><strong>👨‍⚕️ ${a.doctor}</strong><br><small>${d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})}${a.time?' at '+formatTime12(a.time):''}</small>${a.note?'<br><small style="color:#666">📝 '+a.note+'</small>':''}</div>
-                <div style="text-align:right;"><span style="${urgency};font-size:0.8rem;font-weight:bold;">${days<=0?'Today!':days+' days'}</span><br><button class="btn-sm btn-del" onclick="removeAppointment('${a.id}')">✕</button></div>
+                <div><strong>👨‍⚕️ ${a.doctor}</strong><br><small>${dateStr||'Date TBD'} ${timeStr}</small>${a.note?'<br><small style="color:#666">📝 '+a.note+'</small>':''}</div>
+                <div style="text-align:right;">${daysStr}<br><button class="btn-sm btn-del" onclick="removeAppointment('${a.id}')">✕</button></div>
             </div>`;
         }).join('');
     }
@@ -1066,27 +1079,43 @@
     // === DOCTORS ===
     function renderDoctors(){
         const docs=getDoctors();const el=document.getElementById('doctor-list');
-        el.innerHTML=docs.map((d,i)=>`<div class="doctor-card"><div class="doctor-avatar">${d.icon||'👨‍⚕️'}</div><div style="flex:1"><strong style="font-size:0.85rem">${d.name}</strong><br><small style="color:#666">${d.specialty||''}</small>${d.nextVisit?'<br><small style="color:#4CAF50">Next: '+d.nextVisit+'</small>':''}</div><div>${d.phone?`<a href="tel:${d.phone}" class="btn-sm" style="background:#4CAF50;text-decoration:none;display:inline-block;">📞 Call</a>`:''}<button class="btn-sm btn-del" onclick="removeDoctor(${i})">✕</button></div></div>`).join('')||'<p style="font-size:0.8rem;color:#999;">No doctors added.</p>';
+        el.innerHTML=docs.map((d,i)=>`<div class="doctor-card"><div class="doctor-avatar">${d.icon||'👨‍⚕️'}</div><div style="flex:1"><strong style="font-size:0.85rem">${d.name}</strong><br><small style="color:#666">${d.specialty||''}</small>${d.nextVisit?'<br><small style="color:#4CAF50">Next: '+d.nextVisit+'</small>':''}</div><div>${d.phone?`<a href="tel:${d.phone}" class="btn-sm" style="background:#4CAF50;text-decoration:none;display:inline-block;">📞</a>`:''}<button class="btn-sm btn-edit" onclick="editDoctor(${i})">✏️</button><button class="btn-sm btn-del" onclick="removeDoctor(${i})">✕</button></div></div>`).join('')||'<p style="font-size:0.8rem;color:#999;">No doctors added.</p>';
     }
     function addDoctor(){
         const name=prompt('Doctor/Pharmacy name:');if(!name)return;
         const phone=prompt('Phone number:')||'';
         const specialty=prompt('Specialty (or type):')||'';
-        const nextVisit=prompt('Next visit date (optional):')||'';
+        const nextVisit=prompt('Next visit date (YYYY-MM-DD, optional):')||'';
         const docs=getDoctors();docs.push({name,phone,specialty,nextVisit,icon:specialty.toLowerCase().includes('pharm')?'🏪':'👨‍⚕️'});
         saveDoctors(docs);renderDoctors();
+        // Auto-add appointment if next visit date given
+        if(nextVisit){const appts=getAppointments();appts.push({id:Date.now().toString(),doctor:name,date:nextVisit,time:'',note:''});saveAppointments(appts)}
+    }
+    function editDoctor(i){
+        const docs=getDoctors();const d=docs[i];if(!d)return;
+        const name=prompt('Name:',d.name);if(!name)return;
+        const phone=prompt('Phone:',d.phone)||'';
+        const specialty=prompt('Specialty:',d.specialty)||'';
+        const nextVisit=prompt('Next visit (YYYY-MM-DD):',d.nextVisit)||'';
+        docs[i]={...d,name,phone,specialty,nextVisit};saveDoctors(docs);renderDoctors();
     }
     function removeDoctor(i){if(!confirm('Remove?'))return;const d=getDoctors();d.splice(i,1);saveDoctors(d);renderDoctors()}
 
     // === CARETAKERS ===
     function renderCaretakers(){
         const cts=getCaretakers();const el=document.getElementById('caretaker-list');
-        el.innerHTML=cts.map((c,i)=>`<div class="caretaker-row"><div class="caretaker-avatar">${c.icon||'👤'}</div><div style="flex:1"><strong style="font-size:0.85rem">${c.name}</strong><br><small>📱 ${c.phone}</small></div><button class="btn-sm btn-del" onclick="removeCaretaker(${i})">✕</button></div>`).join('')||'<p style="font-size:0.8rem;color:#999;">No caretakers added.</p>';
+        el.innerHTML=cts.map((c,i)=>`<div class="caretaker-row"><div class="caretaker-avatar">${c.icon||'👤'}</div><div style="flex:1"><strong style="font-size:0.85rem">${c.name}</strong><br><small>📱 ${c.phone}</small></div><button class="btn-sm btn-edit" onclick="editCaretaker(${i})">✏️</button><button class="btn-sm btn-del" onclick="removeCaretaker(${i})">✕</button></div>`).join('')||'<p style="font-size:0.8rem;color:#999;">No caretakers added.</p>';
     }
     function addCaretaker(){
         const name=prompt('Caretaker name:');if(!name)return;
         const phone=prompt('WhatsApp number (with country code):');if(!phone)return;
         const cts=getCaretakers();cts.push({name,phone,icon:'👤'});saveCaretakers(cts);renderCaretakers();
+    }
+    function editCaretaker(i){
+        const cts=getCaretakers();const c=cts[i];if(!c)return;
+        const name=prompt('Name:',c.name);if(!name)return;
+        const phone=prompt('WhatsApp number:',c.phone);if(!phone)return;
+        cts[i]={...c,name,phone};saveCaretakers(cts);renderCaretakers();
     }
     function removeCaretaker(i){if(!confirm('Remove?'))return;const c=getCaretakers();c.splice(i,1);saveCaretakers(c);renderCaretakers()}
 
