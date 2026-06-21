@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medicine Reminder - All Features Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #333; max-width: 500px; margin: 0 auto; padding: 16px; padding-bottom: 80px; }
+        h1 { text-align: center; color: #4CAF50; margin: 8px 0; font-size: 1.4rem; }
+        .clock-box { background: linear-gradient(135deg, #4CAF50, #2E7D32); color: #fff; border-radius: 14px; padding: 14px; text-align: center; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(76,175,80,0.3); }
+        .clock-day { font-size: 0.85rem; opacity: 0.9; }
+        .clock-time { font-size: 2rem; font-weight: bold; letter-spacing: 2px; margin: 4px 0; }
+        .clock-date { font-size: 0.8rem; opacity: 0.85; }
+        .card { background: #fff; border-radius: 12px; padding: 14px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .card h2 { font-size: 1rem; margin-bottom: 10px; }
+        .section-title { font-size: 0.75rem; color: #fff; background: #4CAF50; padding: 6px 12px; border-radius: 20px; display: inline-block; margin: 16px 0 8px; }
+        .summary { display: flex; gap: 8px; margin-bottom: 14px; }
+        .summary-card { flex: 1; background: #fff; border-radius: 10px; padding: 10px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+        .summary-card .num { font-size: 1.4rem; font-weight: bold; }
+        .summary-card .lbl { font-size: 0.65rem; color: #666; }
+        .slot-group { margin-bottom: 14px; }
+        .slot-group h3 { font-size: 0.85rem; color: #4CAF50; padding: 6px 0; border-bottom: 1px solid #eee; margin-bottom: 6px; }
+        .dose-card { display: flex; align-items: center; justify-content: space-between; padding: 10px; background: #fafafa; border-radius: 8px; margin-bottom: 6px; }
+        .dose-card.taken { opacity: 0.6; background: #e8f5e9; }
+        .btn-sm { padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; border: none; color: #fff; cursor: pointer; margin: 2px; }
+        .btn-take { background: #4CAF50; }
+        .btn-skip { background: #9E9E9E; }
+        /* Adherence */
+        .adherence-bar { height: 20px; background: #eee; border-radius: 10px; overflow: hidden; margin: 8px 0; }
+        .adherence-fill { height: 100%; background: linear-gradient(90deg, #4CAF50, #8BC34A); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.7rem; font-weight: bold; }
+        /* Calendar */
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-size: 0.7rem; }
+        .cal-header { font-weight: bold; color: #666; padding: 4px; }
+        .cal-day { padding: 6px 2px; border-radius: 6px; }
+        .cal-day.green { background: #e8f5e9; color: #2e7d32; }
+        .cal-day.red { background: #fce4ec; color: #c62828; }
+        .cal-day.yellow { background: #fff8e1; color: #f57f17; }
+        .cal-day.today { border: 2px solid #4CAF50; font-weight: bold; }
+        .cal-day.empty { background: none; }
+        /* Stock */
+        .stock-bar { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+        .stock-fill-bg { flex: 1; height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
+        .stock-fill { height: 100%; border-radius: 4px; }
+        .stock-low { background: #e53935; }
+        .stock-ok { background: #4CAF50; }
+        .stock-med { background: #FF9800; }
+        /* Profile */
+        .profile-tabs { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; }
+        .profile-tab { padding: 8px 14px; border-radius: 20px; font-size: 0.8rem; background: #eee; white-space: nowrap; cursor: pointer; }
+        .profile-tab.active { background: #4CAF50; color: #fff; }
+        /* Medicine card with photo */
+        .med-photo { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; background: #e0e0e0; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .med-row { display: flex; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+        .med-info { flex: 1; }
+        .med-info strong { font-size: 0.9rem; }
+        .med-info small { color: #666; font-size: 0.75rem; }
+        /* Doctor */
+        .doctor-card { display: flex; align-items: center; gap: 12px; padding: 10px; background: #f0f7ff; border-radius: 10px; margin-bottom: 8px; }
+        .doctor-avatar { width: 40px; height: 40px; border-radius: 50%; background: #2196F3; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+        /* Alert */
+        .alert-box { background: #fff3e0; border-left: 4px solid #FF9800; padding: 10px 12px; border-radius: 6px; margin-bottom: 8px; font-size: 0.8rem; }
+        .alert-box.danger { background: #fce4ec; border-left-color: #e53935; }
+        /* Caretaker */
+        .caretaker-row { display: flex; align-items: center; gap: 10px; padding: 8px; background: #f5f5f5; border-radius: 8px; margin-bottom: 6px; }
+        .caretaker-avatar { width: 32px; height: 32px; border-radius: 50%; background: #9C27B0; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+        /* Course */
+        .course-badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; color: #fff; }
+        .course-active { background: #4CAF50; }
+        .course-ending { background: #FF9800; }
+        .course-done { background: #9E9E9E; }
+        .tab-bar { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #ddd; z-index: 100; }
+        .tab-bar button { flex: 1; padding: 8px 2px; border: none; background: none; font-size: 0.6rem; cursor: pointer; color: #666; }
+        .tab-bar button.active { color: #4CAF50; font-weight: bold; }
+        .tab-bar button span { display: block; font-size: 1.1rem; }
+        .divider { border: none; border-top: 2px dashed #ddd; margin: 20px 0; }
+        .feature-label { background: #e8f5e9; color: #2e7d32; font-size: 0.7rem; padding: 3px 8px; border-radius: 4px; display: inline-block; margin-bottom: 6px; }
+    </style>
+</head>
+<body>
+    <h1>💊 Medicine Reminder</h1>
+
+    <!-- Live Clock -->
+    <div class="clock-box">
+        <div class="clock-day" id="clock-day"></div>
+        <div class="clock-time" id="clock-time"></div>
+        <div class="clock-date" id="clock-date"></div>
+    </div>
+
+    <!-- Family Profiles -->
+    <span class="feature-label">👨‍👩‍👧 Family Profiles</span>
+    <div class="profile-tabs">
+        <div class="profile-tab active">🧑 Kalpesh</div>
+        <div class="profile-tab">👩 Wife</div>
+        <div class="profile-tab">👴 Papa</div>
+        <div class="profile-tab">+ Add</div>
+    </div>
+
+    <!-- Summary -->
+    <div class="summary">
+        <div class="summary-card"><div class="num" style="color:#2196F3">5</div><div class="lbl">Total</div></div>
+        <div class="summary-card"><div class="num" style="color:#4CAF50">2</div><div class="lbl">Taken</div></div>
+        <div class="summary-card"><div class="num" style="color:#e53935">0</div><div class="lbl">Skipped</div></div>
+        <div class="summary-card"><div class="num" style="color:#FF9800">3</div><div class="lbl">Pending</div></div>
+    </div>
+
+    <!-- Adherence Score -->
+    <span class="feature-label">📈 Adherence Score</span>
+    <div class="card">
+        <h2>📈 Weekly Adherence</h2>
+        <div class="adherence-bar"><div class="adherence-fill" style="width:87%">87%</div></div>
+        <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:#666;">
+            <span>This week: 87%</span><span>Last week: 92%</span><span>30-day: 89%</span>
+        </div>
+    </div>
+
+    <!-- Today's Schedule with times -->
+    <div class="slot-group">
+        <h3>🌅 Morning</h3>
+        <div class="dose-card taken">
+            <div><strong>Zinc</strong> ✅<br><small>50mg • After Breakfast • 🕐 8:00 AM</small></div>
+        </div>
+        <div class="dose-card taken">
+            <div><strong>Vitamin D3</strong> ✅<br><small>60K IU • After Breakfast • 🕐 8:00 AM</small></div>
+        </div>
+    </div>
+    <div class="slot-group">
+        <h3>🌤️ Afternoon</h3>
+        <div class="dose-card">
+            <div><strong>Zinc</strong><br><small>50mg • After Lunch • 🕐 2:00 PM</small></div>
+            <div><button class="btn-sm btn-take">Take</button><button class="btn-sm btn-skip">Skip</button></div>
+        </div>
+    </div>
+    <div class="slot-group">
+        <h3>🌙 Evening</h3>
+        <div class="dose-card">
+            <div><strong>Zinc</strong><br><small>50mg • After Dinner • 🕐 8:00 PM</small></div>
+            <div><button class="btn-sm btn-take">Take</button><button class="btn-sm btn-skip">Skip</button></div>
+        </div>
+        <div class="dose-card">
+            <div><strong>Melatonin</strong><br><small>5mg • Bedtime • 🕐 10:30 PM</small></div>
+            <div><button class="btn-sm btn-take">Take</button><button class="btn-sm btn-skip">Skip</button></div>
+        </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Calendar View -->
+    <span class="feature-label">📅 Calendar View</span>
+    <div class="card">
+        <h2>📅 June 2026</h2>
+        <div class="cal-grid">
+            <div class="cal-header">S</div><div class="cal-header">M</div><div class="cal-header">T</div><div class="cal-header">W</div><div class="cal-header">T</div><div class="cal-header">F</div><div class="cal-header">S</div>
+            <div class="cal-day empty"></div><div class="cal-day green">1</div><div class="cal-day green">2</div><div class="cal-day green">3</div><div class="cal-day green">4</div><div class="cal-day yellow">5</div><div class="cal-day green">6</div>
+            <div class="cal-day green">7</div><div class="cal-day green">8</div><div class="cal-day red">9</div><div class="cal-day green">10</div><div class="cal-day green">11</div><div class="cal-day green">12</div><div class="cal-day green">13</div>
+            <div class="cal-day green">14</div><div class="cal-day green">15</div><div class="cal-day green">16</div><div class="cal-day yellow">17</div><div class="cal-day green">18</div><div class="cal-day green">19</div><div class="cal-day green">20</div>
+            <div class="cal-day today green">21</div><div class="cal-day empty">22</div><div class="cal-day empty">23</div><div class="cal-day empty">24</div><div class="cal-day empty">25</div><div class="cal-day empty">26</div><div class="cal-day empty">27</div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:10px;font-size:0.7rem;justify-content:center;">
+            <span>🟢 All taken</span><span>🟡 Partial</span><span>🔴 Missed</span>
+        </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Medicine List with Photos -->
+    <span class="feature-label">📸 Medicine with Photo</span>
+    <div class="card">
+        <h2>💊 My Medicines</h2>
+        <div class="med-row">
+            <div class="med-photo">💛</div>
+            <div class="med-info"><strong>Zinc</strong><br><small>50mg • 3x daily</small><br><span class="course-badge course-active">Day 12 of 30</span></div>
+        </div>
+        <div class="med-row">
+            <div class="med-photo">☀️</div>
+            <div class="med-info"><strong>Vitamin D3</strong><br><small>60K IU • 1x weekly</small><br><span class="course-badge course-ending">Ends in 3 days</span></div>
+        </div>
+        <div class="med-row">
+            <div class="med-photo">🌙</div>
+            <div class="med-info"><strong>Melatonin</strong><br><small>5mg • Bedtime</small><br><span class="course-badge course-active">Ongoing</span></div>
+        </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Stock Tracker -->
+    <span class="feature-label">📦 Stock Tracker</span>
+    <div class="card">
+        <h2>📦 Medicine Stock</h2>
+        <div class="stock-bar">
+            <span style="font-size:0.8rem;width:80px;">Zinc</span>
+            <div class="stock-fill-bg"><div class="stock-fill stock-low" style="width:15%"></div></div>
+            <span style="font-size:0.7rem;color:#e53935;">5 left</span>
+        </div>
+        <div class="stock-bar">
+            <span style="font-size:0.8rem;width:80px;">Vitamin D3</span>
+            <div class="stock-fill-bg"><div class="stock-fill stock-med" style="width:40%"></div></div>
+            <span style="font-size:0.7rem;color:#FF9800;">4 left</span>
+        </div>
+        <div class="stock-bar">
+            <span style="font-size:0.8rem;width:80px;">Melatonin</span>
+            <div class="stock-fill-bg"><div class="stock-fill stock-ok" style="width:80%"></div></div>
+            <span style="font-size:0.7rem;color:#4CAF50;">24 left</span>
+        </div>
+    </div>
+
+    <!-- Refill Alert -->
+    <span class="feature-label">🗓️ Refill Reminders</span>
+    <div class="alert-box danger">⚠️ <strong>Zinc</strong> — Only 5 tablets left! Refill in ~2 days.</div>
+    <div class="alert-box">🔔 <strong>Vitamin D3</strong> — 4 doses left. Refill by next week.</div>
+
+    <hr class="divider">
+
+    <!-- Course Duration -->
+    <span class="feature-label">🔁 Course Duration</span>
+    <div class="card">
+        <h2>🔁 Active Courses</h2>
+        <div style="font-size:0.85rem;padding:6px 0;border-bottom:1px solid #f0f0f0;">
+            <strong>Zinc</strong> — 30 days <span style="float:right;color:#4CAF50;">Day 12/30</span>
+            <div style="height:4px;background:#eee;border-radius:2px;margin-top:4px;"><div style="width:40%;height:100%;background:#4CAF50;border-radius:2px;"></div></div>
+        </div>
+        <div style="font-size:0.85rem;padding:6px 0;border-bottom:1px solid #f0f0f0;">
+            <strong>Vitamin D3</strong> — 8 weeks <span style="float:right;color:#FF9800;">Week 7/8</span>
+            <div style="height:4px;background:#eee;border-radius:2px;margin-top:4px;"><div style="width:87%;height:100%;background:#FF9800;border-radius:2px;"></div></div>
+        </div>
+        <div style="font-size:0.85rem;padding:6px 0;">
+            <strong>Melatonin</strong> — Ongoing <span style="float:right;color:#666;">No end date</span>
+        </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Doctor Info -->
+    <span class="feature-label">🏥 Doctor & Pharmacy</span>
+    <div class="card">
+        <h2>🏥 My Doctors</h2>
+        <div class="doctor-card">
+            <div class="doctor-avatar">👨‍⚕️</div>
+            <div>
+                <strong style="font-size:0.85rem;">Dr. Mehta</strong><br>
+                <small style="color:#666;">General • 📞 98250-XXXXX</small><br>
+                <small style="color:#4CAF50;">Next visit: 28 Jun 2026</small>
+            </div>
+        </div>
+        <div class="doctor-card">
+            <div class="doctor-avatar">🏪</div>
+            <div>
+                <strong style="font-size:0.85rem;">Apollo Pharmacy</strong><br>
+                <small style="color:#666;">📞 079-2XXXXXXX • Near home</small>
+            </div>
+        </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Caretaker Alerts -->
+    <span class="feature-label">💬 Caretaker Alerts</span>
+    <div class="card">
+        <h2>💬 Caretaker Notifications</h2>
+        <p style="font-size:0.8rem;color:#666;margin-bottom:10px;">Auto-alert family if a dose is missed by 30 min</p>
+        <div class="caretaker-row">
+            <div class="caretaker-avatar">👩</div>
+            <div style="flex:1;"><strong style="font-size:0.85rem;">Wife</strong><br><small>WhatsApp alert</small></div>
+            <span style="color:#4CAF50;font-size:0.8rem;">✅ Active</span>
+        </div>
+        <div class="caretaker-row">
+            <div class="caretaker-avatar">👦</div>
+            <div style="flex:1;"><strong style="font-size:0.85rem;">Son</strong><br><small>WhatsApp alert</small></div>
+            <span style="color:#4CAF50;font-size:0.8rem;">✅ Active</span>
+        </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Notification Settings -->
+    <span class="feature-label">🔔 Reminder Settings</span>
+    <div class="card">
+        <h2>🔔 Reminder Notifications</h2>
+        <div style="font-size:0.85rem;">
+            <label style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0;"><input type="checkbox" checked> 30 minutes before</label>
+            <label style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0;"><input type="checkbox" checked> 15 minutes before</label>
+            <label style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0;"><input type="checkbox" checked> 5 minutes before</label>
+            <label style="display:flex;align-items:center;gap:8px;padding:8px 0;"><input type="checkbox" checked> At dose time</label>
+        </div>
+        <div style="margin-top:10px;padding:8px;background:#e8f5e9;border-radius:8px;font-size:0.8rem;color:#2e7d32;">✅ Notifications enabled</div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Sync & Version -->
+    <div class="card" style="text-align:center;">
+        <p style="font-size:0.8rem;color:#666;">🕐 Last synced: 21 Jun 2026, 11:32:15 AM</p>
+        <p style="font-size:0.75rem;color:#999;margin-top:4px;">💊 Medicine Reminder v3.0</p>
+        <p style="font-size:0.7rem;color:#bbb;">Deployed: 21 Jun 2026</p>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+        <button class="active"><span>🏠</span>Today</button>
+        <button><span>💊</span>Meds</button>
+        <button><span>📅</span>Calendar</button>
+        <button><span>👨‍👩‍👧</span>Family</button>
+        <button><span>📦</span>Stock</button>
+        <button><span>⚙️</span>Settings</button>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            document.getElementById('clock-day').textContent = days[now.getDay()];
+            document.getElementById('clock-time').textContent = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+            document.getElementById('clock-date').textContent = now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>
