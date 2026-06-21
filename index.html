@@ -1141,6 +1141,7 @@
                     if(remote.caretakers)localStorage.setItem('med_caretakers',JSON.stringify(remote.caretakers));
                     if(remote.bpLogs)localStorage.setItem('bp_logs',JSON.stringify(remote.bpLogs));
                     if(remote.appointments)localStorage.setItem('med_appointments',JSON.stringify(remote.appointments));
+                    if(remote.snoozed)localStorage.setItem('snoozed',JSON.stringify(remote.snoozed));
                     localStorage.setItem('data_updated',String(remote.updatedAt));
                     renderToday();setSyncStatus('✅ Downloaded • '+new Date().toLocaleTimeString());
                 }else{await uploadSyncFile(local,file.id);setSyncStatus('✅ Uploaded • '+new Date().toLocaleTimeString())}
@@ -1150,7 +1151,7 @@
     async function pullFromDrive(){
         if(!accessToken)return;
         try{const file=await findSyncFile();if(file){const remote=await downloadSyncFile(file.id);const localTs=parseInt(localStorage.getItem('data_updated')||'0');
-        if(remote.updatedAt>localTs){localStorage.setItem('medicines2',JSON.stringify(remote.medicines||[]));localStorage.setItem('med_logs2',JSON.stringify(remote.logs||[]));if(remote.doctors)localStorage.setItem('med_doctors',JSON.stringify(remote.doctors));if(remote.caretakers)localStorage.setItem('med_caretakers',JSON.stringify(remote.caretakers));if(remote.bpLogs)localStorage.setItem('bp_logs',JSON.stringify(remote.bpLogs));if(remote.appointments)localStorage.setItem('med_appointments',JSON.stringify(remote.appointments));localStorage.setItem('data_updated',String(remote.updatedAt));renderToday()}}}catch(e){}
+        if(remote.updatedAt>localTs){localStorage.setItem('medicines2',JSON.stringify(remote.medicines||[]));localStorage.setItem('med_logs2',JSON.stringify(remote.logs||[]));if(remote.doctors)localStorage.setItem('med_doctors',JSON.stringify(remote.doctors));if(remote.caretakers)localStorage.setItem('med_caretakers',JSON.stringify(remote.caretakers));if(remote.bpLogs)localStorage.setItem('bp_logs',JSON.stringify(remote.bpLogs));if(remote.appointments)localStorage.setItem('med_appointments',JSON.stringify(remote.appointments));if(remote.snoozed)localStorage.setItem('snoozed',JSON.stringify(remote.snoozed));localStorage.setItem('data_updated',String(remote.updatedAt));renderToday()}}}catch(e){}
     }
     window.addEventListener('load',()=>{if(window.google)initGIS();setTimeout(pullFromDrive,2000)});
     // === PWA INSTALL ===
