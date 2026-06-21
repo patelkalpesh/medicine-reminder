@@ -95,8 +95,17 @@
             <input type="text" id="med-name" placeholder="e.g. Paracetamol">
             <label>Dosage</label>
             <input type="text" id="med-dosage" placeholder="e.g. 500mg, 1 tablet">
-            <label>Emoji/Icon (for pill photo)</label>
-            <input type="text" id="med-icon" placeholder="e.g. 💛 ☀️ 🌙 💊" maxlength="4">
+            <label>Medicine Photo</label>
+            <div style="display:flex;gap:8px;align-items:center;margin-top:8px;">
+                <div id="med-photo-preview" style="width:60px;height:60px;border-radius:10px;background:#eee;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:1.5rem;">💊</div>
+                <div style="flex:1">
+                    <button type="button" class="btn-sm" style="background:#2196F3" onclick="document.getElementById('med-photo-input').click()">📷 Camera / Gallery</button>
+                    <input type="file" id="med-photo-input" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoUpload(this)">
+                    <button type="button" class="btn-sm" style="background:#9E9E9E" onclick="clearPhoto()">✕ Remove</button>
+                </div>
+            </div>
+            <input type="hidden" id="med-icon" value="💊">
+            <input type="hidden" id="med-photo" value="">
             <label>How many times per day?</label>
             <select id="med-freq" onchange="updateTimingOptions()">
                 <option value="1">Once daily</option>
@@ -119,8 +128,12 @@
                 <option value="60">60 days</option>
                 <option value="90">90 days</option>
             </select>
-            <label>Stock (tablets remaining)</label>
-            <input type="number" id="med-stock" placeholder="e.g. 30" min="0">
+            <label>📦 Stock</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+                <div><label style="font-size:0.75rem;margin:0;">Strips</label><input type="number" id="med-strips" placeholder="e.g. 3" min="0"></div>
+                <div><label style="font-size:0.75rem;margin:0;">Tablets per strip</label><input type="number" id="med-per-strip" placeholder="e.g. 10" min="1"></div>
+            </div>
+            <div style="margin-top:8px;"><label style="font-size:0.75rem;margin:0;">Loose tablets (extra)</label><input type="number" id="med-loose" placeholder="0" min="0"></div>
             <button class="btn" onclick="saveMedicine()">Save Medicine</button>
             <button class="btn" style="background:#666;margin-top:8px;" onclick="cancelEdit()">Cancel</button>
         </div>
@@ -255,6 +268,27 @@
         if(name==='add'&&!document.getElementById('edit-id').value)resetForm();
     }
 
+    // === PHOTO ===
+    function handlePhotoUpload(input){
+        const file=input.files[0];if(!file)return;
+        const reader=new FileReader();
+        reader.onload=function(e){
+            const img=new Image();img.onload=function(){
+                const canvas=document.createElement('canvas');const max=200;
+                let w=img.width,h=img.height;if(w>h){h=h*(max/w);w=max}else{w=w*(max/h);h=max}
+                canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);
+                const data=canvas.toDataURL('image/jpeg',0.7);
+                document.getElementById('med-photo').value=data;
+                document.getElementById('med-photo-preview').innerHTML=`<img src="${data}" style="width:100%;height:100%;object-fit:cover;">`;
+            };img.src=e.target.result;
+        };reader.readAsDataURL(file);
+    }
+    function clearPhoto(){
+        document.getElementById('med-photo').value='';
+        document.getElementById('med-photo-preview').innerHTML='💊';
+        document.getElementById('med-photo-input').value='';
+    }
+
     // === MEDICINE FORM ===
     function updateTimingOptions(){
         const freq=document.getElementById('med-freq').value;
@@ -280,9 +314,13 @@
         document.getElementById('med-name').value='';
         document.getElementById('med-dosage').value='';
         document.getElementById('med-icon').value='💊';
+        document.getElementById('med-photo').value='';
+        document.getElementById('med-photo-preview').innerHTML='💊';
         document.getElementById('med-freq').value='1';
         document.getElementById('med-course').value='ongoing';
-        document.getElementById('med-stock').value='';
+        document.getElementById('med-strips').value='';
+        document.getElementById('med-per-strip').value='';
+        document.getElementById('med-loose').value='';
         document.getElementById('med-sos-note').value='';
         document.getElementById('sos-section').style.display='none';
         updateTimingOptions();
@@ -291,9 +329,13 @@
         const name=document.getElementById('med-name').value.trim();
         const dosage=document.getElementById('med-dosage').value.trim();
         const icon=document.getElementById('med-icon').value.trim()||'💊';
+        const photo=document.getElementById('med-photo').value;
         const freq=document.getElementById('med-freq').value;
         const course=document.getElementById('med-course').value;
-        const stock=parseInt(document.getElementById('med-stock').value)||0;
+        const strips=parseInt(document.getElementById('med-strips').value)||0;
+        const perStrip=parseInt(document.getElementById('med-per-strip').value)||10;
+        const loose=parseInt(document.getElementById('med-loose').value)||0;
+        const stock=strips*perStrip+loose;
         if(!name){alert('Enter medicine name');return}
 
         let timings=[],times=[],sosNote='';
@@ -314,9 +356,9 @@
         const meds=getMedicines();const editId=document.getElementById('edit-id').value;
         if(editId){
             const idx=meds.findIndex(m=>m.id===editId);
-            if(idx>=0)meds[idx]={...meds[idx],name,dosage,icon,freq,timings,times,course,stock,sosNote};
+            if(idx>=0)meds[idx]={...meds[idx],name,dosage,icon,photo,freq,timings,times,course,stock,strips,perStrip,loose,sosNote};
         }else{
-            meds.push({id:Date.now().toString(),name,dosage,icon,freq,timings,times,course,stock,sosNote,startDate:today()});
+            meds.push({id:Date.now().toString(),name,dosage,icon,photo,freq,timings,times,course,stock,strips,perStrip,loose,sosNote,startDate:today()});
         }
         saveMedicines(meds);resetForm();showPage('meds');
     }
@@ -327,9 +369,14 @@
         document.getElementById('med-name').value=med.name;
         document.getElementById('med-dosage').value=med.dosage;
         document.getElementById('med-icon').value=med.icon||'💊';
+        document.getElementById('med-photo').value=med.photo||'';
+        if(med.photo)document.getElementById('med-photo-preview').innerHTML=`<img src="${med.photo}" style="width:100%;height:100%;object-fit:cover;">`;
+        else document.getElementById('med-photo-preview').innerHTML=med.icon||'💊';
         document.getElementById('med-freq').value=med.freq;
         document.getElementById('med-course').value=med.course||'ongoing';
-        document.getElementById('med-stock').value=med.stock||'';
+        document.getElementById('med-strips').value=med.strips||'';
+        document.getElementById('med-per-strip').value=med.perStrip||'';
+        document.getElementById('med-loose').value=med.loose||'';
         updateTimingOptions();
         if(med.freq==='sos'){document.getElementById('med-sos-note').value=med.sosNote||''}
         else{med.timings.forEach((t,i)=>{
@@ -343,6 +390,7 @@
     function cancelEdit(){resetForm();showPage('meds')}
 
     // === MEDICINES LIST ===
+    function medPhotoHtml(m){return m.photo?`<img src="${m.photo}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;">`:`<div class="med-photo">${m.icon||'💊'}</div>`}
     function getCourseInfo(m){
         if(!m.course||m.course==='ongoing')return'<span class="course-badge course-active">Ongoing</span>';
         const start=new Date(m.startDate||today());const days=parseInt(m.course);
@@ -355,16 +403,17 @@
         const meds=getMedicines();const el=document.getElementById('meds-list');
         if(!meds.length){el.innerHTML='<div class="empty">No medicines yet. Tap + Add.</div>';return}
         el.innerHTML=meds.map(m=>{
+            const stockInfo=m.stock?`📦 ${Math.floor(m.stock/(m.perStrip||10))} strips + ${m.stock%(m.perStrip||10)} tabs (${m.stock} total)`:'';
             if(m.freq==='sos')return`<div class="card" style="border-left:4px solid #e53935"><div class="med-row">
-                <div class="med-photo">${m.icon||'🆘'}</div>
+                ${medPhotoHtml(m)}
                 <div class="med-info"><strong>🆘 ${m.name}</strong><br><small>${m.dosage} • SOS / As needed</small><br>
-                <small style="color:#e53935">⚠️ ${m.sosNote||''}</small>${m.stock?' • 📦 '+m.stock+' left':''}</div>
+                <small style="color:#e53935">⚠️ ${m.sosNote||''}</small><br><small>${stockInfo}</small></div>
             </div><div><button class="btn-sm btn-take" onclick="logDose('${m.id}','SOS','taken')">💊 Take Now</button><button class="btn-sm btn-edit" onclick="editMedicine('${m.id}')">✏️</button><button class="btn-sm btn-del" onclick="deleteMedicine('${m.id}')">🗑️</button></div></div>`;
             return`<div class="card"><div class="med-row">
-            <div class="med-photo">${m.icon||'💊'}</div>
+            ${medPhotoHtml(m)}
             <div class="med-info"><strong>${m.name}</strong><br><small>${m.dosage} • ${m.freq}x daily</small><br>
             <small>⏰ ${m.timings.map((t,i)=>t+(m.times&&m.times[i]?' @ '+formatTime12(m.times[i]):'')).join(', ')}</small><br>
-            ${getCourseInfo(m)}${m.stock?` • 📦 ${m.stock} left`:''}</div>
+            ${getCourseInfo(m)}<br><small>${stockInfo}</small></div>
         </div><div><button class="btn-sm btn-edit" onclick="editMedicine('${m.id}')">✏️ Edit</button><button class="btn-sm btn-del" onclick="deleteMedicine('${m.id}')">🗑️ Delete</button></div></div>`;
         }).join('');
     }
@@ -421,8 +470,15 @@
     }
     function logDose(medId,timing,action){
         const logs=getLogs();logs.push({medId,timing,action,date:today(),time:new Date().toISOString()});saveLogs(logs);
-        // Decrease stock
-        if(action==='taken'){const meds=getMedicines();const idx=meds.findIndex(m=>m.id===medId);if(idx>=0&&meds[idx].stock>0){meds[idx].stock--;saveMedicines(meds)}}
+        if(action==='taken'){
+            const meds=getMedicines();const idx=meds.findIndex(m=>m.id===medId);
+            if(idx>=0&&meds[idx].stock>0){
+                meds[idx].stock--;
+                meds[idx].loose=(meds[idx].stock)%(meds[idx].perStrip||10);
+                meds[idx].strips=Math.floor(meds[idx].stock/(meds[idx].perStrip||10));
+                saveMedicines(meds);
+            }
+        }
         renderToday();
     }
 
@@ -441,8 +497,9 @@
     function renderRefillAlerts(){
         const meds=getMedicines();let html='';
         meds.forEach(m=>{
-            if(m.stock>0&&m.stock<=5)html+=`<div class="alert-box danger">⚠️ <strong>${m.name}</strong> — Only ${m.stock} left! Refill soon.</div>`;
-            else if(m.stock>5&&m.stock<=10)html+=`<div class="alert-box">🔔 <strong>${m.name}</strong> — ${m.stock} left.</div>`;
+            const perStrip=m.perStrip||10;
+            if(m.stock>0&&m.stock<=5)html+=`<div class="alert-box danger">⚠️ <strong>${m.name}</strong> — Only ${m.stock} tablets left! Buy new stock.</div>`;
+            else if(m.stock>5&&m.stock<=perStrip)html+=`<div class="alert-box">🔔 <strong>${m.name}</strong> — ${m.stock} tablets (less than 1 strip) remaining.</div>`;
         });
         document.getElementById('refill-alerts').innerHTML=html;
     }
@@ -473,13 +530,37 @@
     function renderStock(){
         const meds=getMedicines();const el=document.getElementById('stock-list');
         if(!meds.length){el.innerHTML='<div class="empty">No medicines.</div>';return}
+        const logs=getLogs();
         el.innerHTML=meds.map(m=>{
-            const pct=m.stock?Math.min(100,Math.round(m.stock/30*100)):0;
-            const cls=pct<=20?'stock-low':pct<=50?'stock-med':'stock-ok';
-            return`<div class="stock-bar"><span style="font-size:0.8rem;width:90px;">${m.icon||'💊'} ${m.name}</span>
-            <div class="stock-fill-bg"><div class="stock-fill ${cls}" style="width:${pct}%"></div></div>
-            <span style="font-size:0.7rem;width:50px;text-align:right;">${m.stock||0} left</span></div>`;
+            const perStrip=m.perStrip||10;
+            const totalTabs=m.stock||0;
+            const fullStrips=Math.floor(totalTabs/perStrip);
+            const looseTabs=totalTabs%perStrip;
+            const consumed=logs.filter(l=>l.medId===m.id&&l.action==='taken').length;
+            const pct=totalTabs?Math.min(100,Math.round(totalTabs/(perStrip*3)*100)):0;
+            const cls=totalTabs<=5?'stock-low':totalTabs<=perStrip?'stock-med':'stock-ok';
+            const alertTxt=totalTabs<=5?'<span style="color:#e53935;font-size:0.7rem;"> ⚠️ Low!</span>':'';
+            return`<div class="card" style="padding:10px;margin-bottom:8px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                    ${medPhotoHtml(m)}<strong style="font-size:0.9rem;">${m.name}</strong>${alertTxt}
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;text-align:center;font-size:0.75rem;margin-bottom:6px;">
+                    <div style="background:#e8f5e9;padding:6px;border-radius:6px;"><strong>${fullStrips}</strong> strips<br>+ ${looseTabs} tabs</div>
+                    <div style="background:#f3e5f5;padding:6px;border-radius:6px;"><strong>${totalTabs}</strong><br>balance</div>
+                    <div style="background:#fff3e0;padding:6px;border-radius:6px;"><strong>${consumed}</strong><br>consumed</div>
+                </div>
+                <div class="stock-fill-bg"><div class="stock-fill ${cls}" style="width:${pct}%"></div></div>
+                <button class="btn-sm" style="background:#4CAF50;margin-top:6px;" onclick="buyStock('${m.id}')">+ Buy New Stock</button>
+            </div>`;
         }).join('');
+    }
+    function buyStock(id){
+        const strips=parseInt(prompt('How many strips bought?'));if(!strips||strips<=0)return;
+        const meds=getMedicines();const idx=meds.findIndex(m=>m.id===id);if(idx<0)return;
+        const perStrip=meds[idx].perStrip||10;
+        meds[idx].stock=(meds[idx].stock||0)+strips*perStrip;
+        meds[idx].strips=(meds[idx].strips||0)+strips;
+        saveMedicines(meds);renderStock();
     }
 
     // === DOCTORS ===
@@ -555,9 +636,11 @@
         const el=document.getElementById('last-sync-info');const ts=localStorage.getItem('data_updated');
         const tokenData=localStorage.getItem('gdrive_token');
         let email='';if(tokenData){try{email=JSON.parse(tokenData).email||''}catch(e){}}
-        if(ts&&parseInt(ts)>0){
-            el.innerHTML=(email?'<div style="font-size:0.75rem;color:#4CAF50;margin-bottom:4px;">👤 '+email+'</div>':'')+'🕐 Last synced: '+new Date(parseInt(ts)).toLocaleString('en-IN');
-        }else{el.textContent=email?'👤 '+email+' • Not synced yet':'Not signed in'}
+        let html='';
+        if(email)html+=`<div style="font-size:0.8rem;color:#4CAF50;font-weight:bold;">👤 ${email}</div>`;
+        if(ts&&parseInt(ts)>0)html+=`<div style="font-size:0.75rem;color:#666;margin-top:2px;">🕐 Last synced: ${new Date(parseInt(ts)).toLocaleString('en-IN')}</div>`;
+        else html+=`<div style="font-size:0.75rem;color:#999;">Not synced yet</div>`;
+        el.innerHTML=html||'Not signed in';
     }
     function checkReminders(){
         if(!('Notification' in window)||Notification.permission!=='granted')return;
