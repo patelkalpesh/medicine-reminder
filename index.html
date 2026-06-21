@@ -405,6 +405,7 @@
             <p style="font-size:0.7rem;color:#888;margin-top:8px;">Made by <strong>Kalpesh Patel</strong></p>
             <p style="font-size:0.7rem;margin-top:4px;"><a href="tel:+917405856226" style="color:#4CAF50;text-decoration:none;">📞 +91 74058 56226</a> • <a href="https://wa.me/917405856226" style="color:#25D366;text-decoration:none;">💬 WhatsApp</a></p>
             <p style="font-size:0.7rem;"><a href="mailto:kal.shooter007@gmail.com" style="color:#2196F3;text-decoration:none;">📧 kal.shooter007@gmail.com</a></p>
+            <p style="margin-top:6px;"><a href="privacy.html" style="font-size:0.7rem;color:#666;">📄 Privacy Policy</a></p>
         </div>
     </div>
 
@@ -747,10 +748,11 @@
         regularMeds.forEach(m=>{m.timings.forEach((timing,i)=>{allDoses.push({id:m.id,name:m.name,dosage:m.dosage,timing,time:(m.times&&m.times[i])||'',icon:m.icon||'💊'})})});
         const taken=logs.filter(l=>l.action==='taken').length;const skipped=logs.filter(l=>l.action==='skipped').length;
         const total=allDoses.length;const pending=total-taken-skipped;
-        sum.innerHTML=`<div class="summary-card"><div class="num" style="color:#2196F3">${total}</div><div class="lbl">Total</div></div>
-            <div class="summary-card"><div class="num" style="color:#4CAF50">${taken}</div><div class="lbl">Taken</div></div>
-            <div class="summary-card"><div class="num" style="color:#FF9800">${pending}</div><div class="lbl">Pending</div></div>
-            <div class="summary-card"><div class="num" style="color:#e53935">${skipped}</div><div class="lbl">Skipped</div></div>`;
+        const L=LANG[currentLang]||LANG.en;
+        sum.innerHTML=`<div class="summary-card"><div class="num" style="color:#2196F3">${total}</div><div class="lbl">${L.total}</div></div>
+            <div class="summary-card"><div class="num" style="color:#4CAF50">${taken}</div><div class="lbl">${L.taken}</div></div>
+            <div class="summary-card"><div class="num" style="color:#FF9800">${pending}</div><div class="lbl">${L.pending}</div></div>
+            <div class="summary-card"><div class="num" style="color:#e53935">${skipped}</div><div class="lbl">${L.skipped}</div></div>`;
         // Adherence
         renderAdherence();
         // Refill alerts
@@ -762,10 +764,11 @@
             const icons={Morning:'🌅',Afternoon:'🌤️',Evening:'🌙'};
             const pending=doses.filter(d=>!logs.find(l=>l.medId===d.id&&l.timing===d.timing));
             const done=doses.filter(d=>logs.find(l=>l.medId===d.id&&l.timing===d.timing));
-            html+=`<div class="slot-group"><h3>${icons[group]} ${group}</h3>`;
+            const L=LANG[currentLang]||LANG.en;const gn={Morning:L.morning,Afternoon:L.afternoon,Evening:L.evening};
+            html+=`<div class="slot-group"><h3>${gn[group]||group}</h3>`;
             pending.forEach(d=>{
                 html+=`<div class="dose-card"><div><strong>${d.icon} ${d.name}</strong><br><small>${d.dosage} • ${d.timing}${d.time?' • 🕐'+formatTime12(d.time):''}</small></div>
-                <div><button class="btn-sm btn-take" onclick="logDose('${d.id}','${d.timing}','taken')">Take</button><button class="btn-sm" style="background:#FF9800;font-size:0.65rem;" data-snooze-key="${d.name}_${d.timing}" onclick="snoozeDose('${d.name}','${d.timing}',this)">⏰ Snooze</button></div></div>`;
+                <div><button class="btn-sm btn-take" onclick="logDose('${d.id}','${d.timing}','taken')">${L.take}</button><button class="btn-sm" style="background:#FF9800;font-size:0.65rem;" data-snooze-key="${d.name}_${d.timing}" onclick="snoozeDose('${d.name}','${d.timing}',this)">${L.snooze}</button></div></div>`;
             });
             if(done.length){
                 html+=`<div class="done-group"><div class="done-header" onclick="this.nextElementSibling.classList.toggle('open')"><span>✅ ${done.length} done</span><span>▼</span></div><div class="done-list">`;
@@ -1194,7 +1197,8 @@
         if(!nextDose){el.innerHTML='';return}
         const hrs=Math.floor(nextDose.diff/60);const mins=nextDose.diff%60;
         const timeLeft=hrs>0?hrs+' hr'+(hrs>1?'s':'')+' '+mins+' min':mins+' min';
-        el.innerHTML=`<div class="next-dose-widget"><div class="ndw-label">⏭️ NEXT DOSE</div><div class="ndw-name">${nextDose.icon} ${nextDose.name}</div><div class="ndw-time">${nextDose.dosage} • ${nextDose.timing} • 🕐 ${formatTime12(nextDose.time)} (in ${timeLeft})</div></div>`;
+        const L=LANG[currentLang]||LANG.en;
+        el.innerHTML=`<div class="next-dose-widget"><div class="ndw-label">${L.nextDose}</div><div class="ndw-name">${nextDose.icon} ${nextDose.name}</div><div class="ndw-time">${nextDose.dosage} • ${nextDose.timing} • 🕐 ${formatTime12(nextDose.time)} (in ${timeLeft})</div></div>`;
     }
 
     // === DARK MODE ===
@@ -1206,21 +1210,100 @@
 
     // === LANGUAGE ===
     const LANG={
-        en:{title:'💊 Medicine Reminder',today:'Today',meds:'Meds',calendar:'Calendar',stock:'Stock',settings:'Settings',take:'Take',skip:'Skip',morning:'Morning',afternoon:'Afternoon',evening:'Evening',nextDose:'NEXT DOSE'},
-        hi:{title:'💊 दवाई रिमाइंडर',today:'आज',meds:'दवाइयाँ',calendar:'कैलेंडर',stock:'स्टॉक',settings:'सेटिंग्स',take:'लें',skip:'छोड़ें',morning:'सुबह',afternoon:'दोपहर',evening:'शाम',nextDose:'अगली खुराक'},
-        gu:{title:'💊 દવા રીમાઇન્ડર',today:'આજ',meds:'દવાઓ',calendar:'કેલેન્ડર',stock:'સ્ટોક',settings:'સેટિંગ્સ',take:'લો',skip:'છોડો',morning:'સવાર',afternoon:'બપોર',evening:'સાંજ',nextDose:'આગળની ડોઝ'}
+        en:{title:'💊 Medicine Reminder',today:'Today',meds:'Meds',health:'Health',stock:'Stock',settings:'Settings',
+            take:'Take',snooze:'⏰ Snooze',morning:'🌅 Morning',afternoon:'🌤️ Afternoon',evening:'🌙 Evening',
+            nextDose:'⏭️ NEXT DOSE',adherence:'📈 Weekly Adherence',done:'done',
+            addMed:'+ Add Medicine',medName:'Medicine Name',dosage:'Dosage',photo:'Medicine Photo',
+            camera:'📷 Camera / Gallery',remove:'✕ Remove',frequency:'How many times per day?',
+            once:'Once daily',twice:'Twice daily',thrice:'Three times daily',sos:'🆘 SOS / Emergency',
+            sosWhen:'When to take (Emergency instructions)',courseDur:'Course Duration',ongoing:'Ongoing',
+            strips:'Strips',tabsPerStrip:'Tablets per strip',loose:'Loose tablets',price:'💰 Price per strip (₹)',
+            save:'Save Medicine',cancel:'Cancel',edit:'✏️ Edit',delete:'🗑️ Delete',pause:'⏸️ Pause',resume:'▶️ Resume',
+            bpLog:'❤️ Log BP / Vitals',upper:'Upper (Sys)',lower:'Lower (Dia)',heartRate:'Heart Rate',saveReading:'💓 Save Reading',
+            bpHistory:'📊 BP History',appointments:'📅 Doctor Appointments',addAppt:'+ Add Appointment',
+            stockTitle:'📦 Medicine Stock',timeline:'📊 Stock Timeline',orderPlan:'🛒 Order Planner',
+            buyStock:'+ Buy New Stock',stockReport:'📄 Stock Statement Report',
+            notifTitle:'🔔 Reminder Notifications',darkMode:'🌙 Dark Mode',sound:'🔊 Sound on notification',
+            changePin:'🔑 Change PIN',language:'🌐 Language',reorderAlert:'📦 Reorder alert when stock is less than',
+            reorderVia:'📦 Reorder alert via',notify:'🔔 Notify',whatsapp:'📱 WhatsApp',email:'📧 Email',
+            sync:'☁️ Google Drive Sync',syncNow:'🔄 Sync Now',signIn:'🔑 Sign in with Google',signOut:'Sign Out',
+            history:'📋 History & Export',monthlyEmail:'📧 Setup Monthly Auto-Email Report',
+            printCard:'🖨️ Print Medicine Card (Fridge)',doctorReport:'📊 Doctor Visit Report (PDF)',
+            backup:'🔄 Backup / Restore',backupWA:'📤 Backup → WhatsApp',restore:'📥 Restore from file',
+            install:'📲 Install App',share:'📢 Share This App',shareMsg:'Share with family/friends — they get their own separate data with PIN protection.',
+            shareWA:'📱 Share via WhatsApp',copyLink:'📋 Copy Link',about:'✨ About This App',
+            enterPin:'Enter PIN',setPin:'Set New PIN',wrongPin:'Wrong PIN. Try again.',
+            doctors:'🏥 Doctor / Pharmacy',caretakers:'💬 Caretaker Alerts',
+            daysLeft:'days left',balance:'balance',consumed:'consumed',total:'Total',taken:'Taken',pending:'Pending',skipped:'Skipped'},
+        hi:{title:'💊 दवाई रिमाइंडर',today:'आज',meds:'दवाइयाँ',health:'स्वास्थ्य',stock:'स्टॉक',settings:'सेटिंग्स',
+            take:'लें',snooze:'⏰ बाद में',morning:'🌅 सुबह',afternoon:'🌤️ दोपहर',evening:'🌙 शाम',
+            nextDose:'⏭️ अगली खुराक',adherence:'📈 साप्ताहिक पालन',done:'हो गया',
+            addMed:'+ दवा जोड़ें',medName:'दवा का नाम',dosage:'खुराक',photo:'दवा की फोटो',
+            camera:'📷 कैमरा / गैलरी',remove:'✕ हटाएं',frequency:'दिन में कितनी बार?',
+            once:'दिन में एक बार',twice:'दिन में दो बार',thrice:'दिन में तीन बार',sos:'🆘 आपातकालीन',
+            sosWhen:'कब लें (आपातकालीन निर्देश)',courseDur:'कोर्स अवधि',ongoing:'चालू',
+            strips:'स्ट्रिप्स',tabsPerStrip:'प्रति स्ट्रिप गोलियाँ',loose:'अतिरिक्त गोलियाँ',price:'💰 प्रति स्ट्रिप कीमत (₹)',
+            save:'दवा सेव करें',cancel:'रद्द करें',edit:'✏️ बदलें',delete:'🗑️ मिटाएं',pause:'⏸️ रोकें',resume:'▶️ शुरू करें',
+            bpLog:'❤️ BP / स्वास्थ्य लॉग',upper:'ऊपरी (Sys)',lower:'निचला (Dia)',heartRate:'हृदय गति',saveReading:'💓 रीडिंग सेव करें',
+            bpHistory:'📊 BP इतिहास',appointments:'📅 डॉक्टर अपॉइंटमेंट',addAppt:'+ अपॉइंटमेंट जोड़ें',
+            stockTitle:'📦 दवा स्टॉक',timeline:'📊 स्टॉक टाइमलाइन',orderPlan:'🛒 ऑर्डर प्लानर',
+            buyStock:'+ नया स्टॉक खरीदें',stockReport:'📄 स्टॉक रिपोर्ट',
+            notifTitle:'🔔 रिमाइंडर नोटिफिकेशन',darkMode:'🌙 डार्क मोड',sound:'🔊 नोटिफिकेशन पर आवाज',
+            changePin:'🔑 PIN बदलें',language:'🌐 भाषा',reorderAlert:'📦 स्टॉक कम होने पर अलर्ट',
+            reorderVia:'📦 अलर्ट किसके द्वारा',notify:'🔔 नोटिफाई',whatsapp:'📱 व्हाट्सएप',email:'📧 ईमेल',
+            sync:'☁️ गूगल ड्राइव सिंक',syncNow:'🔄 सिंक करें',signIn:'🔑 गूगल से लॉगिन',signOut:'लॉगआउट',
+            history:'📋 इतिहास और एक्सपोर्ट',monthlyEmail:'📧 मासिक रिपोर्ट ईमेल सेटअप',
+            printCard:'🖨️ दवा कार्ड प्रिंट करें',doctorReport:'📊 डॉक्टर रिपोर्ट (PDF)',
+            backup:'🔄 बैकअप / रिस्टोर',backupWA:'📤 बैकअप → व्हाट्सएप',restore:'📥 फाइल से रिस्टोर',
+            install:'📲 ऐप इंस्टॉल करें',share:'📢 ऐप शेयर करें',shareMsg:'परिवार/दोस्तों को शेयर करें — उनका डेटा अलग और PIN से सुरक्षित।',
+            shareWA:'📱 व्हाट्सएप से शेयर',copyLink:'📋 लिंक कॉपी',about:'✨ ऐप के बारे में',
+            enterPin:'PIN दर्ज करें',setPin:'नया PIN सेट करें',wrongPin:'गलत PIN। फिर से कोशिश करें।',
+            doctors:'🏥 डॉक्टर / फार्मेसी',caretakers:'💬 देखभालकर्ता अलर्ट',
+            daysLeft:'दिन बाकी',balance:'शेष',consumed:'खाई',total:'कुल',taken:'ली',pending:'बाकी',skipped:'छोड़ी'},
+        gu:{title:'💊 દવા રીમાઇન્ડર',today:'આજ',meds:'દવાઓ',health:'સ્વાસ્થ્ય',stock:'સ્ટોક',settings:'સેટિંગ્સ',
+            take:'લો',snooze:'⏰ પછી',morning:'🌅 સવાર',afternoon:'🌤️ બપોર',evening:'🌙 સાંજ',
+            nextDose:'⏭️ આગળની ડોઝ',adherence:'📈 સાપ્તાહિક પાલન',done:'થઈ ગયું',
+            addMed:'+ દવા ઉમેરો',medName:'દવાનું નામ',dosage:'ડોઝ',photo:'દવાનો ફોટો',
+            camera:'📷 કેમેરા / ગેલેરી',remove:'✕ કાઢો',frequency:'દિવસમાં કેટલી વાર?',
+            once:'દિવસમાં એક વાર',twice:'દિવસમાં બે વાર',thrice:'દિવસમાં ત્રણ વાર',sos:'🆘 ઈમરજન્સી',
+            sosWhen:'ક્યારે લેવી (ઈમરજન્સી સૂચના)',courseDur:'કોર્સ સમયગાળો',ongoing:'ચાલુ',
+            strips:'સ્ટ્રિપ્સ',tabsPerStrip:'સ્ટ્રિપ દીઠ ગોળીઓ',loose:'છૂટી ગોળીઓ',price:'💰 સ્ટ્રિપ દીઠ કિંમત (₹)',
+            save:'દવા સેવ કરો',cancel:'રદ કરો',edit:'✏️ બદલો',delete:'🗑️ કાઢો',pause:'⏸️ થોભો',resume:'▶️ ચાલુ કરો',
+            bpLog:'❤️ BP / સ્વાસ્થ્ય લોગ',upper:'ઉપલું (Sys)',lower:'નીચલું (Dia)',heartRate:'હૃદય ગતિ',saveReading:'💓 રીડિંગ સેવ કરો',
+            bpHistory:'📊 BP ઈતિહાસ',appointments:'📅 ડૉક્ટર એપોઇન્ટમેન્ટ',addAppt:'+ એપોઇન્ટમેન્ટ ઉમેરો',
+            stockTitle:'📦 દવા સ્ટોક',timeline:'📊 સ્ટોક ટાઇમલાઇન',orderPlan:'🛒 ઓર્ડર પ્લાનર',
+            buyStock:'+ નવો સ્ટોક ખરીદો',stockReport:'📄 સ્ટોક રિપોર્ટ',
+            notifTitle:'🔔 રીમાઇન્ડર નોટિફિકેશન',darkMode:'🌙 ડાર્ક મોડ',sound:'🔊 નોટિફિકેશન પર અવાજ',
+            changePin:'🔑 PIN બદલો',language:'🌐 ભાષા',reorderAlert:'📦 સ્ટોક ઓછો હોય ત્યારે અલર્ટ',
+            reorderVia:'📦 અલર્ટ કેવી રીતે',notify:'🔔 નોટિફાય',whatsapp:'📱 વોટ્સએપ',email:'📧 ઈમેલ',
+            sync:'☁️ ગૂગલ ડ્રાઇવ સિંક',syncNow:'🔄 સિંક કરો',signIn:'🔑 ગૂગલથી લોગિન',signOut:'લોગઆઉટ',
+            history:'📋 ઈતિહાસ અને એક્સપોર્ટ',monthlyEmail:'📧 માસિક રિપોર્ટ ઈમેલ સેટઅપ',
+            printCard:'🖨️ દવા કાર્ડ પ્રિન્ટ',doctorReport:'📊 ડૉક્ટર રિપોર્ટ (PDF)',
+            backup:'🔄 બેકઅપ / રિસ્ટોર',backupWA:'📤 બેકઅપ → વોટ્સએપ',restore:'📥 ફાઈલથી રિસ્ટોર',
+            install:'📲 એપ ઇન્સ્ટોલ કરો',share:'📢 એપ શેર કરો',shareMsg:'પરિવાર/મિત્રોને શેર કરો — તેમનો ડેટા અલગ અને PIN થી સુરક્ષિત.',
+            shareWA:'📱 વોટ્સએપથી શેર',copyLink:'📋 લિંક કૉપી',about:'✨ એપ વિશે',
+            enterPin:'PIN નાખો',setPin:'નવો PIN સેટ કરો',wrongPin:'ખોટો PIN. ફરી પ્રયાસ કરો.',
+            doctors:'🏥 ડૉક્ટર / ફાર્મસી',caretakers:'💬 સંભાળ રાખનાર અલર્ટ',
+            daysLeft:'દિવસ બાકી',balance:'બાકી',consumed:'વપરાયેલ',total:'કુલ',taken:'લીધી',pending:'બાકી',skipped:'છોડી'}
     };
     let currentLang='en';
-    function setLanguage(lang){currentLang=lang;localStorage.setItem('app_lang',lang);applyLanguage()}
+    function setLanguage(lang){currentLang=lang;localStorage.setItem('app_lang',lang);applyLanguage();renderToday()}
     function applyLanguage(){
         const L=LANG[currentLang]||LANG.en;
-        document.querySelector('h1').textContent=L.title;
+        // Title
+        const h1=document.querySelector('#app-container > h1');if(h1)h1.textContent=L.title;
+        // Tabs
         const tabs=document.querySelectorAll('.tab-bar button');
         if(tabs[0])tabs[0].innerHTML=`<span>🏠</span>${L.today}`;
         if(tabs[1])tabs[1].innerHTML=`<span>💊</span>${L.meds}`;
-        if(tabs[2])tabs[2].innerHTML=`<span>📅</span>${L.calendar}`;
+        if(tabs[2])tabs[2].innerHTML=`<span>❤️</span>${L.health}`;
         if(tabs[3])tabs[3].innerHTML=`<span>📦</span>${L.stock}`;
         if(tabs[4])tabs[4].innerHTML=`<span>⚙️</span>${L.settings}`;
+        // Form labels
+        const ids={'form-title':L.addMed,'pin-title':L.enterPin};
+        Object.entries(ids).forEach(([id,txt])=>{const el=document.getElementById(id);if(el&&!el.dataset.mode)el.textContent=txt});
+        // Buttons by text replacement via data-lang attributes
+        document.querySelectorAll('[data-lang]').forEach(el=>{const key=el.dataset.lang;if(L[key])el.textContent=L[key]});
     }
     function loadLanguage(){currentLang=localStorage.getItem('app_lang')||'en';document.getElementById('lang-select').value=currentLang;applyLanguage()}
 
