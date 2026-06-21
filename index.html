@@ -294,6 +294,20 @@
                 <option value="hi">हिन्दी (Hindi)</option>
                 <option value="gu">ગુજરાતી (Gujarati)</option>
             </select>
+            <label style="font-size:0.85rem;margin-top:12px;">📦 Reorder alert when stock is less than</label>
+            <select id="reorder-days" onchange="localStorage.setItem('reorder_days',this.value)" style="margin-top:4px;">
+                <option value="3">3 days</option>
+                <option value="5">5 days</option>
+                <option value="7" selected>7 days</option>
+                <option value="10">10 days</option>
+                <option value="14">14 days</option>
+            </select>
+            <label style="font-size:0.85rem;margin-top:8px;">📦 Reorder alert via</label>
+            <div style="display:flex;gap:8px;margin-top:4px;">
+                <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;"><input type="checkbox" id="reorder-notif" checked onchange="saveReorderSettings()" style="width:auto;margin:0;"> 🔔 Notify</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;"><input type="checkbox" id="reorder-whatsapp" onchange="saveReorderSettings()" style="width:auto;margin:0;"> 📱 WhatsApp</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;"><input type="checkbox" id="reorder-email" onchange="saveReorderSettings()" style="width:auto;margin:0;"> 📧 Email</label>
+            </div>
         </div>
         <div class="card">
             <h2>📄 Reports & Print</h2>
@@ -420,7 +434,7 @@
         if(name==='cal')renderCalendar();
         if(name==='health'){renderBPHistory();renderAppointments()}
         if(name==='stock')renderStock();
-        if(name==='settings'){updateNotifUI();updateLastSync();renderHistory();renderDoctors();renderCaretakers()}
+        if(name==='settings'){updateNotifUI();updateLastSync();renderHistory();renderDoctors();renderCaretakers();loadReorderSettings()}
         if(name==='add'){const editId=document.getElementById('edit-id').value;if(!editId)resetForm()}
     }
 
@@ -644,12 +658,45 @@
     // === REFILL ALERTS ===
     function renderRefillAlerts(){
         const meds=getMedicines();let html='';
+        const thresholdDays=parseInt(localStorage.getItem('reorder_days')||'7');
+        const alerted=JSON.parse(localStorage.getItem('reorder_alerted')||'{}');
+        const todayKey=today();
         meds.forEach(m=>{
-            const perStrip=m.perStrip||10;
-            if(m.stock>0&&m.stock<=5)html+=`<div class="alert-box danger">⚠️ <strong>${m.name}</strong> — Only ${m.stock} tablets left! Buy new stock.</div>`;
-            else if(m.stock>5&&m.stock<=perStrip)html+=`<div class="alert-box">🔔 <strong>${m.name}</strong> — ${m.stock} tablets (less than 1 strip) remaining.</div>`;
+            if(m.paused||m.freq==='sos')return;
+            const freq=parseInt(m.freq)||1;
+            const daysLeft=freq>0?Math.floor((m.stock||0)/freq):999;
+            if(daysLeft<=thresholdDays&&daysLeft<999){
+                const lastDate=new Date();lastDate.setDate(lastDate.getDate()+daysLeft);
+                html+=`<div class="alert-box${daysLeft<=3?' danger':''}">⚠️ <strong>${m.name}</strong> — ${m.stock} tabs left (${daysLeft} days). Order by <strong>${lastDate.toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</strong></div>`;
+                // Auto-alert once per day
+                if(alerted[m.id]!==todayKey){
+                    alerted[m.id]=todayKey;
+                    triggerReorderAlert(m,daysLeft);
+                }
+            }
         });
+        localStorage.setItem('reorder_alerted',JSON.stringify(alerted));
         document.getElementById('refill-alerts').innerHTML=html;
+    }
+    function triggerReorderAlert(m,daysLeft){
+        const settings=JSON.parse(localStorage.getItem('reorder_settings')||'{"notif":true,"whatsapp":false,"email":false}');
+        const msg=`📦 Reorder: ${m.name} (${m.stock} tabs left, ${daysLeft} days). Buy ${m.perStrip||10} tab strip.`;
+        if(settings.notif&&'Notification' in window&&Notification.permission==='granted'){
+            new Notification('📦 Reorder '+m.name,{body:`Only ${daysLeft} days of stock left!`,icon:'icon-192.png'});playAlertSound();
+        }
+        if(settings.whatsapp){window.open('https://wa.me/?text='+encodeURIComponent(msg))}
+        if(settings.email){const email=localStorage.getItem('report_email')||'';if(email)window.open('mailto:'+email+'?subject='+encodeURIComponent('📦 Reorder: '+m.name)+'&body='+encodeURIComponent(msg))}
+    }
+    function saveReorderSettings(){
+        const s={notif:document.getElementById('reorder-notif').checked,whatsapp:document.getElementById('reorder-whatsapp').checked,email:document.getElementById('reorder-email').checked};
+        localStorage.setItem('reorder_settings',JSON.stringify(s));
+    }
+    function loadReorderSettings(){
+        const s=JSON.parse(localStorage.getItem('reorder_settings')||'{"notif":true,"whatsapp":false,"email":false}');
+        document.getElementById('reorder-notif').checked=s.notif;
+        document.getElementById('reorder-whatsapp').checked=s.whatsapp;
+        document.getElementById('reorder-email').checked=s.email;
+        document.getElementById('reorder-days').value=localStorage.getItem('reorder_days')||'7';
     }
 
     // === CALENDAR ===
