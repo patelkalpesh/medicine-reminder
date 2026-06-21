@@ -656,7 +656,7 @@
         if(!meds.length){document.getElementById('adherence-box').innerHTML='';return}
         const last7=[];for(let i=0;i<7;i++){const d=new Date();d.setDate(d.getDate()-i);last7.push(d.toISOString().split('T')[0])}
         let totalDoses=0,takenDoses=0;
-        last7.forEach(date=>{meds.forEach(m=>{totalDoses+=m.freq;takenDoses+=logs.filter(l=>l.date===date&&l.medId===m.id&&l.action==='taken').length})});
+        last7.forEach(date=>{meds.filter(m=>m.freq!=='sos'&&!m.paused).forEach(m=>{const f=parseInt(m.freq)||1;totalDoses+=f;takenDoses+=logs.filter(l=>l.date===date&&l.medId===m.id&&l.action==='taken').length})});
         const pct=totalDoses?Math.round(takenDoses/totalDoses*100):0;
         document.getElementById('adherence-box').innerHTML=`<h2>📈 Weekly Adherence</h2><div class="adherence-bar"><div class="adherence-fill" style="width:${pct}%">${pct}%</div></div>`;
     }
