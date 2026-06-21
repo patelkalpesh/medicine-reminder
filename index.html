@@ -72,10 +72,6 @@
 <body>
     <h1>💊 Medicine Reminder</h1>
     <div style="text-align:right;margin:-8px 0 4px;"><button onclick="location.reload(true)" style="background:#eee;border:none;padding:4px 10px;border-radius:12px;font-size:0.75rem;cursor:pointer;color:#666;">🔄 Refresh</button></div>
-    <div class="clock-box">
-        <div class="clock-day" id="clock-day"></div>
-        <div class="clock-time" id="clock-time"></div>
-    </div>
     <!-- TODAY -->
     <div id="page-home" class="page active">
         <div id="adherence-box" class="card"></div>
@@ -242,13 +238,7 @@
     const TIMINGS=['Before Breakfast','After Breakfast','Before Lunch','After Lunch','Before Dinner','After Dinner','Bedtime'];
     const TIMING_GROUPS={'Morning':['Before Breakfast','After Breakfast'],'Afternoon':['Before Lunch','After Lunch'],'Evening':['Before Dinner','After Dinner','Bedtime']};
 
-    // === CLOCK ===
-    function updateClock(){
-        const now=new Date();const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-        document.getElementById('clock-day').textContent=days[now.getDay()];
-        document.getElementById('clock-time').textContent=now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
-    }
-    updateClock();setInterval(updateClock,1000);
+    // === CLOCK removed ===
 
     // === NAVIGATION ===
     const PAGES=['home','meds','add','cal','stock','settings'];
