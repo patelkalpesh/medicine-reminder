@@ -1,10 +1,19 @@
-# Medicine Reminder App v3.2
+# Medicine Reminder App v4.2
 
 ## Live URL
 https://kalpeshpatel-mobilearts.github.io/medicine-reminder/
 
 ## Repo
 https://github.com/KalpeshPatel-mobilearts/medicine-reminder
+
+## Location
+/mnt/c/Users/Dell/medicine-reminder/
+
+## Contact
+- Kalpesh Patel
+- Phone/WhatsApp: +91 74058 56226
+- Email: kal.shooter007@gmail.com
+- Google Account: kal.shooter007@gmail.com
 
 ## Tech Stack
 - Single-file PWA (index.html)
@@ -16,51 +25,63 @@ https://github.com/KalpeshPatel-mobilearts/medicine-reminder
 ## Google OAuth Client ID
 157005612520-70t1peegtr1uoinrnjv2g9uk1geni5j8.apps.googleusercontent.com
 
-## Features (v3.2)
-1. 🏠 Today - Schedule grouped by Morning/Afternoon/Evening with Take/Skip
-2. ✅ Auto-collapse taken doses (expandable "X done" bar)
-3. 💊 Medicines - Master list with photo, course info, stock
-4. ➕ Add/Edit - Name, dosage, photo upload (camera/gallery), frequency (1x/2x/3x/SOS), timing per dose, time per dose, course duration, strip-based stock
-5. 🆘 SOS Medicines - Emergency medicines with instructions and "Take Now" button
-6. 📅 Calendar - Monthly view with green/yellow/red adherence dots
-7. 📈 Weekly Adherence - % bar (taken/total over 7 days)
-8. 📦 Stock Management - Strips × tablets per strip + loose, "Buy New Stock" button, auto-consume on Take, low stock alerts
-9. 📷 Medicine Photos - Camera/gallery upload, compressed to 200px JPEG
-10. 🔁 Course Duration - Day X/Y progress (7/14/21/30/60/90 days or ongoing)
-11. 🏥 Doctor/Pharmacy - Add contacts with phone, specialty, next visit
-12. 💬 Caretaker Alerts - Auto WhatsApp to family if dose missed by 30 min
-13. 🔔 Notifications - Configurable 30/15/5/0 min before dose (2x2 grid UI)
-14. ☁️ Google Drive Sync - Auto push on change, auto pull on load + visibility change, shows email + last sync time
-15. 📲 Install App - One-click PWA install (Android native prompt, iOS instructions)
-16. 🆕 Update Notifications - Blue banner when new version available, tap to refresh
-17. 🔄 Refresh button at top
-18. 📋 History - Date-wise log with export: WhatsApp, Email, PDF, Excel/CSV
-19. ⚠️ Refill Alerts - On Today page when stock ≤5 (danger) or ≤1 strip (warning)
+## All Features (v4.2 - 28 features)
+1. 🏠 Today - Schedule with Take/Snooze, next dose widget (hrs + min)
+2. ✅ Auto-collapse taken doses
+3. 💊 Medicines - Add/Edit/Pause, photo crop, SOS emergency
+4. 📸 Photo upload with crop tool (drag + zoom)
+5. ⏰ Reminders - 30/15/5/0 min configurable + sound alert
+6. ⏰ Snooze - 10/30 min with countdown, syncs across devices
+7. 📈 Weekly adherence % bar
+8. 📅 Calendar - Monthly green/yellow/red view
+9. 📝 Notes per dose (symptoms, BP readings)
+10. ❤️ Health - BP log (upper/lower/heart rate) with history
+11. 📅 Doctor appointments with countdown + reminders
+12. 📦 Stock - Strips, balance, days left, stock-until date, timeline
+13. 💰 Price per strip, cost calculator (15/30/60 days)
+14. 🛒 Order Planner - What to buy for any period including current stock
+15. ⚠️ Reorder alerts - configurable threshold (3-14 days), WhatsApp/Email/Notify
+16. 🔁 Course duration - Day X/Y progress
+17. 🏥 Doctors/Pharmacy - Contacts, tap-to-call, editable
+18. 💬 Caretaker alerts - Auto WhatsApp if missed, editable
+19. 🖨️ Print medicine card (fridge) - with Back button
+20. 📊 Doctor report PDF - 30-day adherence + notes
+21. 📄 Stock statement report - printable
+22. 📋 History - Export WhatsApp/Email/PDF/Excel
+23. 🔄 Backup/Restore - JSON file + WhatsApp share
+24. ☁️ Google Drive sync - auto push/pull, syncs all data
+25. 🔐 PIN lock - once per session
+26. 🌙 Dark mode
+27. 🌐 Languages - English/Hindi/Gujarati (tab names only currently)
+28. 📲 Install - PWA with first-time install banner
+29. 🆕 Auto update notifications
+30. 📧 Monthly auto-email report
+31. 📢 Share app button (WhatsApp + copy link)
+32. ✨ About/Showcase page (collapsed)
 
 ## Data Storage
-- localStorage keys: medicines2, med_logs2, med_doctors, med_caretakers, notif_settings, data_updated, gdrive_token
-- Google Drive: appDataFolder/medicine-reminder-data.json (syncs medicines, logs, doctors, caretakers)
+- localStorage keys: medicines2, med_logs2, med_doctors, med_caretakers, bp_logs, med_appointments, notif_settings, reorder_settings, snoozed, data_updated, gdrive_token, app_pin, dark_mode, app_lang, sound_on, report_email, reorder_days, reorder_alerted, install_banner_dismissed
+- Google Drive: appDataFolder/medicine-reminder-data.json
+
+## Default Settings
+- WhatsApp: 917405856226
+- Email: kal.shooter007@gmail.com
+- Reorder threshold: 7 days
+- PIN: user-set (first time)
 
 ## Tab Structure
-🏠 Today | 💊 Meds | 📅 Calendar | 📦 Stock | ⚙️ Settings
+🏠 Today | 💊 Meds | ❤️ Health | 📦 Stock | ⚙️ Settings
+
+## PENDING (Next Session)
+1. Hindi/Gujarati FULL translation (all labels, buttons, alerts - not just tabs)
+2. Migrate repo to personal GitHub (kal.shooter007@gmail.com)
+3. Google OAuth verification (remove "unverified" warning)
+4. Privacy policy page (needed for Google verification)
+5. Drug interaction warnings (optional)
+6. Flexible schedules - Mon/Wed/Fri, alternate days, weekly (optional)
 
 ## Update/Deploy Process
 1. Edit index.html
-2. Update version.json (version number + features text)
-3. Update APP_VERSION const in index.html
-4. Update version display text in Settings card
-5. `git add -A && git commit -m "message" && git push origin main`
-6. Users see blue "New version available" banner → tap to update
-
-## iOS Notifications Setup
-- Must install as PWA (Add to Home Screen with "Open as Web App" ✅)
-- Requires iOS 16.4+
-- Open from home screen icon (not Safari)
-
-## Key Files
-- `index.html` - The entire app (single file)
-- `sw.js` - Service worker (network-first strategy)
-- `manifest.json` - PWA manifest with maskable icons
-- `version.json` - Version check for update notifications
-- `icon.svg`, `icon-192.png`, `icon-512.png` - App icons
-- `demo.html`, `demo-full.html` - Feature demos (can be deleted)
+2. Update version.json
+3. Update APP_VERSION const + version text in Settings
+4. `git add -A && git commit -m "message" && git push origin main`
