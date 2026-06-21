@@ -118,6 +118,19 @@
                 <button class="btn" onclick="gDriveSignOut()" style="background:#666;margin-top:8px;">Sign Out</button>
                 <div id="sync-status" style="font-size:0.8rem;color:#666;margin-top:12px;text-align:center;"></div>
             </div>
+            <div id="last-sync-info" style="margin-top:12px;padding:10px;background:#f0f0f0;border-radius:8px;font-size:0.8rem;color:#555;text-align:center;"></div>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-bottom:12px;">🔔 Notifications</h2>
+            <p style="font-size:0.85rem;color:#666;margin-bottom:12px;">Get reminders 30, 15, and 5 minutes before each dose.</p>
+            <div id="notif-status"></div>
+            <button class="btn" id="notif-btn" onclick="toggleNotifPermission()">Enable Notifications</button>
+        </div>
+
+        <div class="card" style="text-align:center;">
+            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v2.1</p>
+            <p style="font-size:0.7rem;color:#bbb;">Deployed: 21 Jun 2026</p>
         </div>
     </div>
 
@@ -159,6 +172,7 @@
             if (name === 'home') renderToday();
             if (name === 'meds') renderMedsList();
             if (name === 'history') renderHistory();
+            if (name === 'sync') { updateNotifUI(); updateLastSync(); }
             if (name === 'add') { if (!document.getElementById('edit-id').value) resetForm(); }
         }
 
@@ -422,6 +436,27 @@
             if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
         }
         requestNotifPermission();
+
+        function toggleNotifPermission() {
+            if (!('Notification' in window)) { alert('Notifications not supported on this browser'); return; }
+            if (Notification.permission === 'granted') { alert('Notifications already enabled!'); return; }
+            if (Notification.permission === 'denied') { alert('Notifications blocked. Please enable in browser settings.'); return; }
+            Notification.requestPermission().then(updateNotifUI);
+        }
+        function updateNotifUI() {
+            const btn = document.getElementById('notif-btn');
+            const status = document.getElementById('notif-status');
+            if (!('Notification' in window)) { status.innerHTML = '<p style="color:#e53935;">❌ Not supported in this browser</p>'; btn.style.display = 'none'; return; }
+            if (Notification.permission === 'granted') { status.innerHTML = '<p style="color:#4CAF50;">✅ Notifications enabled — reminders at 30, 15, 5 min before dose</p>'; btn.style.display = 'none'; }
+            else if (Notification.permission === 'denied') { status.innerHTML = '<p style="color:#e53935;">🚫 Blocked — enable in browser settings</p>'; btn.textContent = 'Blocked (check browser settings)'; btn.style.background = '#999'; }
+            else { status.innerHTML = '<p style="color:#FF9800;">⚠️ Not yet enabled</p>'; }
+        }
+        function updateLastSync() {
+            const el = document.getElementById('last-sync-info');
+            const ts = localStorage.getItem('data_updated');
+            if (ts && parseInt(ts) > 0) { el.textContent = '🕐 Last synced: ' + new Date(parseInt(ts)).toLocaleString('en-IN'); }
+            else { el.textContent = 'No sync yet'; }
+        }
 
         function checkReminders() {
             if (!('Notification' in window) || Notification.permission !== 'granted') return;
