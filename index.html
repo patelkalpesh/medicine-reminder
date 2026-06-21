@@ -759,7 +759,7 @@
         if(settings.notif&&'Notification' in window&&Notification.permission==='granted'){
             new Notification('📦 Reorder '+m.name,{body:`Only ${daysLeft} days of stock left!`,icon:'icon-192.png'});playAlertSound();
         }
-        if(settings.whatsapp){window.open('https://wa.me/?text='+encodeURIComponent(msg))}
+        if(settings.whatsapp){window.open('https://wa.me/917405856226?text='+encodeURIComponent(msg))}
         if(settings.email){const email=localStorage.getItem('report_email')||'';if(email)window.open('mailto:'+email+'?subject='+encodeURIComponent('📦 Reorder: '+m.name)+'&body='+encodeURIComponent(msg))}
     }
     function saveReorderSettings(){
