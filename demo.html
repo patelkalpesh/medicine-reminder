@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medicine Reminder - Demo Preview</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #333; max-width: 500px; margin: 0 auto; padding: 16px; padding-bottom: 80px; }
+        h1 { text-align: center; color: #4CAF50; margin: 8px 0; font-size: 1.5rem; }
+        .clock-box { background: linear-gradient(135deg, #4CAF50, #2E7D32); color: #fff; border-radius: 14px; padding: 16px; text-align: center; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(76,175,80,0.3); }
+        .clock-day { font-size: 0.9rem; opacity: 0.9; }
+        .clock-time { font-size: 2.2rem; font-weight: bold; letter-spacing: 2px; margin: 4px 0; }
+        .clock-date { font-size: 0.85rem; opacity: 0.85; }
+        .card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .summary { display: flex; gap: 8px; margin-bottom: 16px; }
+        .summary-card { flex: 1; background: #fff; border-radius: 10px; padding: 12px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+        .summary-card .num { font-size: 1.5rem; font-weight: bold; }
+        .summary-card .lbl { font-size: 0.7rem; color: #666; }
+        .slot-group { margin-bottom: 16px; }
+        .slot-group h3 { font-size: 0.9rem; color: #4CAF50; padding: 8px 0; border-bottom: 1px solid #eee; margin-bottom: 8px; }
+        .dose-card { display: flex; align-items: center; justify-content: space-between; padding: 10px; background: #fafafa; border-radius: 8px; margin-bottom: 6px; }
+        .dose-card.taken { opacity: 0.6; background: #e8f5e9; }
+        .btn-sm { padding: 6px 12px; width: auto; font-size: 0.8rem; margin: 4px 4px 0 0; border-radius: 6px; border: none; color: #fff; cursor: pointer; }
+        .btn-take { background: #4CAF50; }
+        .btn-skip { background: #9E9E9E; }
+        .tab-bar { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #ddd; z-index: 100; }
+        .tab-bar button { flex: 1; padding: 10px 4px; border: none; background: none; font-size: 0.7rem; cursor: pointer; color: #666; }
+        .tab-bar button.active { color: #4CAF50; font-weight: bold; }
+        .tab-bar button span { display: block; font-size: 1.2rem; }
+        .version { text-align: center; font-size: 0.7rem; color: #bbb; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>💊 Medicine Reminder</h1>
+
+    <!-- Live Clock -->
+    <div class="clock-box">
+        <div class="clock-day" id="clock-day"></div>
+        <div class="clock-time" id="clock-time"></div>
+        <div class="clock-date" id="clock-date"></div>
+    </div>
+
+    <!-- Summary -->
+    <div class="summary">
+        <div class="summary-card"><div class="num" style="color:#2196F3">5</div><div class="lbl">Total</div></div>
+        <div class="summary-card"><div class="num" style="color:#4CAF50">2</div><div class="lbl">Taken</div></div>
+        <div class="summary-card"><div class="num" style="color:#e53935">0</div><div class="lbl">Skipped</div></div>
+    </div>
+
+    <!-- Morning -->
+    <div class="slot-group">
+        <h3>🌅 Morning</h3>
+        <div class="dose-card taken">
+            <div><strong>Zinc</strong> ✅<br><small>50mg • After Breakfast • 🕐 8:00 AM</small></div>
+            <div></div>
+        </div>
+        <div class="dose-card taken">
+            <div><strong>Vitamin D3</strong> ✅<br><small>60K IU • After Breakfast • 🕐 8:00 AM</small></div>
+            <div></div>
+        </div>
+    </div>
+
+    <!-- Afternoon -->
+    <div class="slot-group">
+        <h3>🌤️ Afternoon</h3>
+        <div class="dose-card">
+            <div><strong>Zinc</strong><br><small>50mg • After Lunch • 🕐 2:00 PM</small></div>
+            <div><button class="btn-sm btn-take">Take</button><button class="btn-sm btn-skip">Skip</button></div>
+        </div>
+    </div>
+
+    <!-- Evening -->
+    <div class="slot-group">
+        <h3>🌙 Evening</h3>
+        <div class="dose-card">
+            <div><strong>Zinc</strong><br><small>50mg • After Dinner • 🕐 8:00 PM</small></div>
+            <div><button class="btn-sm btn-take">Take</button><button class="btn-sm btn-skip">Skip</button></div>
+        </div>
+        <div class="dose-card">
+            <div><strong>Melatonin</strong><br><small>5mg • Bedtime • 🕐 10:30 PM</small></div>
+            <div><button class="btn-sm btn-take">Take</button><button class="btn-sm btn-skip">Skip</button></div>
+        </div>
+    </div>
+
+    <div class="version">💊 Medicine Reminder v2.1 • Deployed: 21 Jun 2026</div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+        <button class="active"><span>🏠</span>Today</button>
+        <button><span>💊</span>Medicines</button>
+        <button><span>➕</span>Add</button>
+        <button><span>📋</span>History</button>
+        <button><span>☁️</span>Sync</button>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            document.getElementById('clock-day').textContent = days[now.getDay()];
+            document.getElementById('clock-time').textContent = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+            document.getElementById('clock-date').textContent = now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>
