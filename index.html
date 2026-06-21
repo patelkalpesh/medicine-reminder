@@ -232,6 +232,7 @@
         <div class="card">
             <h2>📦 Medicine Stock</h2>
             <div id="stock-list"></div>
+            <button class="btn" onclick="stockReport()" style="background:#2196F3;">📄 Stock Statement Report</button>
         </div>
         <div class="card">
             <h2>🏥 Doctor / Pharmacy</h2>
@@ -684,18 +685,26 @@
             const fullStrips=Math.floor(totalTabs/perStrip);
             const looseTabs=totalTabs%perStrip;
             const consumed=logs.filter(l=>l.medId===m.id&&l.action==='taken').length;
+            const freq=m.freq==='sos'?0:parseInt(m.freq)||1;
+            const daysLeft=freq>0?Math.floor(totalTabs/freq):999;
+            const lastDate=new Date();lastDate.setDate(lastDate.getDate()+daysLeft);
+            const lastDateStr=daysLeft<999?lastDate.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):'—';
             const pct=totalTabs?Math.min(100,Math.round(totalTabs/(perStrip*3)*100)):0;
             const cls=totalTabs<=5?'stock-low':totalTabs<=perStrip?'stock-med':'stock-ok';
             const alertTxt=totalTabs<=5?'<span style="color:#e53935;font-size:0.7rem;"> ⚠️ Low!</span>':'';
-            return`<div class="card" style="padding:10px;margin-bottom:8px;">
+            const pausedStyle=m.paused?'opacity:0.5;border-left:4px solid #FF9800;':'';
+            const pausedBadge=m.paused?'<span style="background:#FF9800;color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:4px;margin-left:6px;">⏸️ PAUSED</span>':'';
+            return`<div class="card" style="padding:10px;margin-bottom:8px;${pausedStyle}">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                    ${medPhotoHtml(m)}<strong style="font-size:0.9rem;">${m.name}</strong>${alertTxt}
+                    ${medPhotoHtml(m)}<strong style="font-size:0.9rem;">${m.name}</strong>${pausedBadge}${alertTxt}
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;text-align:center;font-size:0.75rem;margin-bottom:6px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;text-align:center;font-size:0.7rem;margin-bottom:6px;">
                     <div style="background:#e8f5e9;padding:6px;border-radius:6px;"><strong>${fullStrips}</strong> strips<br>+ ${looseTabs} tabs</div>
                     <div style="background:#f3e5f5;padding:6px;border-radius:6px;"><strong>${totalTabs}</strong><br>balance</div>
                     <div style="background:#fff3e0;padding:6px;border-radius:6px;"><strong>${consumed}</strong><br>consumed</div>
+                    <div style="background:#e3f2fd;padding:6px;border-radius:6px;"><strong>${daysLeft<999?daysLeft:'∞'}</strong><br>days left</div>
                 </div>
+                ${freq>0?`<div style="font-size:0.7rem;color:#666;margin-bottom:4px;">📅 Stock lasts until: <strong>${lastDateStr}</strong></div>`:''}
                 <div class="stock-fill-bg"><div class="stock-fill ${cls}" style="width:${pct}%"></div></div>
                 <button class="btn-sm" style="background:#4CAF50;margin-top:6px;" onclick="buyStock('${m.id}')">+ Buy New Stock</button>
             </div>`;
@@ -708,6 +717,26 @@
         meds[idx].stock=(meds[idx].stock||0)+strips*perStrip;
         meds[idx].strips=(meds[idx].strips||0)+strips;
         saveMedicines(meds);renderStock();
+    }
+    function stockReport(){
+        const meds=getMedicines();const logs=getLogs();
+        let html='<html><head><title>Stock Statement</title><style>body{font-family:sans-serif;padding:20px;max-width:700px;margin:0 auto}h1{color:#4CAF50}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #ddd;padding:8px;text-align:center;font-size:13px}th{background:#4CAF50;color:#fff}.low{background:#fce4ec}.paused{background:#fff3e0;opacity:0.7}.footer{text-align:center;margin-top:20px;font-size:11px;color:#666}</style></head><body>';
+        html+='<h1>📦 Stock Statement Report</h1>';
+        html+=`<p>Generated: ${new Date().toLocaleString('en-IN')}</p>`;
+        html+='<table><tr><th>Medicine</th><th>Strips</th><th>Loose</th><th>Total Balance</th><th>Consumed</th><th>Per Day</th><th>Days Left</th><th>Stock Until</th><th>Status</th></tr>';
+        meds.forEach(m=>{
+            const perStrip=m.perStrip||10;const total=m.stock||0;
+            const strips=Math.floor(total/perStrip);const loose=total%perStrip;
+            const consumed=logs.filter(l=>l.medId===m.id&&l.action==='taken').length;
+            const freq=m.freq==='sos'?0:parseInt(m.freq)||1;
+            const daysLeft=freq>0?Math.floor(total/freq):999;
+            const lastDate=new Date();lastDate.setDate(lastDate.getDate()+daysLeft);
+            const cls=total<=5?'low':m.paused?'paused':'';
+            const status=m.paused?'⏸️ Paused':total<=5?'⚠️ Low':total<=perStrip?'🟡 Reorder soon':'✅ OK';
+            html+=`<tr class="${cls}"><td>${m.name}</td><td>${strips}</td><td>${loose}</td><td><strong>${total}</strong></td><td>${consumed}</td><td>${freq||'SOS'}</td><td>${daysLeft<999?daysLeft:'—'}</td><td>${daysLeft<999?lastDate.toLocaleDateString('en-IN',{day:'numeric',month:'short'}):'—'}</td><td>${status}</td></tr>`;
+        });
+        html+='</table><div class="footer">Medicine Reminder App • Stock Statement</div></body></html>';
+        const w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(()=>w.print(),500);
     }
 
     // === PAUSE ===
