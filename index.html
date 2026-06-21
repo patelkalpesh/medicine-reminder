@@ -240,6 +240,19 @@
             <div id="stock-timeline"></div>
         </div>
         <div class="card">
+            <h2>🛒 Order Planner</h2>
+            <p style="font-size:0.75rem;color:#666;margin-bottom:8px;">How many strips to buy (including current stock)?</p>
+            <select id="plan-days" onchange="renderOrderPlan()" style="margin:0;">
+                <option value="month-end">Till this month end</option>
+                <option value="next-month">Till next month end</option>
+                <option value="30" selected>Next 30 days</option>
+                <option value="45">Next 45 days</option>
+                <option value="60">Next 60 days</option>
+                <option value="90">Next 90 days</option>
+            </select>
+            <div id="order-plan" style="margin-top:10px;"></div>
+        </div>
+        <div class="card">
             <h2>🏥 Doctor / Pharmacy</h2>
             <div id="doctor-list"></div>
             <button class="btn" onclick="addDoctor()">+ Add Doctor/Pharmacy</button>
@@ -444,7 +457,7 @@
         if(name==='meds')renderMedsList();
         if(name==='cal')renderCalendar();
         if(name==='health'){renderBPHistory();renderAppointments()}
-        if(name==='stock')renderStock();
+        if(name==='stock'){renderStock();renderOrderPlan()}
         if(name==='settings'){updateNotifUI();updateLastSync();renderHistory();renderDoctors();renderCaretakers();loadReorderSettings()}
         if(name==='add'){const editId=document.getElementById('edit-id').value;if(!editId)resetForm()}
     }
@@ -818,6 +831,39 @@
                 </div>
             </div>`;
         }
+        el.innerHTML=html;
+    }
+    function renderOrderPlan(){
+        const meds=getMedicines().filter(m=>m.freq!=='sos'&&!m.paused);
+        const el=document.getElementById('order-plan');
+        const sel=document.getElementById('plan-days').value;
+        let targetDays;
+        if(sel==='month-end'){const now=new Date();targetDays=new Date(now.getFullYear(),now.getMonth()+1,0).getDate()-now.getDate()}
+        else if(sel==='next-month'){const now=new Date();targetDays=(new Date(now.getFullYear(),now.getMonth()+1,0).getDate()-now.getDate())+new Date(now.getFullYear(),now.getMonth()+2,0).getDate()}
+        else{targetDays=parseInt(sel)}
+        const targetDate=new Date();targetDate.setDate(targetDate.getDate()+targetDays);
+        const targetStr=targetDate.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+        let html=`<div style="font-size:0.75rem;color:#4CAF50;font-weight:bold;margin-bottom:8px;">📅 Plan for ${targetDays} days (until ${targetStr})</div>`;
+        let totalBuy=0,totalCost=0;
+        html+='<table style="width:100%;font-size:0.7rem;border-collapse:collapse;">';
+        html+='<tr style="background:#4CAF50;color:#fff;"><th style="padding:6px;">Medicine</th><th>Need</th><th>Have</th><th>Buy</th><th>Cost</th></tr>';
+        meds.forEach(m=>{
+            const freq=parseInt(m.freq)||1;
+            const perStrip=m.perStrip||10;
+            const price=m.price||0;
+            const totalNeeded=freq*targetDays;
+            const have=m.stock||0;
+            const deficit=Math.max(0,totalNeeded-have);
+            const stripsToBuy=Math.ceil(deficit/perStrip);
+            const cost=stripsToBuy*price;
+            totalBuy+=stripsToBuy;totalCost+=cost;
+            const rowBg=deficit>0?'background:#fff3e0;':'';
+            html+=`<tr style="${rowBg}"><td style="padding:5px;border-bottom:1px solid #eee;">${m.icon||'💊'} ${m.name}</td><td style="text-align:center;border-bottom:1px solid #eee;">${totalNeeded}</td><td style="text-align:center;border-bottom:1px solid #eee;">${have}</td><td style="text-align:center;border-bottom:1px solid #eee;font-weight:bold;color:${deficit>0?'#e53935':'#4CAF50'}">${stripsToBuy>0?stripsToBuy+' strips':'✅'}</td><td style="text-align:center;border-bottom:1px solid #eee;">${cost>0?'₹'+cost:'—'}</td></tr>`;
+        });
+        html+='</table>';
+        html+=`<div style="margin-top:10px;padding:10px;background:#e8f5e9;border-radius:8px;text-align:center;font-size:0.8rem;">
+            <strong>🛒 Total: ${totalBuy} strips to buy${totalCost>0?' • ₹'+totalCost:''}</strong>
+        </div>`;
         el.innerHTML=html;
     }
     function buyStock(id){
