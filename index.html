@@ -165,13 +165,14 @@
     <div id="page-settings" class="page">
         <div class="card">
             <h2>🔔 Reminder Notifications</h2>
-            <div style="font-size:0.85rem;">
-                <label style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0"><input type="checkbox" id="notif-30" checked onchange="saveNotifSettings()"> 30 minutes before</label>
-                <label style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0"><input type="checkbox" id="notif-15" checked onchange="saveNotifSettings()"> 15 minutes before</label>
-                <label style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0"><input type="checkbox" id="notif-5" checked onchange="saveNotifSettings()"> 5 minutes before</label>
-                <label style="display:flex;align-items:center;gap:8px;padding:8px 0"><input type="checkbox" id="notif-0" checked onchange="saveNotifSettings()"> At dose time</label>
+            <p style="font-size:0.8rem;color:#666;margin-bottom:12px;">Get reminded before each dose</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <label style="display:flex;align-items:center;gap:8px;padding:10px;background:#f9f9f9;border-radius:8px;cursor:pointer"><input type="checkbox" id="notif-30" checked onchange="saveNotifSettings()" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">30 min</span></label>
+                <label style="display:flex;align-items:center;gap:8px;padding:10px;background:#f9f9f9;border-radius:8px;cursor:pointer"><input type="checkbox" id="notif-15" checked onchange="saveNotifSettings()" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">15 min</span></label>
+                <label style="display:flex;align-items:center;gap:8px;padding:10px;background:#f9f9f9;border-radius:8px;cursor:pointer"><input type="checkbox" id="notif-5" checked onchange="saveNotifSettings()" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">5 min</span></label>
+                <label style="display:flex;align-items:center;gap:8px;padding:10px;background:#f9f9f9;border-radius:8px;cursor:pointer"><input type="checkbox" id="notif-0" checked onchange="saveNotifSettings()" style="width:auto;margin:0;accent-color:#FF9800"> <span style="font-size:0.85rem;">⏰ On time</span></label>
             </div>
-            <div id="notif-status" style="margin-top:10px;padding:8px;border-radius:8px;font-size:0.8rem;"></div>
+            <div id="notif-status" style="margin-top:12px;padding:10px;border-radius:8px;font-size:0.8rem;text-align:center;"></div>
             <button class="btn" id="notif-btn" onclick="toggleNotifPermission()">Enable Notifications</button>
         </div>
         <div class="card">
@@ -563,7 +564,14 @@
         else if(Notification.permission==='denied'){st.innerHTML='<span style="color:#e53935">🚫 Blocked</span>';st.style.background='#fce4ec';btn.textContent='Blocked (check settings)';btn.style.background='#999'}
         else{st.innerHTML='<span style="color:#FF9800">⚠️ Not enabled</span>';st.style.background='#fff8e1'}
     }
-    function updateLastSync(){const el=document.getElementById('last-sync-info');const ts=localStorage.getItem('data_updated');el.textContent=ts&&parseInt(ts)>0?'🕐 Last synced: '+new Date(parseInt(ts)).toLocaleString('en-IN'):'No sync yet'}
+    function updateLastSync(){
+        const el=document.getElementById('last-sync-info');const ts=localStorage.getItem('data_updated');
+        const tokenData=localStorage.getItem('gdrive_token');
+        let email='';if(tokenData){try{email=JSON.parse(tokenData).email||''}catch(e){}}
+        if(ts&&parseInt(ts)>0){
+            el.innerHTML=(email?'<div style="font-size:0.75rem;color:#4CAF50;margin-bottom:4px;">👤 '+email+'</div>':'')+'🕐 Last synced: '+new Date(parseInt(ts)).toLocaleString('en-IN');
+        }else{el.textContent=email?'👤 '+email+' • Not synced yet':'Not signed in'}
+    }
     function checkReminders(){
         if(!('Notification' in window)||Notification.permission!=='granted')return;
         const meds=getMedicines();const logs=getTodayStatus();const now=new Date();const nowMin=now.getHours()*60+now.getMinutes();
