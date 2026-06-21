@@ -344,6 +344,8 @@
     const FIXED_EMAIL='kal.shooter007@gmail.com';
     function initLogin(){
         document.getElementById('login-email').textContent=FIXED_EMAIL;
+        // Skip PIN if already unlocked this session
+        if(sessionStorage.getItem('unlocked')==='1'){unlockApp();return}
         const savedPin=localStorage.getItem('app_pin');
         if(!savedPin){document.getElementById('pin-title').textContent='Set New PIN';document.getElementById('pin-title').dataset.mode='setup'}
         else{document.getElementById('pin-title').textContent='Enter PIN'}
@@ -374,9 +376,9 @@
         }
     }
     function unlockApp(){
+        sessionStorage.setItem('unlocked','1');
         document.getElementById('login-screen').style.display='none';
         document.getElementById('app-container').style.display='block';
-        renderToday();
     }
     function changePin(){
         const current=prompt('Enter current PIN:');
