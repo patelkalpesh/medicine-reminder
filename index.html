@@ -67,6 +67,23 @@
         .export-bar{display:flex;flex-wrap:wrap;justify-content:center;margin-top:12px}
         .log-entry{padding:8px 0;border-bottom:1px solid #eee;font-size:0.9rem}
         .log-date-header{font-weight:bold;color:#4CAF50;padding:12px 0 4px;font-size:0.95rem}
+        .next-dose-widget{background:linear-gradient(135deg,#4CAF50,#2E7D32);color:#fff;border-radius:14px;padding:16px;margin-bottom:14px;text-align:center;box-shadow:0 4px 12px rgba(76,175,80,0.3)}
+        .next-dose-widget .ndw-label{font-size:0.75rem;opacity:0.8}.next-dose-widget .ndw-name{font-size:1.2rem;font-weight:bold;margin:4px 0}.next-dose-widget .ndw-time{font-size:0.9rem;opacity:0.9}
+        .paused{opacity:0.4;border-left:3px solid #FF9800}
+        body.dark{background:#1a1a1a;color:#eee}
+        body.dark .card{background:#2a2a2a;box-shadow:0 2px 8px rgba(0,0,0,0.3)}
+        body.dark .tab-bar{background:#222;border-top-color:#444}
+        body.dark .tab-bar button{color:#aaa}
+        body.dark .tab-bar button.active{color:#4CAF50}
+        body.dark input,body.dark select,body.dark textarea{background:#333;border-color:#555;color:#eee}
+        body.dark .dose-card{background:#333}
+        body.dark .done-group{background:#333}
+        body.dark .summary-card{background:#2a2a2a}
+        body.dark .timing-chip{border-color:#555;color:#ccc}
+        body.dark .slot-group h3{border-bottom-color:#444}
+        body.dark h1{color:#66BB6A}
+        body.dark .alert-box{background:#332200;color:#FFB74D}
+        body.dark .alert-box.danger{background:#330011;color:#EF9A9A}
     </style>
 </head>
 <body>
@@ -74,6 +91,7 @@
     <div style="text-align:right;margin:-8px 0 4px;"><button onclick="location.reload(true)" style="background:#eee;border:none;padding:4px 10px;border-radius:12px;font-size:0.75rem;cursor:pointer;color:#666;">🔄 Refresh</button></div>
     <!-- TODAY -->
     <div id="page-home" class="page active">
+        <div id="next-dose-widget"></div>
         <div id="adherence-box" class="card"></div>
         <div id="refill-alerts"></div>
         <div id="summary" class="summary"></div>
@@ -205,6 +223,29 @@
             </div>
         </div>
         <div class="card" id="install-card">
+            <h2>⚙️ Preferences</h2>
+            <label style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0"><input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode()" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">🌙 Dark Mode</span></label>
+            <label style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0"><input type="checkbox" id="sound-toggle" checked onchange="localStorage.setItem('sound_on',this.checked)" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">🔊 Sound on notification</span></label>
+            <label style="font-size:0.85rem;margin-top:8px;">🌐 Language</label>
+            <select id="lang-select" onchange="setLanguage(this.value)" style="margin-top:4px;">
+                <option value="en">English</option>
+                <option value="hi">हिन्दी (Hindi)</option>
+                <option value="gu">ગુજરાતી (Gujarati)</option>
+            </select>
+        </div>
+        <div class="card">
+            <h2>📄 Reports & Print</h2>
+            <button class="btn" onclick="printMedCard()" style="background:#FF9800;">🖨️ Print Medicine Card (Fridge)</button>
+            <button class="btn" onclick="doctorReport()" style="background:#2196F3;">📊 Doctor Visit Report (PDF)</button>
+        </div>
+        <div class="card">
+            <h2>🔄 Backup / Restore</h2>
+            <p style="font-size:0.8rem;color:#666;margin-bottom:8px;">Share all data via WhatsApp or restore from file</p>
+            <button class="btn" onclick="backupWhatsApp()" style="background:#25D366;">📤 Backup → WhatsApp</button>
+            <button class="btn" onclick="document.getElementById('restore-input').click()" style="background:#666;">📥 Restore from file</button>
+            <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restoreBackup(this)">
+        </div>
+        <div class="card">
             <h2>📲 Install App</h2>
             <p style="font-size:0.8rem;color:#666;margin-bottom:10px;">Install for fullscreen experience, home screen icon & offline access.</p>
             <button class="btn" id="install-btn" onclick="installApp()" style="background:#2196F3;">📲 Install Medicine Reminder</button>
@@ -219,10 +260,10 @@
             </div>
         </div>
         <div class="card" style="text-align:center;">
-            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v3.2</p>
-            <p style="font-size:0.7rem;color:#bbb;">Deployed: 21 Jun 2026, 12:25:23 PM IST</p>
-            <p style="font-size:0.65rem;color:#ccc;margin-top:4px;">✨ v3.1: Auto-collapse taken doses, update notifications</p>
-            <p style="font-size:0.65rem;color:#ccc;">v3.0: Clock, calendar, adherence, stock, doctors, caretakers</p>
+            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v4.0</p>
+            <p style="font-size:0.7rem;color:#bbb;">Deployed: 21 Jun 2026, 12:44:02 PM IST</p>
+            <p style="font-size:0.65rem;color:#ccc;margin-top:4px;">✨ v4.0: Sound, Hindi/Gujarati, dark mode, pause, notes, print card, doctor report, backup, widget</p>
+            <p style="font-size:0.65rem;color:#ccc;">v3.2: Photo upload, strip-based stock</p>
         </div>
     </div>
 
@@ -414,7 +455,7 @@
             <div class="med-info"><strong>${m.name}</strong><br><small>${m.dosage} • ${m.freq}x daily</small><br>
             <small>⏰ ${m.timings.map((t,i)=>t+(m.times&&m.times[i]?' @ '+formatTime12(m.times[i]):'')).join(', ')}</small><br>
             ${getCourseInfo(m)}<br><small>${stockInfo}</small></div>
-        </div><div><button class="btn-sm btn-edit" onclick="editMedicine('${m.id}')">✏️ Edit</button><button class="btn-sm btn-del" onclick="deleteMedicine('${m.id}')">🗑️ Delete</button></div></div>`;
+        </div><div><button class="btn-sm" style="background:${m.paused?'#4CAF50':'#FF9800'}" onclick="togglePause('${m.id}')">${m.paused?'▶️ Resume':'⏸️ Pause'}</button><button class="btn-sm btn-edit" onclick="editMedicine('${m.id}')">✏️ Edit</button><button class="btn-sm btn-del" onclick="deleteMedicine('${m.id}')">🗑️ Delete</button></div></div>`;
         }).join('');
     }
 
@@ -424,8 +465,8 @@
         const meds=getMedicines();const logs=getTodayStatus();
         const el=document.getElementById('today-schedule');const sum=document.getElementById('summary');
         if(!meds.length){el.innerHTML='<div class="empty">No medicines added yet.</div>';sum.innerHTML='';document.getElementById('adherence-box').innerHTML='';document.getElementById('refill-alerts').innerHTML='';return}
-        const regularMeds=meds.filter(m=>m.freq!=='sos');
-        const sosMeds=meds.filter(m=>m.freq==='sos');
+        const regularMeds=meds.filter(m=>m.freq!=='sos'&&!m.paused);
+        const sosMeds=meds.filter(m=>m.freq==='sos'&&!m.paused);
         let allDoses=[];
         regularMeds.forEach(m=>{m.timings.forEach((timing,i)=>{allDoses.push({id:m.id,name:m.name,dosage:m.dosage,timing,time:(m.times&&m.times[i])||'',icon:m.icon||'💊'})})});
         const taken=logs.filter(l=>l.action==='taken').length;const skipped=logs.filter(l=>l.action==='skipped').length;
@@ -467,19 +508,10 @@
             sosMeds.forEach(m=>{sosHtml+=`<div class="dose-card" style="border-left:3px solid #e53935"><div><strong>${m.icon||'🆘'} ${m.name}</strong><br><small>${m.dosage} • ${m.sosNote||''}</small></div><div><button class="btn-sm btn-take" onclick="logDose('${m.id}','SOS','taken')">💊 Take</button></div></div>`});
             sosHtml+='</div>';el.innerHTML+=sosHtml;
         }
+        renderNextDoseWidget();
     }
     function logDose(medId,timing,action){
-        const logs=getLogs();logs.push({medId,timing,action,date:today(),time:new Date().toISOString()});saveLogs(logs);
-        if(action==='taken'){
-            const meds=getMedicines();const idx=meds.findIndex(m=>m.id===medId);
-            if(idx>=0&&meds[idx].stock>0){
-                meds[idx].stock--;
-                meds[idx].loose=(meds[idx].stock)%(meds[idx].perStrip||10);
-                meds[idx].strips=Math.floor(meds[idx].stock/(meds[idx].perStrip||10));
-                saveMedicines(meds);
-            }
-        }
-        renderToday();
+        logDoseWithNote(medId,timing,action);
     }
 
     // === ADHERENCE ===
@@ -563,6 +595,141 @@
         saveMedicines(meds);renderStock();
     }
 
+    // === PAUSE ===
+    function togglePause(id){
+        const meds=getMedicines();const idx=meds.findIndex(m=>m.id===id);if(idx<0)return;
+        meds[idx].paused=!meds[idx].paused;
+        saveMedicines(meds);renderMedsList();renderToday();
+    }
+
+    // === NOTES PER DOSE ===
+    function logDoseWithNote(medId,timing,action){
+        const note=action==='taken'?prompt('Any note? (e.g. felt dizzy, BP 140/90) — leave blank to skip')||'':'';
+        const logs=getLogs();logs.push({medId,timing,action,date:today(),time:new Date().toISOString(),note});saveLogs(logs);
+        if(action==='taken'){
+            const meds=getMedicines();const idx=meds.findIndex(m=>m.id===medId);
+            if(idx>=0&&meds[idx].stock>0){meds[idx].stock--;meds[idx].loose=(meds[idx].stock)%(meds[idx].perStrip||10);meds[idx].strips=Math.floor(meds[idx].stock/(meds[idx].perStrip||10));saveMedicines(meds)}
+        }
+        renderToday();
+    }
+
+    // === NEXT DOSE WIDGET ===
+    function renderNextDoseWidget(){
+        const meds=getMedicines().filter(m=>m.freq!=='sos'&&!m.paused);
+        const logs=getTodayStatus();const now=new Date();const nowMin=now.getHours()*60+now.getMinutes();
+        let nextDose=null,minDiff=Infinity;
+        meds.forEach(m=>{if(!m.times)return;m.timings.forEach((timing,i)=>{
+            const log=logs.find(l=>l.medId===m.id&&l.timing===timing);if(log)return;
+            const[h,min]=m.times[i].split(':').map(Number);const diff=(h*60+min)-nowMin;
+            if(diff>0&&diff<minDiff){minDiff=diff;nextDose={name:m.name,dosage:m.dosage,timing,time:m.times[i],icon:m.icon||'💊',diff}}
+        })});
+        const el=document.getElementById('next-dose-widget');
+        if(!nextDose){el.innerHTML='';return}
+        el.innerHTML=`<div class="next-dose-widget"><div class="ndw-label">⏭️ NEXT DOSE</div><div class="ndw-name">${nextDose.icon} ${nextDose.name}</div><div class="ndw-time">${nextDose.dosage} • ${nextDose.timing} • 🕐 ${formatTime12(nextDose.time)} (in ${nextDose.diff} min)</div></div>`;
+    }
+
+    // === DARK MODE ===
+    function toggleDarkMode(){
+        const on=document.getElementById('dark-mode-toggle').checked;
+        document.body.classList.toggle('dark',on);localStorage.setItem('dark_mode',on?'1':'0');
+    }
+    function loadDarkMode(){const on=localStorage.getItem('dark_mode')==='1';document.getElementById('dark-mode-toggle').checked=on;document.body.classList.toggle('dark',on)}
+
+    // === LANGUAGE ===
+    const LANG={
+        en:{title:'💊 Medicine Reminder',today:'Today',meds:'Meds',calendar:'Calendar',stock:'Stock',settings:'Settings',take:'Take',skip:'Skip',morning:'Morning',afternoon:'Afternoon',evening:'Evening',nextDose:'NEXT DOSE'},
+        hi:{title:'💊 दवाई रिमाइंडर',today:'आज',meds:'दवाइयाँ',calendar:'कैलेंडर',stock:'स्टॉक',settings:'सेटिंग्स',take:'लें',skip:'छोड़ें',morning:'सुबह',afternoon:'दोपहर',evening:'शाम',nextDose:'अगली खुराक'},
+        gu:{title:'💊 દવા રીમાઇન્ડર',today:'આજ',meds:'દવાઓ',calendar:'કેલેન્ડર',stock:'સ્ટોક',settings:'સેટિંગ્સ',take:'લો',skip:'છોડો',morning:'સવાર',afternoon:'બપોર',evening:'સાંજ',nextDose:'આગળની ડોઝ'}
+    };
+    let currentLang='en';
+    function setLanguage(lang){currentLang=lang;localStorage.setItem('app_lang',lang);applyLanguage()}
+    function applyLanguage(){
+        const L=LANG[currentLang]||LANG.en;
+        document.querySelector('h1').textContent=L.title;
+        const tabs=document.querySelectorAll('.tab-bar button');
+        if(tabs[0])tabs[0].innerHTML=`<span>🏠</span>${L.today}`;
+        if(tabs[1])tabs[1].innerHTML=`<span>💊</span>${L.meds}`;
+        if(tabs[2])tabs[2].innerHTML=`<span>📅</span>${L.calendar}`;
+        if(tabs[3])tabs[3].innerHTML=`<span>📦</span>${L.stock}`;
+        if(tabs[4])tabs[4].innerHTML=`<span>⚙️</span>${L.settings}`;
+    }
+    function loadLanguage(){currentLang=localStorage.getItem('app_lang')||'en';document.getElementById('lang-select').value=currentLang;applyLanguage()}
+
+    // === SOUND ===
+    function playAlertSound(){
+        if(localStorage.getItem('sound_on')==='false')return;
+        try{const ctx=new(window.AudioContext||window.webkitAudioContext)();const o=ctx.createOscillator();const g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=800;o.type='sine';g.gain.value=0.3;o.start();o.stop(ctx.currentTime+0.3);setTimeout(()=>{const o2=ctx.createOscillator();o2.connect(g);o2.frequency.value=1000;o2.type='sine';o2.start();o2.stop(ctx.currentTime+0.3)},400)}catch(e){}
+    }
+
+    // === PRINT MEDICINE CARD ===
+    function printMedCard(){
+        const meds=getMedicines().filter(m=>!m.paused);
+        let html='<html><head><title>Medicine Card</title><style>body{font-family:sans-serif;padding:20px;max-width:600px;margin:0 auto}h1{color:#4CAF50;text-align:center}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #ddd;padding:10px;text-align:left;font-size:14px}th{background:#4CAF50;color:#fff}.sos{background:#fce4ec}.footer{text-align:center;margin-top:20px;font-size:12px;color:#666}</style></head><body>';
+        html+='<h1>💊 Medicine Schedule</h1>';
+        html+=`<p style="text-align:center;color:#666;">Generated: ${new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</p>`;
+        html+='<table><tr><th>Medicine</th><th>Dose</th><th>When</th><th>Time</th></tr>';
+        meds.forEach(m=>{
+            if(m.freq==='sos'){html+=`<tr class="sos"><td>🆘 ${m.name}</td><td>${m.dosage}</td><td colspan="2">SOS: ${m.sosNote||''}</td></tr>`}
+            else{m.timings.forEach((t,i)=>{html+=`<tr><td>${m.name}</td><td>${m.dosage}</td><td>${t}</td><td>${m.times&&m.times[i]?formatTime12(m.times[i]):''}</td></tr>`})}
+        });
+        html+='</table><div class="footer">📌 Stick on fridge • Medicine Reminder App</div></body></html>';
+        const w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(()=>w.print(),500);
+    }
+
+    // === DOCTOR REPORT ===
+    function doctorReport(){
+        const meds=getMedicines();const logs=getLogs();
+        const last30=[];for(let i=0;i<30;i++){const d=new Date();d.setDate(d.getDate()-i);last30.push(d.toISOString().split('T')[0])}
+        let totalDoses=0,takenDoses=0,missedDoses=0;
+        last30.forEach(date=>{meds.filter(m=>m.freq!=='sos').forEach(m=>{
+            const f=parseInt(m.freq)||1;totalDoses+=f;
+            const taken=logs.filter(l=>l.date===date&&l.medId===m.id&&l.action==='taken').length;
+            takenDoses+=taken;missedDoses+=(f-taken);
+        })});
+        const adherence=totalDoses?Math.round(takenDoses/totalDoses*100):0;
+        let html='<html><head><title>Doctor Report</title><style>body{font-family:sans-serif;padding:20px;max-width:700px;margin:0 auto}h1{color:#2196F3}h2{color:#4CAF50;margin-top:20px}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#2196F3;color:#fff}.stat{display:inline-block;padding:10px 20px;margin:5px;background:#f5f5f5;border-radius:8px;text-align:center}.stat b{display:block;font-size:1.5rem}</style></head><body>';
+        html+='<h1>📊 Medicine Adherence Report</h1>';
+        html+=`<p>Patient report generated on ${new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}</p>`;
+        html+=`<p>Period: Last 30 days</p>`;
+        html+=`<div><div class="stat"><b>${adherence}%</b>Adherence</div><div class="stat"><b>${takenDoses}</b>Taken</div><div class="stat"><b>${missedDoses}</b>Missed</div></div>`;
+        html+='<h2>Active Medicines</h2><table><tr><th>Medicine</th><th>Dosage</th><th>Frequency</th><th>Status</th></tr>';
+        meds.forEach(m=>{html+=`<tr><td>${m.name}</td><td>${m.dosage}</td><td>${m.freq==='sos'?'SOS':m.freq+'x daily'}</td><td>${m.paused?'⏸️ Paused':'✅ Active'}</td></tr>`});
+        html+='</table>';
+        // Notes
+        const notesLogs=logs.filter(l=>l.note).slice(-20);
+        if(notesLogs.length){
+            html+='<h2>Patient Notes</h2><table><tr><th>Date</th><th>Medicine</th><th>Note</th></tr>';
+            notesLogs.forEach(l=>{const med=meds.find(m=>m.id===l.medId);html+=`<tr><td>${l.date}</td><td>${med?med.name:'?'}</td><td>${l.note}</td></tr>`});
+            html+='</table>';
+        }
+        html+='</body></html>';
+        const w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(()=>w.print(),500);
+    }
+
+    // === BACKUP / RESTORE ===
+    function backupWhatsApp(){
+        const data={medicines:getMedicines(),logs:getLogs(),doctors:getDoctors(),caretakers:getCaretakers(),backup_date:new Date().toISOString()};
+        const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');a.href=url;a.download='medicine-reminder-backup.json';a.click();
+        setTimeout(()=>{window.open('https://wa.me/?text='+encodeURIComponent('💊 Medicine Reminder Backup\n📅 '+new Date().toLocaleString('en-IN')+'\n\nBackup file downloaded. Share it in this chat for safekeeping.'))},500);
+    }
+    function restoreBackup(input){
+        const file=input.files[0];if(!file)return;
+        if(!confirm('This will replace ALL your current data. Continue?'))return;
+        const reader=new FileReader();reader.onload=function(e){
+            try{
+                const data=JSON.parse(e.target.result);
+                if(data.medicines)localStorage.setItem('medicines2',JSON.stringify(data.medicines));
+                if(data.logs)localStorage.setItem('med_logs2',JSON.stringify(data.logs));
+                if(data.doctors)localStorage.setItem('med_doctors',JSON.stringify(data.doctors));
+                if(data.caretakers)localStorage.setItem('med_caretakers',JSON.stringify(data.caretakers));
+                markUpdated();alert('✅ Restored! '+data.medicines.length+' medicines loaded.');
+                renderToday();
+            }catch(err){alert('❌ Invalid backup file')}
+        };reader.readAsText(file);
+    }
+
     // === DOCTORS ===
     function renderDoctors(){
         const docs=getDoctors();const el=document.getElementById('doctor-list');
@@ -598,7 +765,7 @@
         logs.forEach(l=>{if(!grouped[l.date])grouped[l.date]=[];const med=meds.find(m=>m.id===l.medId);grouped[l.date].push({...l,medName:med?med.name:'Unknown'})});
         let html='';Object.keys(grouped).sort().reverse().slice(0,14).forEach(date=>{
             html+=`<div class="log-date-header">${new Date(date).toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})}</div>`;
-            grouped[date].forEach(l=>{html+=`<div class="log-entry">${l.action==='taken'?'✅':'⏭️'} <strong>${l.medName}</strong> - ${l.timing} <span style="float:right;color:#666;font-size:0.8rem">${new Date(l.time).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</span></div>`});
+            grouped[date].forEach(l=>{html+=`<div class="log-entry">${l.action==='taken'?'✅':'⏭️'} <strong>${l.medName}</strong> - ${l.timing} <span style="float:right;color:#666;font-size:0.8rem">${new Date(l.time).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</span>${l.note?'<br><small style="color:#FF9800">📝 '+l.note+'</small>':''}</div>`});
         });
         el.innerHTML=html;
     }
@@ -650,10 +817,10 @@
             const log=logs.find(l=>l.medId===m.id&&l.timing===timing);if(log)return;
             const[h,min]=m.times[i].split(':').map(Number);const doseMin=h*60+min;const diff=doseMin-nowMin;
             const key=m.id+'_'+i+'_'+today();
-            if(ns.m30&&diff<=30&&diff>29&&!reminded[key+'_30']){new Notification('💊 '+m.name,{body:`30 min before — ${timing} at ${formatTime12(m.times[i])}`,icon:'icon-192.png'});reminded[key+'_30']=true}
-            if(ns.m15&&diff<=15&&diff>14&&!reminded[key+'_15']){new Notification('💊 '+m.name,{body:`15 min before — ${timing} at ${formatTime12(m.times[i])}`,icon:'icon-192.png'});reminded[key+'_15']=true}
-            if(ns.m5&&diff<=5&&diff>4&&!reminded[key+'_5']){new Notification('💊 '+m.name,{body:`5 min before — ${timing} at ${formatTime12(m.times[i])}`,icon:'icon-192.png'});reminded[key+'_5']=true}
-            if(ns.m0&&diff<=0&&diff>-1&&!reminded[key+'_0']){new Notification('⏰ Take '+m.name+' NOW',{body:`${timing} — ${m.dosage}`,icon:'icon-192.png'});reminded[key+'_0']=true}
+            if(ns.m30&&diff<=30&&diff>29&&!reminded[key+'_30']){new Notification('💊 '+m.name,{body:`30 min before — ${timing} at ${formatTime12(m.times[i])}`,icon:'icon-192.png'});playAlertSound();reminded[key+'_30']=true}
+            if(ns.m15&&diff<=15&&diff>14&&!reminded[key+'_15']){new Notification('💊 '+m.name,{body:`15 min before — ${timing} at ${formatTime12(m.times[i])}`,icon:'icon-192.png'});playAlertSound();reminded[key+'_15']=true}
+            if(ns.m5&&diff<=5&&diff>4&&!reminded[key+'_5']){new Notification('💊 '+m.name,{body:`5 min before — ${timing} at ${formatTime12(m.times[i])}`,icon:'icon-192.png'});playAlertSound();reminded[key+'_5']=true}
+            if(ns.m0&&diff<=0&&diff>-1&&!reminded[key+'_0']){new Notification('⏰ Take '+m.name+' NOW',{body:`${timing} — ${m.dosage}`,icon:'icon-192.png'});playAlertSound();reminded[key+'_0']=true}
             // Caretaker alert if missed by 30 min
             if(diff<-30&&!reminded[key+'_missed']){sendCaretakerAlert(m,timing);reminded[key+'_missed']=true}
         })});
@@ -667,7 +834,8 @@
 
     // === SYNC ===
     function markUpdated(){localStorage.setItem('data_updated',String(Date.now()));if(accessToken)setTimeout(syncNow,1000)}
-    updateTimingOptions();renderToday();loadNotifSettings();
+    updateTimingOptions();renderToday();loadNotifSettings();loadDarkMode();loadLanguage();
+    document.getElementById('sound-toggle').checked=localStorage.getItem('sound_on')!=='false';
     if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
     </script>
 
@@ -743,7 +911,7 @@
     document.addEventListener('visibilitychange',()=>{if(!document.hidden){pullFromDrive();checkForUpdate()}});
 
     // === UPDATE CHECK ===
-    const APP_VERSION='3.2';
+    const APP_VERSION='4.0';
     async function checkForUpdate(){
         try{
             const r=await fetch('version.json?t='+Date.now());const d=await r.json();

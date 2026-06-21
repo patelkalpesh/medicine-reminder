@@ -1,5 +1,5 @@
 {
-  "version": "3.2",
-  "deployed": "21 Jun 2026, 12:25:23 PM IST",
-  "features": "Photo upload for medicines, strip-based stock management, buy new stock, Google email in sync"
+  "version": "4.0",
+  "deployed": "21 Jun 2026, 12:44:02 PM IST",
+  "features": "Sound alerts, Hindi/Gujarati, dark mode, pause medicine, notes per dose, print card, doctor report, backup/restore, next dose widget"
 }
