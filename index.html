@@ -585,9 +585,11 @@
                 <div class="med-info"><strong>🆘 ${m.name}</strong><br><small>${m.dosage} • SOS / As needed</small><br>
                 <small style="color:#e53935">⚠️ ${m.sosNote||''}</small><br><small>${stockInfo}</small></div>
             </div><div><button class="btn-sm btn-take" onclick="logDose('${m.id}','SOS','taken')">💊 Take Now</button><button class="btn-sm btn-edit" onclick="editMedicine('${m.id}')">✏️</button><button class="btn-sm btn-del" onclick="deleteMedicine('${m.id}')">🗑️</button></div></div>`;
-            return`<div class="card"><div class="med-row">
+            const pausedStyle=m.paused?'opacity:0.5;border-left:4px solid #FF9800;':'';
+            const pausedLabel=m.paused?' <span style="background:#FF9800;color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:4px;">⏸️ PAUSED</span>':'';
+            return`<div class="card" style="${pausedStyle}"><div class="med-row">
             ${medPhotoHtml(m)}
-            <div class="med-info"><strong>${m.name}</strong><br><small>${m.dosage} • ${m.freq}x daily</small><br>
+            <div class="med-info"><strong>${m.name}</strong>${pausedLabel}<br><small>${m.dosage} • ${m.freq}x daily</small><br>
             <small>⏰ ${m.timings.map((t,i)=>t+(m.times&&m.times[i]?' @ '+formatTime12(m.times[i]):'')).join(', ')}</small><br>
             ${getCourseInfo(m)}<br><small>${stockInfo}</small></div>
         </div><div><button class="btn-sm" style="background:${m.paused?'#4CAF50':'#FF9800'}" onclick="togglePause('${m.id}')">${m.paused?'▶️ Resume':'⏸️ Pause'}</button><button class="btn-sm btn-edit" onclick="editMedicine('${m.id}')">✏️ Edit</button><button class="btn-sm btn-del" onclick="deleteMedicine('${m.id}')">🗑️ Delete</button></div></div>`;
