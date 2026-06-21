@@ -70,6 +70,11 @@
         .next-dose-widget{background:linear-gradient(135deg,#4CAF50,#2E7D32);color:#fff;border-radius:14px;padding:16px;margin-bottom:14px;text-align:center;box-shadow:0 4px 12px rgba(76,175,80,0.3)}
         .next-dose-widget .ndw-label{font-size:0.75rem;opacity:0.8}.next-dose-widget .ndw-name{font-size:1.2rem;font-weight:bold;margin:4px 0}.next-dose-widget .ndw-time{font-size:0.9rem;opacity:0.9}
         .paused{opacity:0.4;border-left:3px solid #FF9800}
+        .pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid #4CAF50;transition:all 0.2s}
+        .pin-dot.filled{background:#4CAF50}
+        .pin-key{width:60px;height:60px;border-radius:50%;border:2px solid #ddd;background:#fff;font-size:1.3rem;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center}
+        .pin-key:active{background:#e8f5e9;border-color:#4CAF50}
+        @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
         body.dark{background:#1a1a1a;color:#eee}
         body.dark .card{background:#2a2a2a;box-shadow:0 2px 8px rgba(0,0,0,0.3)}
         body.dark .tab-bar{background:#222;border-top-color:#444}
@@ -87,6 +92,38 @@
     </style>
 </head>
 <body>
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:90vh;padding:20px;">
+        <div style="text-align:center;margin-bottom:30px;">
+            <div style="font-size:3rem;margin-bottom:10px;">💊</div>
+            <h1 style="color:#4CAF50;margin:0;font-size:1.6rem;">Medicine Reminder</h1>
+            <p style="color:#666;font-size:0.85rem;margin-top:4px;" id="login-email"></p>
+        </div>
+        <div class="card" style="width:100%;max-width:300px;text-align:center;">
+            <h2 id="pin-title" style="margin-bottom:16px;">Enter PIN</h2>
+            <div id="pin-dots" style="display:flex;justify-content:center;gap:12px;margin-bottom:20px;">
+                <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;max-width:220px;margin:0 auto;">
+                <button class="pin-key" onclick="pinInput('1')">1</button>
+                <button class="pin-key" onclick="pinInput('2')">2</button>
+                <button class="pin-key" onclick="pinInput('3')">3</button>
+                <button class="pin-key" onclick="pinInput('4')">4</button>
+                <button class="pin-key" onclick="pinInput('5')">5</button>
+                <button class="pin-key" onclick="pinInput('6')">6</button>
+                <button class="pin-key" onclick="pinInput('7')">7</button>
+                <button class="pin-key" onclick="pinInput('8')">8</button>
+                <button class="pin-key" onclick="pinInput('9')">9</button>
+                <button class="pin-key" onclick="pinInput('')"></button>
+                <button class="pin-key" onclick="pinInput('0')">0</button>
+                <button class="pin-key" onclick="pinDelete()">⌫</button>
+            </div>
+            <p id="pin-error" style="color:#e53935;font-size:0.8rem;margin-top:12px;display:none;">Wrong PIN. Try again.</p>
+        </div>
+    </div>
+
+    <!-- APP (hidden until PIN verified) -->
+    <div id="app-container" style="display:none;">
     <h1>💊 Medicine Reminder</h1>
     <div style="text-align:right;margin:-8px 0 4px;"><button onclick="location.reload(true)" style="background:#eee;border:none;padding:4px 10px;border-radius:12px;font-size:0.75rem;cursor:pointer;color:#666;">🔄 Refresh</button></div>
     <!-- TODAY -->
@@ -249,6 +286,7 @@
             <h2>⚙️ Preferences</h2>
             <label style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0"><input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode()" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">🌙 Dark Mode</span></label>
             <label style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0"><input type="checkbox" id="sound-toggle" checked onchange="localStorage.setItem('sound_on',this.checked)" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">🔊 Sound on notification</span></label>
+            <div style="padding:8px 0;border-bottom:1px solid #f0f0f0"><button class="btn-sm" style="background:#FF9800;" onclick="changePin()">🔑 Change PIN</button></div>
             <label style="font-size:0.85rem;margin-top:8px;">🌐 Language</label>
             <select id="lang-select" onchange="setLanguage(this.value)" style="margin-top:4px;">
                 <option value="en">English</option>
@@ -298,8 +336,58 @@
         <button onclick="showPage('stock')"><span>📦</span>Stock</button>
         <button onclick="showPage('settings')"><span>⚙️</span>Settings</button>
     </div>
+    </div><!-- /app-container -->
 
     <script>
+    // === PIN LOCK ===
+    let pinBuffer='';
+    const FIXED_EMAIL='kalpesh@mobilearts.in';
+    function initLogin(){
+        document.getElementById('login-email').textContent=FIXED_EMAIL;
+        const savedPin=localStorage.getItem('app_pin');
+        if(!savedPin){document.getElementById('pin-title').textContent='Set New PIN';document.getElementById('pin-title').dataset.mode='setup'}
+        else{document.getElementById('pin-title').textContent='Enter PIN'}
+    }
+    function pinInput(num){
+        if(!num&&num!=='0')return;
+        if(pinBuffer.length>=4)return;
+        pinBuffer+=num;
+        updatePinDots();
+        if(pinBuffer.length===4)setTimeout(verifyPin,200);
+    }
+    function pinDelete(){pinBuffer=pinBuffer.slice(0,-1);updatePinDots();document.getElementById('pin-error').style.display='none'}
+    function updatePinDots(){document.querySelectorAll('.pin-dot').forEach((d,i)=>d.classList.toggle('filled',i<pinBuffer.length))}
+    function verifyPin(){
+        const savedPin=localStorage.getItem('app_pin');
+        if(!savedPin){
+            // First time — set PIN
+            localStorage.setItem('app_pin',pinBuffer);
+            unlockApp();
+        }else if(pinBuffer===savedPin){
+            unlockApp();
+        }else{
+            document.getElementById('pin-error').style.display='block';
+            pinBuffer='';updatePinDots();
+            // Shake animation
+            document.getElementById('pin-dots').style.animation='shake 0.3s';
+            setTimeout(()=>document.getElementById('pin-dots').style.animation='',300);
+        }
+    }
+    function unlockApp(){
+        document.getElementById('login-screen').style.display='none';
+        document.getElementById('app-container').style.display='block';
+        renderToday();
+    }
+    function changePin(){
+        const current=prompt('Enter current PIN:');
+        if(current!==localStorage.getItem('app_pin')){alert('❌ Wrong PIN');return}
+        const newPin=prompt('Enter new 4-digit PIN:');
+        if(!newPin||newPin.length!==4||isNaN(newPin)){alert('PIN must be 4 digits');return}
+        localStorage.setItem('app_pin',newPin);
+        alert('✅ PIN changed successfully!');
+    }
+    initLogin();
+
     // === DATA ===
     function getMedicines(){return JSON.parse(localStorage.getItem('medicines2')||'[]')}
     function saveMedicines(m){localStorage.setItem('medicines2',JSON.stringify(m));markUpdated()}
