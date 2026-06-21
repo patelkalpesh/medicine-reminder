@@ -168,6 +168,28 @@
         </div>
     </div>
 
+    <!-- HEALTH -->
+    <div id="page-health" class="page">
+        <div class="card">
+            <h2>❤️ Log BP / Vitals</h2>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+                <div><label style="font-size:0.7rem;margin:0;">Upper (Sys)</label><input type="number" id="bp-upper" placeholder="120" min="50" max="250"></div>
+                <div><label style="font-size:0.7rem;margin:0;">Lower (Dia)</label><input type="number" id="bp-lower" placeholder="80" min="30" max="180"></div>
+                <div><label style="font-size:0.7rem;margin:0;">Heart Rate</label><input type="number" id="bp-hr" placeholder="72" min="30" max="200"></div>
+            </div>
+            <button class="btn" onclick="logBP()">💓 Save Reading</button>
+        </div>
+        <div class="card">
+            <h2>📊 BP History</h2>
+            <div id="bp-history"></div>
+        </div>
+        <div class="card">
+            <h2>📅 Doctor Appointments</h2>
+            <div id="appointment-list"></div>
+            <button class="btn" onclick="addAppointment()" style="background:#2196F3;">+ Add Appointment</button>
+        </div>
+    </div>
+
     <!-- STOCK -->
     <div id="page-stock" class="page">
         <div class="card">
@@ -221,6 +243,7 @@
                 <button class="btn-sm btn-export" onclick="exportPDF()">📄 PDF</button>
                 <button class="btn-sm btn-export" onclick="exportExcel()">📊 Excel</button>
             </div>
+            <button class="btn" onclick="monthlyPDFEmail()" style="background:#9C27B0;margin-top:8px;">📧 Setup Monthly Auto-Email Report</button>
         </div>
         <div class="card" id="install-card">
             <h2>⚙️ Preferences</h2>
@@ -260,10 +283,10 @@
             </div>
         </div>
         <div class="card" style="text-align:center;">
-            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v4.0</p>
-            <p style="font-size:0.7rem;color:#bbb;">Deployed: 21 Jun 2026, 12:44:02 PM IST</p>
-            <p style="font-size:0.65rem;color:#ccc;margin-top:4px;">✨ v4.0: Sound, Hindi/Gujarati, dark mode, pause, notes, print card, doctor report, backup, widget</p>
-            <p style="font-size:0.65rem;color:#ccc;">v3.2: Photo upload, strip-based stock</p>
+            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v4.1</p>
+            <p style="font-size:0.7rem;color:#bbb;">Deployed: 21 Jun 2026, 12:59:00 PM IST</p>
+            <p style="font-size:0.65rem;color:#ccc;margin-top:4px;">✨ v4.1: BP log, doctor appointments, tap-to-call, snooze, monthly email</p>
+            <p style="font-size:0.65rem;color:#ccc;">v4.0: Sound, Hindi/Gujarati, dark mode, pause, notes, print card, doctor report, backup, widget</p>
         </div>
     </div>
 
@@ -271,7 +294,7 @@
     <div class="tab-bar">
         <button class="active" onclick="showPage('home')"><span>🏠</span>Today</button>
         <button onclick="showPage('meds')"><span>💊</span>Meds</button>
-        <button onclick="showPage('cal')"><span>📅</span>Calendar</button>
+        <button onclick="showPage('health')"><span>❤️</span>Health</button>
         <button onclick="showPage('stock')"><span>📦</span>Stock</button>
         <button onclick="showPage('settings')"><span>⚙️</span>Settings</button>
     </div>
@@ -295,15 +318,16 @@
     // === CLOCK removed ===
 
     // === NAVIGATION ===
-    const PAGES=['home','meds','add','cal','stock','settings'];
+    const PAGES=['home','meds','add','cal','health','stock','settings'];
     function showPage(name){
         document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
         document.getElementById('page-'+name).classList.add('active');
-        const tabs=['home','meds','cal','stock','settings'];
-        document.querySelectorAll('.tab-bar button').forEach((b,i)=>b.classList.toggle('active',tabs[i]===name||(name==='add'&&i===1)));
+        const tabs=['home','meds','health','stock','settings'];
+        document.querySelectorAll('.tab-bar button').forEach((b,i)=>b.classList.toggle('active',tabs[i]===name||(name==='add'&&i===1)||(name==='cal'&&i===0)));
         if(name==='home')renderToday();
         if(name==='meds')renderMedsList();
         if(name==='cal')renderCalendar();
+        if(name==='health'){renderBPHistory();renderAppointments()}
         if(name==='stock')renderStock();
         if(name==='settings'){updateNotifUI();updateLastSync();renderHistory();renderDoctors();renderCaretakers()}
         if(name==='add'){const editId=document.getElementById('edit-id').value;if(!editId)resetForm()}
@@ -602,6 +626,108 @@
         saveMedicines(meds);renderMedsList();renderToday();
     }
 
+    // === BP / HEALTH ===
+    function getBPLogs(){return JSON.parse(localStorage.getItem('bp_logs')||'[]')}
+    function saveBPLogs(l){localStorage.setItem('bp_logs',JSON.stringify(l));markUpdated()}
+    function logBP(){
+        const upper=parseInt(document.getElementById('bp-upper').value);
+        const lower=parseInt(document.getElementById('bp-lower').value);
+        const hr=parseInt(document.getElementById('bp-hr').value);
+        if(!upper||!lower){alert('Enter upper and lower BP');return}
+        const logs=getBPLogs();
+        logs.unshift({upper,lower,hr:hr||0,date:today(),time:new Date().toISOString()});
+        saveBPLogs(logs);
+        document.getElementById('bp-upper').value='';
+        document.getElementById('bp-lower').value='';
+        document.getElementById('bp-hr').value='';
+        renderBPHistory();
+        alert('✅ BP logged: '+upper+'/'+lower+(hr?' HR:'+hr:''));
+    }
+    function renderBPHistory(){
+        const logs=getBPLogs();const el=document.getElementById('bp-history');
+        if(!logs.length){el.innerHTML='<div class="empty">No readings yet. Log your first BP above.</div>';return}
+        el.innerHTML=logs.slice(0,20).map(l=>{
+            const d=new Date(l.time);
+            const dateStr=d.toLocaleDateString('en-IN',{day:'numeric',month:'short',weekday:'short'});
+            const timeStr=d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+            const bpClass=l.upper>=140||l.lower>=90?'color:#e53935':l.upper<=90?'color:#FF9800':'color:#4CAF50';
+            return`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;">
+                <div><strong style="${bpClass}">${l.upper}/${l.lower}</strong>${l.hr?' <small>💓'+l.hr+'</small>':''}</div>
+                <div style="font-size:0.75rem;color:#666;text-align:right;">${dateStr}<br>${timeStr}</div>
+            </div>`;
+        }).join('');
+    }
+
+    // === APPOINTMENTS ===
+    function getAppointments(){return JSON.parse(localStorage.getItem('med_appointments')||'[]')}
+    function saveAppointments(a){localStorage.setItem('med_appointments',JSON.stringify(a));markUpdated()}
+    function addAppointment(){
+        const doctor=prompt('Doctor name:');if(!doctor)return;
+        const date=prompt('Date (e.g. 2026-07-01):');if(!date)return;
+        const time=prompt('Time (e.g. 10:30):')||'';
+        const note=prompt('Note (reason/test):')||'';
+        const appts=getAppointments();
+        appts.push({id:Date.now().toString(),doctor,date,time,note});
+        appts.sort((a,b)=>a.date.localeCompare(b.date));
+        saveAppointments(appts);renderAppointments();
+    }
+    function removeAppointment(id){
+        if(!confirm('Remove?'))return;
+        saveAppointments(getAppointments().filter(a=>a.id!==id));renderAppointments();
+    }
+    function renderAppointments(){
+        const appts=getAppointments();const el=document.getElementById('appointment-list');
+        const upcoming=appts.filter(a=>a.date>=today());
+        if(!upcoming.length){el.innerHTML='<div class="empty">No upcoming appointments.</div>';return}
+        el.innerHTML=upcoming.map(a=>{
+            const d=new Date(a.date+'T00:00');
+            const days=Math.ceil((d-new Date())/(86400000));
+            const urgency=days<=2?'color:#e53935':days<=7?'color:#FF9800':'color:#4CAF50';
+            return`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#f0f7ff;border-radius:8px;margin-bottom:6px;">
+                <div><strong>👨‍⚕️ ${a.doctor}</strong><br><small>${d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})}${a.time?' at '+formatTime12(a.time):''}</small>${a.note?'<br><small style="color:#666">📝 '+a.note+'</small>':''}</div>
+                <div style="text-align:right;"><span style="${urgency};font-size:0.8rem;font-weight:bold;">${days<=0?'Today!':days+' days'}</span><br><button class="btn-sm btn-del" onclick="removeAppointment('${a.id}')">✕</button></div>
+            </div>`;
+        }).join('');
+    }
+
+    // === SNOOZE ===
+    function snoozeReminder(medName,timing,minutes){
+        const snoozed=JSON.parse(sessionStorage.getItem('snoozed')||'{}');
+        snoozed[medName+'_'+timing]=Date.now()+minutes*60000;
+        sessionStorage.setItem('snoozed',JSON.stringify(snoozed));
+    }
+
+    // === MONTHLY PDF EMAIL ===
+    function monthlyPDFEmail(){
+        const email=prompt('Email address to send monthly report:',localStorage.getItem('report_email')||'');
+        if(!email)return;
+        localStorage.setItem('report_email',email);
+        generateMonthlyReport(email);
+    }
+    function generateMonthlyReport(email){
+        const meds=getMedicines();const logs=getLogs();const bpLogs=getBPLogs();
+        const now=new Date();const month=now.toLocaleString('en-IN',{month:'long',year:'numeric'});
+        let totalDoses=0,taken=0;
+        logs.filter(l=>l.date.startsWith(now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0'))).forEach(l=>{if(l.action==='taken')taken++});
+        meds.filter(m=>m.freq!=='sos').forEach(m=>{totalDoses+=parseInt(m.freq||1)*30});
+        const adherence=totalDoses?Math.round(taken/totalDoses*100):0;
+        let body=`💊 Monthly Medicine Report - ${month}\n\n`;
+        body+=`📈 Adherence: ${adherence}% (${taken}/${totalDoses} doses)\n\n`;
+        body+=`💊 Active Medicines:\n`;
+        meds.forEach(m=>{body+=`• ${m.name} ${m.dosage} (${m.freq==='sos'?'SOS':m.freq+'x daily'})\n`});
+        if(bpLogs.length){body+=`\n❤️ Recent BP:\n`;bpLogs.slice(0,5).forEach(l=>{body+=`• ${l.upper}/${l.lower} HR:${l.hr} (${new Date(l.time).toLocaleDateString('en-IN')})\n`})}
+        window.open('mailto:'+email+'?subject='+encodeURIComponent('💊 Medicine Report - '+month)+'&body='+encodeURIComponent(body));
+    }
+    function checkMonthlyEmail(){
+        const email=localStorage.getItem('report_email');if(!email)return;
+        const lastSent=localStorage.getItem('last_monthly_report')||'';
+        const thisMonth=new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0');
+        if(lastSent!==thisMonth&&new Date().getDate()===1){
+            localStorage.setItem('last_monthly_report',thisMonth);
+            generateMonthlyReport(email);
+        }
+    }
+
     // === NOTES PER DOSE ===
     function logDoseWithNote(medId,timing,action){
         const note=action==='taken'?prompt('Any note? (e.g. felt dizzy, BP 140/90) — leave blank to skip')||'':'';
@@ -733,7 +859,7 @@
     // === DOCTORS ===
     function renderDoctors(){
         const docs=getDoctors();const el=document.getElementById('doctor-list');
-        el.innerHTML=docs.map((d,i)=>`<div class="doctor-card"><div class="doctor-avatar">${d.icon||'👨‍⚕️'}</div><div style="flex:1"><strong style="font-size:0.85rem">${d.name}</strong><br><small style="color:#666">${d.specialty||''} • 📞 ${d.phone||''}</small>${d.nextVisit?'<br><small style="color:#4CAF50">Next: '+d.nextVisit+'</small>':''}</div><button class="btn-sm btn-del" onclick="removeDoctor(${i})">✕</button></div>`).join('')||'<p style="font-size:0.8rem;color:#999;">No doctors added.</p>';
+        el.innerHTML=docs.map((d,i)=>`<div class="doctor-card"><div class="doctor-avatar">${d.icon||'👨‍⚕️'}</div><div style="flex:1"><strong style="font-size:0.85rem">${d.name}</strong><br><small style="color:#666">${d.specialty||''}</small>${d.nextVisit?'<br><small style="color:#4CAF50">Next: '+d.nextVisit+'</small>':''}</div><div>${d.phone?`<a href="tel:${d.phone}" class="btn-sm" style="background:#4CAF50;text-decoration:none;display:inline-block;">📞 Call</a>`:''}<button class="btn-sm btn-del" onclick="removeDoctor(${i})">✕</button></div></div>`).join('')||'<p style="font-size:0.8rem;color:#999;">No doctors added.</p>';
     }
     function addDoctor(){
         const name=prompt('Doctor/Pharmacy name:');if(!name)return;
@@ -831,6 +957,25 @@
         cts.forEach(c=>{if(c.phone)window.open(`https://wa.me/${c.phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(`⚠️ Missed dose alert: ${med.name} (${timing}) was not taken by ${c.name}'s care recipient.`)}`)});
     }
     setInterval(checkReminders,60000);setTimeout(checkReminders,3000);
+    setInterval(checkAppointmentReminders,3600000);setTimeout(checkAppointmentReminders,10000);
+    setTimeout(checkMonthlyEmail,15000);
+    function checkAppointmentReminders(){
+        if(!('Notification' in window)||Notification.permission!=='granted')return;
+        const appts=getAppointments();const reminded=JSON.parse(sessionStorage.getItem('appt_reminded')||'{}');
+        const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);
+        const tmrStr=tomorrow.toISOString().split('T')[0];
+        appts.forEach(a=>{
+            if(a.date===tmrStr&&!reminded[a.id]){
+                new Notification('📅 Appointment Tomorrow',{body:`Dr. ${a.doctor}${a.time?' at '+formatTime12(a.time):''}${a.note?' - '+a.note:''}`,icon:'icon-192.png'});
+                playAlertSound();reminded[a.id]=true;
+            }
+            if(a.date===today()&&!reminded[a.id+'_today']){
+                new Notification('📅 Appointment Today!',{body:`Dr. ${a.doctor}${a.time?' at '+formatTime12(a.time):''}`,icon:'icon-192.png'});
+                playAlertSound();reminded[a.id+'_today']=true;
+            }
+        });
+        sessionStorage.setItem('appt_reminded',JSON.stringify(reminded));
+    }
 
     // === SYNC ===
     function markUpdated(){localStorage.setItem('data_updated',String(Date.now()));if(accessToken)setTimeout(syncNow,1000)}
@@ -864,7 +1009,7 @@
     async function syncNow(){
         if(!accessToken)return;setSyncStatus('⏳ Syncing...');
         try{
-            const local={medicines:getMedicines(),logs:getLogs(),doctors:getDoctors(),caretakers:getCaretakers(),notifSettings:getNotifSettings(),updatedAt:parseInt(localStorage.getItem('data_updated')||'0')};
+            const local={medicines:getMedicines(),logs:getLogs(),doctors:getDoctors(),caretakers:getCaretakers(),bpLogs:getBPLogs(),appointments:getAppointments(),notifSettings:getNotifSettings(),updatedAt:parseInt(localStorage.getItem('data_updated')||'0')};
             const file=await findSyncFile();
             if(file){
                 const remote=await downloadSyncFile(file.id);
@@ -873,6 +1018,8 @@
                     localStorage.setItem('med_logs2',JSON.stringify(remote.logs||[]));
                     if(remote.doctors)localStorage.setItem('med_doctors',JSON.stringify(remote.doctors));
                     if(remote.caretakers)localStorage.setItem('med_caretakers',JSON.stringify(remote.caretakers));
+                    if(remote.bpLogs)localStorage.setItem('bp_logs',JSON.stringify(remote.bpLogs));
+                    if(remote.appointments)localStorage.setItem('med_appointments',JSON.stringify(remote.appointments));
                     localStorage.setItem('data_updated',String(remote.updatedAt));
                     renderToday();setSyncStatus('✅ Downloaded • '+new Date().toLocaleTimeString());
                 }else{await uploadSyncFile(local,file.id);setSyncStatus('✅ Uploaded • '+new Date().toLocaleTimeString())}
@@ -882,7 +1029,7 @@
     async function pullFromDrive(){
         if(!accessToken)return;
         try{const file=await findSyncFile();if(file){const remote=await downloadSyncFile(file.id);const localTs=parseInt(localStorage.getItem('data_updated')||'0');
-        if(remote.updatedAt>localTs){localStorage.setItem('medicines2',JSON.stringify(remote.medicines||[]));localStorage.setItem('med_logs2',JSON.stringify(remote.logs||[]));if(remote.doctors)localStorage.setItem('med_doctors',JSON.stringify(remote.doctors));if(remote.caretakers)localStorage.setItem('med_caretakers',JSON.stringify(remote.caretakers));localStorage.setItem('data_updated',String(remote.updatedAt));renderToday()}}}catch(e){}
+        if(remote.updatedAt>localTs){localStorage.setItem('medicines2',JSON.stringify(remote.medicines||[]));localStorage.setItem('med_logs2',JSON.stringify(remote.logs||[]));if(remote.doctors)localStorage.setItem('med_doctors',JSON.stringify(remote.doctors));if(remote.caretakers)localStorage.setItem('med_caretakers',JSON.stringify(remote.caretakers));if(remote.bpLogs)localStorage.setItem('bp_logs',JSON.stringify(remote.bpLogs));if(remote.appointments)localStorage.setItem('med_appointments',JSON.stringify(remote.appointments));localStorage.setItem('data_updated',String(remote.updatedAt));renderToday()}}}catch(e){}
     }
     window.addEventListener('load',()=>{if(window.google)initGIS();setTimeout(pullFromDrive,2000)});
     // === PWA INSTALL ===
@@ -911,7 +1058,7 @@
     document.addEventListener('visibilitychange',()=>{if(!document.hidden){pullFromDrive();checkForUpdate()}});
 
     // === UPDATE CHECK ===
-    const APP_VERSION='4.0';
+    const APP_VERSION='4.1';
     async function checkForUpdate(){
         try{
             const r=await fetch('version.json?t='+Date.now());const d=await r.json();
