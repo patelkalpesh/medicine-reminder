@@ -328,6 +328,8 @@
             </div>
             <label style="font-size:0.75rem;margin-top:8px;">📱 WhatsApp number for reorder alerts</label>
             <input type="tel" id="reorder-phone" placeholder="e.g. 917405856226" onchange="saveReorderSettings()" style="margin-top:4px;font-size:0.85rem;">
+            <label style="font-size:0.75rem;margin-top:8px;">📧 Email for alerts & reports</label>
+            <input type="email" id="reorder-email-addr" placeholder="e.g. your@email.com" onchange="saveReorderSettings()" style="margin-top:4px;font-size:0.85rem;">
         </div>
         <div class="card">
             <h2>📄 Reports & Print</h2>
@@ -762,19 +764,22 @@
             new Notification('📦 Reorder '+m.name,{body:`Only ${daysLeft} days of stock left!`,icon:'icon-192.png'});playAlertSound();
         }
         if(settings.whatsapp){const ph=settings.phone||'917405856226';window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(msg))}
-        if(settings.email){const email=localStorage.getItem('report_email')||'';if(email)window.open('mailto:'+email+'?subject='+encodeURIComponent('📦 Reorder: '+m.name)+'&body='+encodeURIComponent(msg))}
+        if(settings.email){const email=settings.emailAddr||localStorage.getItem('report_email')||'kal.shooter007@gmail.com';window.open('mailto:'+email+'?subject='+encodeURIComponent('📦 Reorder: '+m.name)+'&body='+encodeURIComponent(msg))}
     }
     function saveReorderSettings(){
-        const s={notif:document.getElementById('reorder-notif').checked,whatsapp:document.getElementById('reorder-whatsapp').checked,email:document.getElementById('reorder-email').checked,phone:document.getElementById('reorder-phone').value.trim()};
+        const s={notif:document.getElementById('reorder-notif').checked,whatsapp:document.getElementById('reorder-whatsapp').checked,email:document.getElementById('reorder-email').checked,phone:document.getElementById('reorder-phone').value.trim(),emailAddr:document.getElementById('reorder-email-addr').value.trim()};
         localStorage.setItem('reorder_settings',JSON.stringify(s));
+        localStorage.setItem('report_email',s.emailAddr);
     }
     function loadReorderSettings(){
-        const s=JSON.parse(localStorage.getItem('reorder_settings')||'{"notif":true,"whatsapp":false,"email":false,"phone":"917405856226"}');
+        const s=JSON.parse(localStorage.getItem('reorder_settings')||'{"notif":true,"whatsapp":false,"email":false,"phone":"917405856226","emailAddr":"kal.shooter007@gmail.com"}');
         document.getElementById('reorder-notif').checked=s.notif;
         document.getElementById('reorder-whatsapp').checked=s.whatsapp;
         document.getElementById('reorder-email').checked=s.email;
         document.getElementById('reorder-phone').value=s.phone||'917405856226';
+        document.getElementById('reorder-email-addr').value=s.emailAddr||'kal.shooter007@gmail.com';
         document.getElementById('reorder-days').value=localStorage.getItem('reorder_days')||'7';
+        localStorage.setItem('report_email',s.emailAddr||'kal.shooter007@gmail.com');
     }
 
     // === CALENDAR ===
@@ -1067,7 +1072,7 @@
 
     // === MONTHLY PDF EMAIL ===
     function monthlyPDFEmail(){
-        const email=prompt('Email address to send monthly report:',localStorage.getItem('report_email')||'');
+        const email=prompt('Email address to send monthly report:',localStorage.getItem('report_email')||'kal.shooter007@gmail.com');
         if(!email)return;
         localStorage.setItem('report_email',email);
         generateMonthlyReport(email);
