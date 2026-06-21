@@ -167,13 +167,14 @@
             const freq = parseInt(document.getElementById('med-freq').value);
             const container = document.getElementById('timing-sections');
             const labels = ['1st Dose', '2nd Dose', '3rd Dose'];
+            const defaultTimes = ['08:00', '14:00', '20:00'];
             let html = '';
             for (let i = 0; i < freq; i++) {
                 html += `<label>${labels[i]} - When?</label><div class="timing-grid">`;
                 TIMINGS.forEach(t => {
                     html += `<div class="timing-chip" data-dose="${i}" data-timing="${t}" onclick="toggleTiming(this)">${t}</div>`;
                 });
-                html += '</div>';
+                html += `</div><label>${labels[i]} - Time</label><input type="time" id="dose-time-${i}" value="${defaultTimes[i]}">`;
             }
             container.innerHTML = html;
         }
@@ -201,19 +202,23 @@
             if (!name) { alert('Enter medicine name'); return; }
 
             const timings = [];
+            const times = [];
             for (let i = 0; i < freq; i++) {
                 const sel = document.querySelector(`.timing-chip[data-dose="${i}"].selected`);
                 if (!sel) { alert(`Select timing for dose ${i + 1}`); return; }
                 timings.push(sel.dataset.timing);
+                const timeVal = document.getElementById('dose-time-' + i).value;
+                if (!timeVal) { alert(`Set time for dose ${i + 1}`); return; }
+                times.push(timeVal);
             }
 
             const meds = getMedicines();
             const editId = document.getElementById('edit-id').value;
             if (editId) {
                 const idx = meds.findIndex(m => m.id === editId);
-                if (idx >= 0) meds[idx] = { ...meds[idx], name, dosage, freq, timings };
+                if (idx >= 0) meds[idx] = { ...meds[idx], name, dosage, freq, timings, times };
             } else {
-                meds.push({ id: Date.now().toString(), name, dosage, freq, timings });
+                meds.push({ id: Date.now().toString(), name, dosage, freq, timings, times });
             }
             saveMedicines(meds);
             resetForm();
@@ -229,10 +234,10 @@
             document.getElementById('med-dosage').value = med.dosage;
             document.getElementById('med-freq').value = med.freq;
             updateTimingOptions();
-            // Set selected timings
             med.timings.forEach((t, i) => {
                 const chip = document.querySelector(`.timing-chip[data-dose="${i}"][data-timing="${t}"]`);
                 if (chip) chip.classList.add('selected');
+                if (med.times && med.times[i]) document.getElementById('dose-time-' + i).value = med.times[i];
             });
             showPage('add');
         }
@@ -253,7 +258,7 @@
             el.innerHTML = meds.map(m => `<div class="card">
                 <div class="med-name">${m.name}</div>
                 <div class="med-dose">${m.dosage} • ${m.freq}x daily</div>
-                <div class="med-timing">⏰ ${m.timings.join(', ')}</div>
+                <div class="med-timing">⏰ ${m.timings.map((t, i) => t + (m.times && m.times[i] ? ' @ ' + formatTime12(m.times[i]) : '')).join(', ')}</div>
                 <div><button class="btn-sm btn-edit" onclick="editMedicine('${m.id}')">✏️ Edit</button><button class="btn-sm btn-del" onclick="deleteMedicine('${m.id}')">🗑️ Delete</button></div>
             </div>`).join('');
         }
@@ -275,8 +280,9 @@
             // Build all doses for today
             let allDoses = [];
             meds.forEach(m => {
-                m.timings.forEach(timing => {
-                    allDoses.push({ id: m.id, name: m.name, dosage: m.dosage, timing });
+                m.timings.forEach((timing, i) => {
+                    const time = (m.times && m.times[i]) || '';
+                    allDoses.push({ id: m.id, name: m.name, dosage: m.dosage, timing, time });
                 });
             });
 
@@ -298,7 +304,7 @@
                     const cls = log ? (log.action === 'taken' ? 'taken' : 'skipped') : '';
                     const status = log ? (log.action === 'taken' ? ' ✅' : ' ⏭️') : '';
                     html += `<div class="dose-card ${cls}">
-                        <div><strong>${d.name}</strong>${status}<br><small>${d.dosage} • ${d.timing}</small></div>
+                        <div><strong>${d.name}</strong>${status}<br><small>${d.dosage} • ${d.timing}${d.time ? ' • 🕐' + formatTime12(d.time) : ''}</small></div>
                         <div>${log ? '' : `<button class="btn-sm btn-take" onclick="logDose('${d.id}','${d.timing}','taken')">Take</button><button class="btn-sm btn-skip" onclick="logDose('${d.id}','${d.timing}','skipped')">Skip</button>`}</div>
                     </div>`;
                 });
@@ -404,6 +410,56 @@
             a.click();
         }
 
+        // === HELPERS ===
+        function formatTime12(t) {
+            const [h, m] = t.split(':');
+            const hr = parseInt(h);
+            return (hr % 12 || 12) + ':' + m + (hr < 12 ? ' AM' : ' PM');
+        }
+
+        // === REMINDERS ===
+        function requestNotifPermission() {
+            if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+        }
+        requestNotifPermission();
+
+        function checkReminders() {
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            const meds = getMedicines();
+            const logs = getTodayStatus();
+            const now = new Date();
+            const nowMin = now.getHours() * 60 + now.getMinutes();
+            const reminded = JSON.parse(sessionStorage.getItem('reminded') || '{}');
+
+            meds.forEach(m => {
+                if (!m.times) return;
+                m.timings.forEach((timing, i) => {
+                    const log = logs.find(l => l.medId === m.id && l.timing === timing);
+                    if (log) return; // already taken/skipped
+                    const [h, min] = m.times[i].split(':').map(Number);
+                    const doseMin = h * 60 + min;
+                    const diff = doseMin - nowMin;
+                    const key = m.id + '_' + i + '_' + today();
+
+                    [30, 15, 5].forEach(before => {
+                        const rkey = key + '_' + before;
+                        if (diff <= before && diff > before - 1 && !reminded[rkey]) {
+                            new Notification('💊 ' + m.name, { body: `${before} min before dose — ${timing} at ${formatTime12(m.times[i])}`, icon: 'icon-192.png' });
+                            reminded[rkey] = true;
+                        }
+                    });
+                    // At dose time
+                    if (diff <= 0 && diff > -1 && !reminded[key + '_0']) {
+                        new Notification('⏰ Take ' + m.name + ' NOW', { body: `${timing} — ${m.dosage}`, icon: 'icon-192.png' });
+                        reminded[key + '_0'] = true;
+                    }
+                });
+            });
+            sessionStorage.setItem('reminded', JSON.stringify(reminded));
+        }
+        setInterval(checkReminders, 60000);
+        setTimeout(checkReminders, 3000);
+
         // === SYNC ===
         function markUpdated() {
             localStorage.setItem('data_updated', String(Date.now()));
@@ -497,7 +553,28 @@
                 }
             } catch (e) { setSyncStatus('❌ ' + e.message); }
         }
-        window.addEventListener('load', () => { if (window.google) initGIS(); });
+        async function pullFromDrive() {
+            if (!accessToken) return;
+            try {
+                const file = await findSyncFile();
+                if (file) {
+                    const remote = await downloadSyncFile(file.id);
+                    const localTs = parseInt(localStorage.getItem('data_updated') || '0');
+                    if (remote.updatedAt > localTs) {
+                        localStorage.setItem('medicines2', JSON.stringify(remote.medicines || []));
+                        localStorage.setItem('med_logs2', JSON.stringify(remote.logs || []));
+                        localStorage.setItem('data_updated', String(remote.updatedAt));
+                        renderToday();
+                        renderMedsList();
+                    }
+                }
+            } catch(e) { console.log('Auto-pull failed:', e); }
+        }
+        window.addEventListener('load', () => {
+            if (window.google) initGIS();
+            setTimeout(pullFromDrive, 2000);
+        });
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) pullFromDrive(); });
     </script>
 </body>
 </html>
