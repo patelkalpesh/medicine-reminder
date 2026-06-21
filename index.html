@@ -1365,7 +1365,7 @@
 
     // === SHARE ===
     function shareApp(method){
-        const url='https://kalpeshpatel-mobilearts.github.io/medicine-reminder/';
+        const url='https://patelkalpesh.github.io/medicine-reminder/';
         const text='💊 Medicine Reminder — Free app to track medicines, get dose reminders, sync across devices.\n\n✅ No download needed\n✅ Works on any phone\n✅ Your own PIN-protected data\n\n👉 '+url;
         if(method==='whatsapp')window.open('https://wa.me/?text='+encodeURIComponent(text));
         else{navigator.clipboard.writeText(url).then(()=>alert('✅ Link copied!')).catch(()=>{prompt('Copy this link:',url)})}
