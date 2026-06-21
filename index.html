@@ -326,6 +326,8 @@
                 <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;"><input type="checkbox" id="reorder-whatsapp" onchange="saveReorderSettings()" style="width:auto;margin:0;"> 📱 WhatsApp</label>
                 <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;"><input type="checkbox" id="reorder-email" onchange="saveReorderSettings()" style="width:auto;margin:0;"> 📧 Email</label>
             </div>
+            <label style="font-size:0.75rem;margin-top:8px;">📱 WhatsApp number for reorder alerts</label>
+            <input type="tel" id="reorder-phone" placeholder="e.g. 917405856226" onchange="saveReorderSettings()" style="margin-top:4px;font-size:0.85rem;">
         </div>
         <div class="card">
             <h2>📄 Reports & Print</h2>
@@ -759,18 +761,19 @@
         if(settings.notif&&'Notification' in window&&Notification.permission==='granted'){
             new Notification('📦 Reorder '+m.name,{body:`Only ${daysLeft} days of stock left!`,icon:'icon-192.png'});playAlertSound();
         }
-        if(settings.whatsapp){window.open('https://wa.me/917405856226?text='+encodeURIComponent(msg))}
+        if(settings.whatsapp){const ph=settings.phone||'917405856226';window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(msg))}
         if(settings.email){const email=localStorage.getItem('report_email')||'';if(email)window.open('mailto:'+email+'?subject='+encodeURIComponent('📦 Reorder: '+m.name)+'&body='+encodeURIComponent(msg))}
     }
     function saveReorderSettings(){
-        const s={notif:document.getElementById('reorder-notif').checked,whatsapp:document.getElementById('reorder-whatsapp').checked,email:document.getElementById('reorder-email').checked};
+        const s={notif:document.getElementById('reorder-notif').checked,whatsapp:document.getElementById('reorder-whatsapp').checked,email:document.getElementById('reorder-email').checked,phone:document.getElementById('reorder-phone').value.trim()};
         localStorage.setItem('reorder_settings',JSON.stringify(s));
     }
     function loadReorderSettings(){
-        const s=JSON.parse(localStorage.getItem('reorder_settings')||'{"notif":true,"whatsapp":false,"email":false}');
+        const s=JSON.parse(localStorage.getItem('reorder_settings')||'{"notif":true,"whatsapp":false,"email":false,"phone":"917405856226"}');
         document.getElementById('reorder-notif').checked=s.notif;
         document.getElementById('reorder-whatsapp').checked=s.whatsapp;
         document.getElementById('reorder-email').checked=s.email;
+        document.getElementById('reorder-phone').value=s.phone||'917405856226';
         document.getElementById('reorder-days').value=localStorage.getItem('reorder_days')||'7';
     }
 
