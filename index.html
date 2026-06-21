@@ -189,6 +189,20 @@
                 <button class="btn-sm btn-export" onclick="exportExcel()">📊 Excel</button>
             </div>
         </div>
+        <div class="card" id="install-card">
+            <h2>📲 Install App</h2>
+            <p style="font-size:0.8rem;color:#666;margin-bottom:10px;">Install for fullscreen experience, home screen icon & offline access.</p>
+            <button class="btn" id="install-btn" onclick="installApp()" style="background:#2196F3;">📲 Install Medicine Reminder</button>
+            <div id="install-ios" style="display:none;margin-top:10px;padding:12px;background:#f0f7ff;border-radius:8px;font-size:0.8rem;">
+                <strong>iOS Install:</strong><br>
+                1. Tap <strong>Share</strong> button (⬆️) at bottom<br>
+                2. Scroll down → <strong>"Add to Home Screen"</strong><br>
+                3. Tap <strong>Add</strong> ✅
+            </div>
+            <div id="install-done" style="display:none;margin-top:10px;padding:12px;background:#e8f5e9;border-radius:8px;font-size:0.8rem;color:#2e7d32;">
+                ✅ App is installed! Open from your home screen.
+            </div>
+        </div>
         <div class="card" style="text-align:center;">
             <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v3.1</p>
             <p style="font-size:0.7rem;color:#bbb;">Deployed: 21 Jun 2026, 12:04:30 PM IST</p>
@@ -590,6 +604,29 @@
         if(remote.updatedAt>localTs){localStorage.setItem('medicines2',JSON.stringify(remote.medicines||[]));localStorage.setItem('med_logs2',JSON.stringify(remote.logs||[]));if(remote.doctors)localStorage.setItem('med_doctors',JSON.stringify(remote.doctors));if(remote.caretakers)localStorage.setItem('med_caretakers',JSON.stringify(remote.caretakers));localStorage.setItem('data_updated',String(remote.updatedAt));renderToday()}}}catch(e){}
     }
     window.addEventListener('load',()=>{if(window.google)initGIS();setTimeout(pullFromDrive,2000)});
+    // === PWA INSTALL ===
+    let deferredPrompt=null;
+    window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;updateInstallUI()});
+    window.addEventListener('appinstalled',()=>{deferredPrompt=null;updateInstallUI()});
+    function installApp(){
+        if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(r=>{deferredPrompt=null;updateInstallUI()});return}
+        // iOS detection
+        const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
+        if(isIOS){document.getElementById('install-ios').style.display='block';return}
+        // Already installed or not supported
+        if(window.matchMedia('(display-mode: standalone)').matches){alert('Already installed! Open from home screen.');return}
+        alert('Tap your browser menu (⋮) → "Install app" or "Add to Home Screen"');
+    }
+    function updateInstallUI(){
+        const card=document.getElementById('install-card');if(!card)return;
+        const btn=document.getElementById('install-btn');
+        const done=document.getElementById('install-done');
+        if(window.matchMedia('(display-mode: standalone)').matches){btn.style.display='none';done.style.display='block'}
+        else if(deferredPrompt){btn.style.display='block';btn.textContent='📲 Install Medicine Reminder';btn.style.background='#2196F3'}
+        else{const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);if(isIOS){btn.textContent='📲 How to Install (iOS)';btn.style.background='#FF9800'}}
+    }
+    setTimeout(updateInstallUI,1000);
+
     document.addEventListener('visibilitychange',()=>{if(!document.hidden){pullFromDrive();checkForUpdate()}});
 
     // === UPDATE CHECK ===

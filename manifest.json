@@ -1,13 +1,19 @@
 {
-    "name": "Medicine Reminder",
-    "short_name": "MedReminder",
+    "name": "Medicine Reminder - Daily Dose Tracker",
+    "short_name": "Med Reminder",
+    "description": "Track medicines, get dose reminders, sync across devices. Never miss a dose.",
     "start_url": ".",
     "display": "standalone",
+    "orientation": "portrait",
     "background_color": "#f5f5f5",
     "theme_color": "#4CAF50",
+    "categories": ["health", "medical", "lifestyle"],
     "icons": [
-        { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" },
-        { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-        { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+        { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+        { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+        { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    ],
+    "screenshots": [
+        { "src": "screenshot.png", "sizes": "390x844", "type": "image/png", "form_factor": "narrow", "label": "Today's medicine schedule" }
     ]
 }
