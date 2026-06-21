@@ -235,6 +235,10 @@
             <button class="btn" onclick="stockReport()" style="background:#2196F3;">📄 Stock Statement Report</button>
         </div>
         <div class="card">
+            <h2>📊 Stock Timeline</h2>
+            <div id="stock-timeline"></div>
+        </div>
+        <div class="card">
             <h2>🏥 Doctor / Pharmacy</h2>
             <div id="doctor-list"></div>
             <button class="btn" onclick="addDoctor()">+ Add Doctor/Pharmacy</button>
@@ -764,6 +768,27 @@
                 <button class="btn-sm" style="background:#4CAF50;margin-top:6px;" onclick="buyStock('${m.id}')">+ Buy New Stock</button>
             </div>`;
         }).join('');
+        renderStockTimeline();
+    }
+    function renderStockTimeline(){
+        const meds=getMedicines().filter(m=>m.freq!=='sos'&&!m.paused&&(m.stock||0)>0);
+        const el=document.getElementById('stock-timeline');
+        if(!meds.length){el.innerHTML='<p style="font-size:0.8rem;color:#999;text-align:center;">No active stock data.</p>';return}
+        const maxDays=Math.max(...meds.map(m=>{const f=parseInt(m.freq)||1;return Math.floor((m.stock||0)/f)}),30);
+        let html='<div style="font-size:0.7rem;color:#666;margin-bottom:8px;">📅 When each medicine runs out:</div>';
+        meds.forEach(m=>{
+            const freq=parseInt(m.freq)||1;
+            const daysLeft=Math.floor((m.stock||0)/freq);
+            const pct=Math.min(100,Math.round(daysLeft/maxDays*100));
+            const endDate=new Date();endDate.setDate(endDate.getDate()+daysLeft);
+            const dateStr=endDate.toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+            const barColor=daysLeft<=3?'#e53935':daysLeft<=7?'#FF9800':daysLeft<=14?'#FFC107':'#4CAF50';
+            html+=`<div style="margin-bottom:8px;">
+                <div style="display:flex;justify-content:space-between;font-size:0.75rem;"><span>${m.icon||'💊'} ${m.name}</span><span style="color:${barColor};font-weight:bold;">${dateStr} (${daysLeft}d)</span></div>
+                <div style="height:12px;background:#eee;border-radius:6px;overflow:hidden;margin-top:2px;"><div style="height:100%;width:${pct}%;background:${barColor};border-radius:6px;"></div></div>
+            </div>`;
+        });
+        el.innerHTML=html;
     }
     function buyStock(id){
         const strips=parseInt(prompt('How many strips bought?'));if(!strips||strips<=0)return;
