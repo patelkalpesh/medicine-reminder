@@ -11,71 +11,91 @@
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="icon" href="icon.svg" type="image/svg+xml">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #333; max-width: 500px; margin: 0 auto; padding: 16px; padding-bottom: 80px; }
-        h1 { text-align: center; color: #4CAF50; margin: 16px 0; font-size: 1.5rem; }
-        .tab-bar { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #ddd; z-index: 100; }
-        .tab-bar button { flex: 1; padding: 10px 4px; border: none; background: none; font-size: 0.7rem; cursor: pointer; color: #666; }
-        .tab-bar button.active { color: #4CAF50; font-weight: bold; }
-        .tab-bar button span { display: block; font-size: 1.2rem; }
-        .page { display: none; }
-        .page.active { display: block; }
-        .card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-        .med-name { font-weight: bold; font-size: 1.1rem; }
-        .med-dose { color: #666; font-size: 0.9rem; }
-        .med-timing { color: #4CAF50; font-size: 0.8rem; margin-top: 4px; }
-        .btn { background: #4CAF50; color: #fff; border: none; padding: 12px 24px; border-radius: 8px; font-size: 1rem; cursor: pointer; width: 100%; margin-top: 12px; }
-        .btn:hover { background: #43A047; }
-        .btn-sm { padding: 6px 12px; width: auto; font-size: 0.8rem; margin: 4px 4px 0 0; border-radius: 6px; border: none; color: #fff; cursor: pointer; }
-        .btn-edit { background: #FF9800; }
-        .btn-del { background: #e53935; }
-        .btn-take { background: #4CAF50; }
-        .btn-skip { background: #9E9E9E; }
-        .btn-export { background: #2196F3; margin: 4px; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; margin-top: 8px; }
-        label { font-size: 0.9rem; color: #555; display: block; margin-top: 12px; }
-        .timing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
-        .timing-chip { padding: 8px; border: 2px solid #ddd; border-radius: 8px; text-align: center; font-size: 0.8rem; cursor: pointer; }
-        .timing-chip.selected { border-color: #4CAF50; background: #e8f5e9; color: #2e7d32; }
-        .slot-group { margin-bottom: 16px; }
-        .slot-group h3 { font-size: 0.9rem; color: #4CAF50; padding: 8px 0; border-bottom: 1px solid #eee; margin-bottom: 8px; }
-        .dose-card { display: flex; align-items: center; justify-content: space-between; padding: 10px; background: #fafafa; border-radius: 8px; margin-bottom: 6px; }
-        .dose-card.taken { opacity: 0.6; background: #e8f5e9; }
-        .dose-card.skipped { opacity: 0.5; background: #fafafa; text-decoration: line-through; }
-        .log-entry { padding: 8px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; }
-        .log-date-header { font-weight: bold; color: #4CAF50; padding: 12px 0 4px; font-size: 0.95rem; }
-        .empty { text-align: center; color: #999; padding: 40px 16px; }
-        .export-bar { display: flex; flex-wrap: wrap; justify-content: center; margin-top: 12px; }
-        .summary { display: flex; gap: 8px; margin-bottom: 16px; }
-        .summary-card { flex: 1; background: #fff; border-radius: 10px; padding: 12px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
-        .summary-card .num { font-size: 1.5rem; font-weight: bold; }
-        .summary-card .lbl { font-size: 0.7rem; color: #666; }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;color:#333;max-width:500px;margin:0 auto;padding:16px;padding-bottom:80px}
+        h1{text-align:center;color:#4CAF50;margin:8px 0;font-size:1.4rem}
+        .clock-box{background:linear-gradient(135deg,#4CAF50,#2E7D32);color:#fff;border-radius:14px;padding:14px;text-align:center;margin-bottom:14px;box-shadow:0 4px 12px rgba(76,175,80,0.3)}
+        .clock-day{font-size:0.85rem;opacity:0.9}.clock-time{font-size:2rem;font-weight:bold;letter-spacing:2px;margin:4px 0}.clock-date{font-size:0.8rem;opacity:0.85}
+        .tab-bar{display:flex;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ddd;z-index:100}
+        .tab-bar button{flex:1;padding:8px 2px;border:none;background:none;font-size:0.6rem;cursor:pointer;color:#666}
+        .tab-bar button.active{color:#4CAF50;font-weight:bold}
+        .tab-bar button span{display:block;font-size:1.1rem}
+        .page{display:none}.page.active{display:block}
+        .card{background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+        .card h2{font-size:1rem;margin-bottom:10px}
+        .btn{background:#4CAF50;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:1rem;cursor:pointer;width:100%;margin-top:12px}
+        .btn:hover{background:#43A047}
+        .btn-sm{padding:6px 10px;width:auto;font-size:0.75rem;border-radius:6px;border:none;color:#fff;cursor:pointer;margin:2px}
+        .btn-edit{background:#FF9800}.btn-del{background:#e53935}.btn-take{background:#4CAF50}.btn-skip{background:#9E9E9E}.btn-export{background:#2196F3;margin:4px}
+        input,select,textarea{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:1rem;margin-top:8px}
+        label{font-size:0.9rem;color:#555;display:block;margin-top:12px}
+        .timing-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+        .timing-chip{padding:8px;border:2px solid #ddd;border-radius:8px;text-align:center;font-size:0.8rem;cursor:pointer}
+        .timing-chip.selected{border-color:#4CAF50;background:#e8f5e9;color:#2e7d32}
+        .summary{display:flex;gap:8px;margin-bottom:14px}
+        .summary-card{flex:1;background:#fff;border-radius:10px;padding:10px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,0.06)}
+        .summary-card .num{font-size:1.4rem;font-weight:bold}.summary-card .lbl{font-size:0.65rem;color:#666}
+        .slot-group{margin-bottom:14px}
+        .slot-group h3{font-size:0.85rem;color:#4CAF50;padding:6px 0;border-bottom:1px solid #eee;margin-bottom:6px}
+        .dose-card{display:flex;align-items:center;justify-content:space-between;padding:10px;background:#fafafa;border-radius:8px;margin-bottom:6px}
+        .dose-card.taken{opacity:0.6;background:#e8f5e9}.dose-card.skipped{opacity:0.5;text-decoration:line-through}
+        .adherence-bar{height:20px;background:#eee;border-radius:10px;overflow:hidden;margin:8px 0}
+        .adherence-fill{height:100%;background:linear-gradient(90deg,#4CAF50,#8BC34A);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.7rem;font-weight:bold}
+        .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:0.7rem}
+        .cal-header{font-weight:bold;color:#666;padding:4px}
+        .cal-day{padding:6px 2px;border-radius:6px}.cal-day.green{background:#e8f5e9;color:#2e7d32}.cal-day.red{background:#fce4ec;color:#c62828}.cal-day.yellow{background:#fff8e1;color:#f57f17}.cal-day.today{border:2px solid #4CAF50;font-weight:bold}.cal-day.empty{background:none}
+        .stock-bar{display:flex;align-items:center;gap:8px;margin:6px 0}
+        .stock-fill-bg{flex:1;height:8px;background:#eee;border-radius:4px;overflow:hidden}
+        .stock-fill{height:100%;border-radius:4px}.stock-low{background:#e53935}.stock-ok{background:#4CAF50}.stock-med{background:#FF9800}
+        .alert-box{background:#fff3e0;border-left:4px solid #FF9800;padding:10px 12px;border-radius:6px;margin-bottom:8px;font-size:0.8rem}
+        .alert-box.danger{background:#fce4ec;border-left-color:#e53935}
+        .med-row{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0}
+        .med-photo{width:40px;height:40px;border-radius:8px;background:#e0e0e0;display:flex;align-items:center;justify-content:center;font-size:1.2rem}
+        .med-info{flex:1}.med-info strong{font-size:0.9rem}.med-info small{color:#666;font-size:0.75rem}
+        .course-badge{display:inline-block;padding:3px 8px;border-radius:12px;font-size:0.7rem;color:#fff}
+        .course-active{background:#4CAF50}.course-ending{background:#FF9800}.course-done{background:#9E9E9E}
+        .doctor-card{display:flex;align-items:center;gap:12px;padding:10px;background:#f0f7ff;border-radius:10px;margin-bottom:8px}
+        .doctor-avatar{width:40px;height:40px;border-radius:50%;background:#2196F3;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+        .caretaker-row{display:flex;align-items:center;gap:10px;padding:8px;background:#f5f5f5;border-radius:8px;margin-bottom:6px}
+        .caretaker-avatar{width:32px;height:32px;border-radius:50%;background:#9C27B0;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.8rem}
+        .empty{text-align:center;color:#999;padding:40px 16px}
+        .export-bar{display:flex;flex-wrap:wrap;justify-content:center;margin-top:12px}
+        .log-entry{padding:8px 0;border-bottom:1px solid #eee;font-size:0.9rem}
+        .log-date-header{font-weight:bold;color:#4CAF50;padding:12px 0 4px;font-size:0.95rem}
     </style>
 </head>
 <body>
     <h1>💊 Medicine Reminder</h1>
-
-    <!-- Home - Today's Schedule -->
+    <div class="clock-box">
+        <div class="clock-day" id="clock-day"></div>
+        <div class="clock-time" id="clock-time"></div>
+        <div class="clock-date" id="clock-date"></div>
+    </div>
+    <!-- TODAY -->
     <div id="page-home" class="page active">
+        <div id="adherence-box" class="card"></div>
+        <div id="refill-alerts"></div>
         <div id="summary" class="summary"></div>
         <div id="today-schedule"></div>
     </div>
 
-    <!-- Medicines Master List -->
+    <!-- MEDICINES -->
     <div id="page-meds" class="page">
         <div id="meds-list"></div>
         <button class="btn" onclick="showPage('add')">+ Add Medicine</button>
     </div>
 
-    <!-- Add/Edit Medicine -->
+    <!-- ADD/EDIT -->
     <div id="page-add" class="page">
         <div class="card">
-            <h2 id="form-title" style="margin-bottom:8px;">Add Medicine</h2>
+            <h2 id="form-title">Add Medicine</h2>
             <input type="hidden" id="edit-id" value="">
             <label>Medicine Name</label>
             <input type="text" id="med-name" placeholder="e.g. Paracetamol">
             <label>Dosage</label>
             <input type="text" id="med-dosage" placeholder="e.g. 500mg, 1 tablet">
+            <label>Emoji/Icon (for pill photo)</label>
+            <input type="text" id="med-icon" placeholder="e.g. 💛 ☀️ 🌙 💊" maxlength="4">
             <label>How many times per day?</label>
             <select id="med-freq" onchange="updateTimingOptions()">
                 <option value="1">Once daily</option>
@@ -83,15 +103,79 @@
                 <option value="3">Three times daily</option>
             </select>
             <div id="timing-sections"></div>
+            <label>Course Duration</label>
+            <select id="med-course">
+                <option value="ongoing">Ongoing (no end)</option>
+                <option value="7">7 days</option>
+                <option value="14">14 days</option>
+                <option value="21">21 days</option>
+                <option value="30">30 days</option>
+                <option value="60">60 days</option>
+                <option value="90">90 days</option>
+            </select>
+            <label>Stock (tablets remaining)</label>
+            <input type="number" id="med-stock" placeholder="e.g. 30" min="0">
             <button class="btn" onclick="saveMedicine()">Save Medicine</button>
             <button class="btn" style="background:#666;margin-top:8px;" onclick="cancelEdit()">Cancel</button>
         </div>
     </div>
 
-    <!-- History -->
-    <div id="page-history" class="page">
+    <!-- CALENDAR -->
+    <div id="page-cal" class="page">
         <div class="card">
-            <h2 style="margin-bottom:12px;">📋 History</h2>
+            <h2 id="cal-title">📅 June 2026</h2>
+            <div id="cal-grid" class="cal-grid"></div>
+            <div style="display:flex;gap:12px;margin-top:10px;font-size:0.7rem;justify-content:center;">
+                <span>🟢 All taken</span><span>🟡 Partial</span><span>🔴 Missed</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- STOCK -->
+    <div id="page-stock" class="page">
+        <div class="card">
+            <h2>📦 Medicine Stock</h2>
+            <div id="stock-list"></div>
+        </div>
+        <div class="card">
+            <h2>🏥 Doctor / Pharmacy</h2>
+            <div id="doctor-list"></div>
+            <button class="btn" onclick="addDoctor()">+ Add Doctor/Pharmacy</button>
+        </div>
+        <div class="card">
+            <h2>💬 Caretaker Alerts</h2>
+            <p style="font-size:0.8rem;color:#666;margin-bottom:8px;">Auto-WhatsApp if dose missed by 30 min</p>
+            <div id="caretaker-list"></div>
+            <button class="btn" onclick="addCaretaker()">+ Add Caretaker</button>
+        </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="page-settings" class="page">
+        <div class="card">
+            <h2>🔔 Reminder Notifications</h2>
+            <div style="font-size:0.85rem;">
+                <label style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0"><input type="checkbox" id="notif-30" checked onchange="saveNotifSettings()"> 30 minutes before</label>
+                <label style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0"><input type="checkbox" id="notif-15" checked onchange="saveNotifSettings()"> 15 minutes before</label>
+                <label style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0"><input type="checkbox" id="notif-5" checked onchange="saveNotifSettings()"> 5 minutes before</label>
+                <label style="display:flex;align-items:center;gap:8px;padding:8px 0"><input type="checkbox" id="notif-0" checked onchange="saveNotifSettings()"> At dose time</label>
+            </div>
+            <div id="notif-status" style="margin-top:10px;padding:8px;border-radius:8px;font-size:0.8rem;"></div>
+            <button class="btn" id="notif-btn" onclick="toggleNotifPermission()">Enable Notifications</button>
+        </div>
+        <div class="card">
+            <h2>☁️ Google Drive Sync</h2>
+            <div id="sync-signed-out"><button class="btn" onclick="gDriveSignIn()">🔑 Sign in with Google</button></div>
+            <div id="sync-signed-in" style="display:none;">
+                <div style="background:#e8f5e9;padding:12px;border-radius:8px;margin-bottom:12px;"><strong>✅</strong> <span id="sync-email"></span></div>
+                <button class="btn" onclick="syncNow()" style="background:#2196F3;">🔄 Sync Now</button>
+                <button class="btn" onclick="gDriveSignOut()" style="background:#666;margin-top:8px;">Sign Out</button>
+                <div id="sync-status" style="font-size:0.8rem;color:#666;margin-top:12px;text-align:center;"></div>
+            </div>
+            <div id="last-sync-info" style="margin-top:12px;padding:10px;background:#f0f0f0;border-radius:8px;font-size:0.8rem;color:#555;text-align:center;"></div>
+        </div>
+        <div class="card">
+            <h2>📋 History & Export</h2>
             <div id="history-list"></div>
             <div class="export-bar">
                 <button class="btn-sm btn-export" onclick="exportWhatsApp()">📱 WhatsApp</button>
@@ -100,516 +184,402 @@
                 <button class="btn-sm btn-export" onclick="exportExcel()">📊 Excel</button>
             </div>
         </div>
-    </div>
-
-    <!-- Sync -->
-    <div id="page-sync" class="page">
-        <div class="card">
-            <h2 style="margin-bottom:12px;">☁️ Google Drive Sync</h2>
-            <p style="font-size:0.85rem;color:#666;margin-bottom:12px;">Sign in to sync across devices.</p>
-            <div id="sync-signed-out">
-                <button class="btn" onclick="gDriveSignIn()">🔑 Sign in with Google</button>
-            </div>
-            <div id="sync-signed-in" style="display:none;">
-                <div style="background:#e8f5e9;padding:12px;border-radius:8px;margin-bottom:12px;">
-                    <strong>✅</strong> <span id="sync-email"></span>
-                </div>
-                <button class="btn" onclick="syncNow()" style="background:#2196F3;">🔄 Sync Now</button>
-                <button class="btn" onclick="gDriveSignOut()" style="background:#666;margin-top:8px;">Sign Out</button>
-                <div id="sync-status" style="font-size:0.8rem;color:#666;margin-top:12px;text-align:center;"></div>
-            </div>
-            <div id="last-sync-info" style="margin-top:12px;padding:10px;background:#f0f0f0;border-radius:8px;font-size:0.8rem;color:#555;text-align:center;"></div>
-        </div>
-
-        <div class="card">
-            <h2 style="margin-bottom:12px;">🔔 Notifications</h2>
-            <p style="font-size:0.85rem;color:#666;margin-bottom:12px;">Get reminders 30, 15, and 5 minutes before each dose.</p>
-            <div id="notif-status"></div>
-            <button class="btn" id="notif-btn" onclick="toggleNotifPermission()">Enable Notifications</button>
-        </div>
-
         <div class="card" style="text-align:center;">
-            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v2.1</p>
+            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v3.0</p>
             <p style="font-size:0.7rem;color:#bbb;">Deployed: 21 Jun 2026</p>
         </div>
     </div>
 
-    <!-- Tab Bar -->
+    <!-- TAB BAR -->
     <div class="tab-bar">
         <button class="active" onclick="showPage('home')"><span>🏠</span>Today</button>
-        <button onclick="showPage('meds')"><span>💊</span>Medicines</button>
-        <button onclick="showPage('add')"><span>➕</span>Add</button>
-        <button onclick="showPage('history')"><span>📋</span>History</button>
-        <button onclick="showPage('sync')"><span>☁️</span>Sync</button>
+        <button onclick="showPage('meds')"><span>💊</span>Meds</button>
+        <button onclick="showPage('cal')"><span>📅</span>Calendar</button>
+        <button onclick="showPage('stock')"><span>📦</span>Stock</button>
+        <button onclick="showPage('settings')"><span>⚙️</span>Settings</button>
     </div>
 
     <script>
-        // === DATA ===
-        function getMedicines() { return JSON.parse(localStorage.getItem('medicines2') || '[]'); }
-        function saveMedicines(m) { localStorage.setItem('medicines2', JSON.stringify(m)); markUpdated(); }
-        function getLogs() { return JSON.parse(localStorage.getItem('med_logs2') || '[]'); }
-        function saveLogs(l) { localStorage.setItem('med_logs2', JSON.stringify(l)); markUpdated(); }
-        function today() { return new Date().toISOString().split('T')[0]; }
+    // === DATA ===
+    function getMedicines(){return JSON.parse(localStorage.getItem('medicines2')||'[]')}
+    function saveMedicines(m){localStorage.setItem('medicines2',JSON.stringify(m));markUpdated()}
+    function getLogs(){return JSON.parse(localStorage.getItem('med_logs2')||'[]')}
+    function saveLogs(l){localStorage.setItem('med_logs2',JSON.stringify(l));markUpdated()}
+    function getDoctors(){return JSON.parse(localStorage.getItem('med_doctors')||'[]')}
+    function saveDoctors(d){localStorage.setItem('med_doctors',JSON.stringify(d));markUpdated()}
+    function getCaretakers(){return JSON.parse(localStorage.getItem('med_caretakers')||'[]')}
+    function saveCaretakers(c){localStorage.setItem('med_caretakers',JSON.stringify(c));markUpdated()}
+    function today(){return new Date().toISOString().split('T')[0]}
+    function formatTime12(t){const[h,m]=t.split(':');const hr=parseInt(h);return(hr%12||12)+':'+m+(hr<12?' AM':' PM')}
 
-        const TIMINGS = [
-            'Before Breakfast', 'After Breakfast',
-            'Before Lunch', 'After Lunch',
-            'Before Dinner', 'After Dinner',
-            'Bedtime'
-        ];
-        const TIMING_GROUPS = {
-            'Morning': ['Before Breakfast', 'After Breakfast'],
-            'Afternoon': ['Before Lunch', 'After Lunch'],
-            'Evening': ['Before Dinner', 'After Dinner', 'Bedtime']
-        };
+    const TIMINGS=['Before Breakfast','After Breakfast','Before Lunch','After Lunch','Before Dinner','After Dinner','Bedtime'];
+    const TIMING_GROUPS={'Morning':['Before Breakfast','After Breakfast'],'Afternoon':['Before Lunch','After Lunch'],'Evening':['Before Dinner','After Dinner','Bedtime']};
 
-        // === NAVIGATION ===
-        const PAGES = ['home','meds','add','history','sync'];
-        function showPage(name) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById('page-' + name).classList.add('active');
-            document.querySelectorAll('.tab-bar button').forEach((b, i) => b.classList.toggle('active', PAGES[i] === name));
-            if (name === 'home') renderToday();
-            if (name === 'meds') renderMedsList();
-            if (name === 'history') renderHistory();
-            if (name === 'sync') { updateNotifUI(); updateLastSync(); }
-            if (name === 'add') { if (!document.getElementById('edit-id').value) resetForm(); }
+    // === CLOCK ===
+    function updateClock(){
+        const now=new Date();const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        document.getElementById('clock-day').textContent=days[now.getDay()];
+        document.getElementById('clock-time').textContent=now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
+        document.getElementById('clock-date').textContent=now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
+    }
+    updateClock();setInterval(updateClock,1000);
+
+    // === NAVIGATION ===
+    const PAGES=['home','meds','add','cal','stock','settings'];
+    function showPage(name){
+        document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+        document.getElementById('page-'+name).classList.add('active');
+        const tabs=['home','meds','cal','stock','settings'];
+        document.querySelectorAll('.tab-bar button').forEach((b,i)=>b.classList.toggle('active',tabs[i]===name||(name==='add'&&i===1)));
+        if(name==='home')renderToday();
+        if(name==='meds')renderMedsList();
+        if(name==='cal')renderCalendar();
+        if(name==='stock')renderStock();
+        if(name==='settings'){updateNotifUI();updateLastSync();renderHistory();renderDoctors();renderCaretakers()}
+        if(name==='add'&&!document.getElementById('edit-id').value)resetForm();
+    }
+
+    // === MEDICINE FORM ===
+    function updateTimingOptions(){
+        const freq=parseInt(document.getElementById('med-freq').value);
+        const container=document.getElementById('timing-sections');
+        const labels=['1st Dose','2nd Dose','3rd Dose'];
+        const defaultTimes=['08:00','14:00','20:00'];
+        let html='';
+        for(let i=0;i<freq;i++){
+            html+=`<label>${labels[i]} - When?</label><div class="timing-grid">`;
+            TIMINGS.forEach(t=>{html+=`<div class="timing-chip" data-dose="${i}" data-timing="${t}" onclick="toggleTiming(this)">${t}</div>`});
+            html+=`</div><label>${labels[i]} - Time</label><input type="time" id="dose-time-${i}" value="${defaultTimes[i]}">`;
         }
-
-        // === MEDICINE FORM ===
-        function updateTimingOptions() {
-            const freq = parseInt(document.getElementById('med-freq').value);
-            const container = document.getElementById('timing-sections');
-            const labels = ['1st Dose', '2nd Dose', '3rd Dose'];
-            const defaultTimes = ['08:00', '14:00', '20:00'];
-            let html = '';
-            for (let i = 0; i < freq; i++) {
-                html += `<label>${labels[i]} - When?</label><div class="timing-grid">`;
-                TIMINGS.forEach(t => {
-                    html += `<div class="timing-chip" data-dose="${i}" data-timing="${t}" onclick="toggleTiming(this)">${t}</div>`;
-                });
-                html += `</div><label>${labels[i]} - Time</label><input type="time" id="dose-time-${i}" value="${defaultTimes[i]}">`;
-            }
-            container.innerHTML = html;
-        }
-
-        function toggleTiming(el) {
-            // Only one timing per dose
-            const dose = el.dataset.dose;
-            document.querySelectorAll(`.timing-chip[data-dose="${dose}"]`).forEach(c => c.classList.remove('selected'));
-            el.classList.add('selected');
-        }
-
-        function resetForm() {
-            document.getElementById('form-title').textContent = 'Add Medicine';
-            document.getElementById('edit-id').value = '';
-            document.getElementById('med-name').value = '';
-            document.getElementById('med-dosage').value = '';
-            document.getElementById('med-freq').value = '1';
-            updateTimingOptions();
-        }
-
-        function saveMedicine() {
-            const name = document.getElementById('med-name').value.trim();
-            const dosage = document.getElementById('med-dosage').value.trim();
-            const freq = parseInt(document.getElementById('med-freq').value);
-            if (!name) { alert('Enter medicine name'); return; }
-
-            const timings = [];
-            const times = [];
-            for (let i = 0; i < freq; i++) {
-                const sel = document.querySelector(`.timing-chip[data-dose="${i}"].selected`);
-                if (!sel) { alert(`Select timing for dose ${i + 1}`); return; }
-                timings.push(sel.dataset.timing);
-                const timeVal = document.getElementById('dose-time-' + i).value;
-                if (!timeVal) { alert(`Set time for dose ${i + 1}`); return; }
-                times.push(timeVal);
-            }
-
-            const meds = getMedicines();
-            const editId = document.getElementById('edit-id').value;
-            if (editId) {
-                const idx = meds.findIndex(m => m.id === editId);
-                if (idx >= 0) meds[idx] = { ...meds[idx], name, dosage, freq, timings, times };
-            } else {
-                meds.push({ id: Date.now().toString(), name, dosage, freq, timings, times });
-            }
-            saveMedicines(meds);
-            resetForm();
-            showPage('meds');
-        }
-
-        function editMedicine(id) {
-            const med = getMedicines().find(m => m.id === id);
-            if (!med) return;
-            document.getElementById('form-title').textContent = 'Edit Medicine';
-            document.getElementById('edit-id').value = med.id;
-            document.getElementById('med-name').value = med.name;
-            document.getElementById('med-dosage').value = med.dosage;
-            document.getElementById('med-freq').value = med.freq;
-            updateTimingOptions();
-            med.timings.forEach((t, i) => {
-                const chip = document.querySelector(`.timing-chip[data-dose="${i}"][data-timing="${t}"]`);
-                if (chip) chip.classList.add('selected');
-                if (med.times && med.times[i]) document.getElementById('dose-time-' + i).value = med.times[i];
-            });
-            showPage('add');
-        }
-
-        function deleteMedicine(id) {
-            if (!confirm('Delete this medicine?')) return;
-            saveMedicines(getMedicines().filter(m => m.id !== id));
-            renderMedsList();
-        }
-
-        function cancelEdit() { resetForm(); showPage('meds'); }
-
-        // === MEDICINES LIST ===
-        function renderMedsList() {
-            const meds = getMedicines();
-            const el = document.getElementById('meds-list');
-            if (!meds.length) { el.innerHTML = '<div class="empty">No medicines yet. Tap + Add.</div>'; return; }
-            el.innerHTML = meds.map(m => `<div class="card">
-                <div class="med-name">${m.name}</div>
-                <div class="med-dose">${m.dosage} • ${m.freq}x daily</div>
-                <div class="med-timing">⏰ ${m.timings.map((t, i) => t + (m.times && m.times[i] ? ' @ ' + formatTime12(m.times[i]) : '')).join(', ')}</div>
-                <div><button class="btn-sm btn-edit" onclick="editMedicine('${m.id}')">✏️ Edit</button><button class="btn-sm btn-del" onclick="deleteMedicine('${m.id}')">🗑️ Delete</button></div>
-            </div>`).join('');
-        }
-
-        // === TODAY'S SCHEDULE ===
-        function getTodayStatus() {
-            const d = today();
-            return getLogs().filter(l => l.date === d);
-        }
-
-        function renderToday() {
-            const meds = getMedicines();
-            const logs = getTodayStatus();
-            const el = document.getElementById('today-schedule');
-            const sum = document.getElementById('summary');
-
-            if (!meds.length) { el.innerHTML = '<div class="empty">No medicines added yet.</div>'; sum.innerHTML = ''; return; }
-
-            // Build all doses for today
-            let allDoses = [];
-            meds.forEach(m => {
-                m.timings.forEach((timing, i) => {
-                    const time = (m.times && m.times[i]) || '';
-                    allDoses.push({ id: m.id, name: m.name, dosage: m.dosage, timing, time });
-                });
-            });
-
-            const taken = logs.filter(l => l.action === 'taken').length;
-            const skipped = logs.filter(l => l.action === 'skipped').length;
-            const total = allDoses.length;
-            sum.innerHTML = `
-                <div class="summary-card"><div class="num" style="color:#2196F3">${total}</div><div class="lbl">Total</div></div>
-                <div class="summary-card"><div class="num" style="color:#4CAF50">${taken}</div><div class="lbl">Taken</div></div>
-                <div class="summary-card"><div class="num" style="color:#e53935">${skipped}</div><div class="lbl">Skipped</div></div>`;
-
-            let html = '';
-            Object.entries(TIMING_GROUPS).forEach(([group, timings]) => {
-                const doses = allDoses.filter(d => timings.includes(d.timing));
-                if (!doses.length) return;
-                html += `<div class="slot-group"><h3>${group}</h3>`;
-                doses.forEach(d => {
-                    const log = logs.find(l => l.medId === d.id && l.timing === d.timing);
-                    const cls = log ? (log.action === 'taken' ? 'taken' : 'skipped') : '';
-                    const status = log ? (log.action === 'taken' ? ' ✅' : ' ⏭️') : '';
-                    html += `<div class="dose-card ${cls}">
-                        <div><strong>${d.name}</strong>${status}<br><small>${d.dosage} • ${d.timing}${d.time ? ' • 🕐' + formatTime12(d.time) : ''}</small></div>
-                        <div>${log ? '' : `<button class="btn-sm btn-take" onclick="logDose('${d.id}','${d.timing}','taken')">Take</button><button class="btn-sm btn-skip" onclick="logDose('${d.id}','${d.timing}','skipped')">Skip</button>`}</div>
-                    </div>`;
-                });
-                html += '</div>';
-            });
-            el.innerHTML = html || '<div class="empty">All done for today! 🎉</div>';
-        }
-
-        function logDose(medId, timing, action) {
-            const logs = getLogs();
-            logs.push({ medId, timing, action, date: today(), time: new Date().toISOString() });
-            saveLogs(logs);
-            renderToday();
-        }
-
-        // === HISTORY ===
-        function renderHistory() {
-            const logs = getLogs();
-            const meds = getMedicines();
-            const el = document.getElementById('history-list');
-            if (!logs.length) { el.innerHTML = '<div class="empty">No history yet.</div>'; return; }
-
-            // Group by date
-            const grouped = {};
-            logs.forEach(l => {
-                if (!grouped[l.date]) grouped[l.date] = [];
-                const med = meds.find(m => m.id === l.medId);
-                grouped[l.date].push({ ...l, medName: med ? med.name : 'Unknown' });
-            });
-
-            let html = '';
-            Object.keys(grouped).sort().reverse().forEach(date => {
-                html += `<div class="log-date-header">${new Date(date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</div>`;
-                grouped[date].forEach(l => {
-                    const icon = l.action === 'taken' ? '✅' : '⏭️';
-                    const time = new Date(l.time).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-                    html += `<div class="log-entry">${icon} <strong>${l.medName}</strong> - ${l.timing} <span style="float:right;color:#666;font-size:0.8rem;">${time}</span></div>`;
-                });
-            });
-            el.innerHTML = html;
-        }
-
-        // === EXPORTS ===
-        function getExportText() {
-            const logs = getLogs();
-            const meds = getMedicines();
-            let text = '💊 Medicine History\n\n';
-            const grouped = {};
-            logs.forEach(l => {
-                if (!grouped[l.date]) grouped[l.date] = [];
-                const med = meds.find(m => m.id === l.medId);
-                grouped[l.date].push({ ...l, medName: med ? med.name : 'Unknown' });
-            });
-            Object.keys(grouped).sort().reverse().forEach(date => {
-                text += `📅 ${date}\n`;
-                grouped[date].forEach(l => {
-                    const icon = l.action === 'taken' ? '✅' : '⏭️';
-                    text += `  ${icon} ${l.medName} - ${l.timing}\n`;
-                });
-                text += '\n';
-            });
-            return text;
-        }
-
-        function exportWhatsApp() {
-            const text = getExportText();
-            window.open('https://wa.me/?text=' + encodeURIComponent(text));
-        }
-
-        function exportEmail() {
-            const text = getExportText();
-            window.open('mailto:?subject=Medicine History&body=' + encodeURIComponent(text));
-        }
-
-        function exportPDF() {
-            const w = window.open('', '_blank');
-            const logs = getLogs();
-            const meds = getMedicines();
-            let html = '<html><head><title>Medicine History</title><style>body{font-family:sans-serif;padding:20px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#4CAF50;color:#fff}</style></head><body>';
-            html += '<h1>💊 Medicine History</h1><table><tr><th>Date</th><th>Medicine</th><th>Timing</th><th>Status</th><th>Time</th></tr>';
-            logs.sort((a,b) => b.time.localeCompare(a.time)).forEach(l => {
-                const med = meds.find(m => m.id === l.medId);
-                html += `<tr><td>${l.date}</td><td>${med?med.name:'Unknown'}</td><td>${l.timing}</td><td>${l.action}</td><td>${new Date(l.time).toLocaleTimeString()}</td></tr>`;
-            });
-            html += '</table></body></html>';
-            w.document.write(html);
-            w.document.close();
-            setTimeout(() => w.print(), 500);
-        }
-
-        function exportExcel() {
-            const logs = getLogs();
-            const meds = getMedicines();
-            let csv = 'Date,Medicine,Dosage,Timing,Status,Time\n';
-            logs.sort((a,b) => b.time.localeCompare(a.time)).forEach(l => {
-                const med = meds.find(m => m.id === l.medId);
-                csv += `${l.date},"${med?med.name:'Unknown'}","${med?med.dosage:''}",${l.timing},${l.action},${new Date(l.time).toLocaleTimeString()}\n`;
-            });
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'medicine-history.csv';
-            a.click();
-        }
-
-        // === HELPERS ===
-        function formatTime12(t) {
-            const [h, m] = t.split(':');
-            const hr = parseInt(h);
-            return (hr % 12 || 12) + ':' + m + (hr < 12 ? ' AM' : ' PM');
-        }
-
-        // === REMINDERS ===
-        function requestNotifPermission() {
-            if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
-        }
-        requestNotifPermission();
-
-        function toggleNotifPermission() {
-            if (!('Notification' in window)) { alert('Notifications not supported on this browser'); return; }
-            if (Notification.permission === 'granted') { alert('Notifications already enabled!'); return; }
-            if (Notification.permission === 'denied') { alert('Notifications blocked. Please enable in browser settings.'); return; }
-            Notification.requestPermission().then(updateNotifUI);
-        }
-        function updateNotifUI() {
-            const btn = document.getElementById('notif-btn');
-            const status = document.getElementById('notif-status');
-            if (!('Notification' in window)) { status.innerHTML = '<p style="color:#e53935;">❌ Not supported in this browser</p>'; btn.style.display = 'none'; return; }
-            if (Notification.permission === 'granted') { status.innerHTML = '<p style="color:#4CAF50;">✅ Notifications enabled — reminders at 30, 15, 5 min before dose</p>'; btn.style.display = 'none'; }
-            else if (Notification.permission === 'denied') { status.innerHTML = '<p style="color:#e53935;">🚫 Blocked — enable in browser settings</p>'; btn.textContent = 'Blocked (check browser settings)'; btn.style.background = '#999'; }
-            else { status.innerHTML = '<p style="color:#FF9800;">⚠️ Not yet enabled</p>'; }
-        }
-        function updateLastSync() {
-            const el = document.getElementById('last-sync-info');
-            const ts = localStorage.getItem('data_updated');
-            if (ts && parseInt(ts) > 0) { el.textContent = '🕐 Last synced: ' + new Date(parseInt(ts)).toLocaleString('en-IN'); }
-            else { el.textContent = 'No sync yet'; }
-        }
-
-        function checkReminders() {
-            if (!('Notification' in window) || Notification.permission !== 'granted') return;
-            const meds = getMedicines();
-            const logs = getTodayStatus();
-            const now = new Date();
-            const nowMin = now.getHours() * 60 + now.getMinutes();
-            const reminded = JSON.parse(sessionStorage.getItem('reminded') || '{}');
-
-            meds.forEach(m => {
-                if (!m.times) return;
-                m.timings.forEach((timing, i) => {
-                    const log = logs.find(l => l.medId === m.id && l.timing === timing);
-                    if (log) return; // already taken/skipped
-                    const [h, min] = m.times[i].split(':').map(Number);
-                    const doseMin = h * 60 + min;
-                    const diff = doseMin - nowMin;
-                    const key = m.id + '_' + i + '_' + today();
-
-                    [30, 15, 5].forEach(before => {
-                        const rkey = key + '_' + before;
-                        if (diff <= before && diff > before - 1 && !reminded[rkey]) {
-                            new Notification('💊 ' + m.name, { body: `${before} min before dose — ${timing} at ${formatTime12(m.times[i])}`, icon: 'icon-192.png' });
-                            reminded[rkey] = true;
-                        }
-                    });
-                    // At dose time
-                    if (diff <= 0 && diff > -1 && !reminded[key + '_0']) {
-                        new Notification('⏰ Take ' + m.name + ' NOW', { body: `${timing} — ${m.dosage}`, icon: 'icon-192.png' });
-                        reminded[key + '_0'] = true;
-                    }
-                });
-            });
-            sessionStorage.setItem('reminded', JSON.stringify(reminded));
-        }
-        setInterval(checkReminders, 60000);
-        setTimeout(checkReminders, 3000);
-
-        // === SYNC ===
-        function markUpdated() {
-            localStorage.setItem('data_updated', String(Date.now()));
-            if (accessToken) setTimeout(syncNow, 1000);
-        }
-
-        // Init
+        container.innerHTML=html;
+    }
+    function toggleTiming(el){const dose=el.dataset.dose;document.querySelectorAll(`.timing-chip[data-dose="${dose}"]`).forEach(c=>c.classList.remove('selected'));el.classList.add('selected')}
+    function resetForm(){
+        document.getElementById('form-title').textContent='Add Medicine';
+        document.getElementById('edit-id').value='';
+        document.getElementById('med-name').value='';
+        document.getElementById('med-dosage').value='';
+        document.getElementById('med-icon').value='💊';
+        document.getElementById('med-freq').value='1';
+        document.getElementById('med-course').value='ongoing';
+        document.getElementById('med-stock').value='';
         updateTimingOptions();
+    }
+    function saveMedicine(){
+        const name=document.getElementById('med-name').value.trim();
+        const dosage=document.getElementById('med-dosage').value.trim();
+        const icon=document.getElementById('med-icon').value.trim()||'💊';
+        const freq=parseInt(document.getElementById('med-freq').value);
+        const course=document.getElementById('med-course').value;
+        const stock=parseInt(document.getElementById('med-stock').value)||0;
+        if(!name){alert('Enter medicine name');return}
+        const timings=[],times=[];
+        for(let i=0;i<freq;i++){
+            const sel=document.querySelector(`.timing-chip[data-dose="${i}"].selected`);
+            if(!sel){alert(`Select timing for dose ${i+1}`);return}
+            timings.push(sel.dataset.timing);
+            const tv=document.getElementById('dose-time-'+i).value;
+            if(!tv){alert(`Set time for dose ${i+1}`);return}
+            times.push(tv);
+        }
+        const meds=getMedicines();const editId=document.getElementById('edit-id').value;
+        if(editId){
+            const idx=meds.findIndex(m=>m.id===editId);
+            if(idx>=0)meds[idx]={...meds[idx],name,dosage,icon,freq,timings,times,course,stock};
+        }else{
+            meds.push({id:Date.now().toString(),name,dosage,icon,freq,timings,times,course,stock,startDate:today()});
+        }
+        saveMedicines(meds);resetForm();showPage('meds');
+    }
+    function editMedicine(id){
+        const med=getMedicines().find(m=>m.id===id);if(!med)return;
+        document.getElementById('form-title').textContent='Edit Medicine';
+        document.getElementById('edit-id').value=med.id;
+        document.getElementById('med-name').value=med.name;
+        document.getElementById('med-dosage').value=med.dosage;
+        document.getElementById('med-icon').value=med.icon||'💊';
+        document.getElementById('med-freq').value=med.freq;
+        document.getElementById('med-course').value=med.course||'ongoing';
+        document.getElementById('med-stock').value=med.stock||'';
+        updateTimingOptions();
+        med.timings.forEach((t,i)=>{
+            const chip=document.querySelector(`.timing-chip[data-dose="${i}"][data-timing="${t}"]`);
+            if(chip)chip.classList.add('selected');
+            if(med.times&&med.times[i])document.getElementById('dose-time-'+i).value=med.times[i];
+        });
+        showPage('add');
+    }
+    function deleteMedicine(id){if(!confirm('Delete?'))return;saveMedicines(getMedicines().filter(m=>m.id!==id));renderMedsList()}
+    function cancelEdit(){resetForm();showPage('meds')}
+
+    // === MEDICINES LIST ===
+    function getCourseInfo(m){
+        if(!m.course||m.course==='ongoing')return'<span class="course-badge course-active">Ongoing</span>';
+        const start=new Date(m.startDate||today());const days=parseInt(m.course);
+        const elapsed=Math.floor((new Date()-start)/(86400000))+1;
+        if(elapsed>days)return'<span class="course-badge course-done">Completed</span>';
+        if(days-elapsed<=3)return`<span class="course-badge course-ending">Day ${elapsed}/${days} - Ending soon!</span>`;
+        return`<span class="course-badge course-active">Day ${elapsed}/${days}</span>`;
+    }
+    function renderMedsList(){
+        const meds=getMedicines();const el=document.getElementById('meds-list');
+        if(!meds.length){el.innerHTML='<div class="empty">No medicines yet. Tap + Add.</div>';return}
+        el.innerHTML=meds.map(m=>`<div class="card"><div class="med-row">
+            <div class="med-photo">${m.icon||'💊'}</div>
+            <div class="med-info"><strong>${m.name}</strong><br><small>${m.dosage} • ${m.freq}x daily</small><br>
+            <small>⏰ ${m.timings.map((t,i)=>t+(m.times&&m.times[i]?' @ '+formatTime12(m.times[i]):'')).join(', ')}</small><br>
+            ${getCourseInfo(m)}${m.stock?` • 📦 ${m.stock} left`:''}</div>
+        </div><div><button class="btn-sm btn-edit" onclick="editMedicine('${m.id}')">✏️ Edit</button><button class="btn-sm btn-del" onclick="deleteMedicine('${m.id}')">🗑️ Delete</button></div></div>`).join('');
+    }
+
+    // === TODAY ===
+    function getTodayStatus(){return getLogs().filter(l=>l.date===today())}
+    function renderToday(){
+        const meds=getMedicines();const logs=getTodayStatus();
+        const el=document.getElementById('today-schedule');const sum=document.getElementById('summary');
+        if(!meds.length){el.innerHTML='<div class="empty">No medicines added yet.</div>';sum.innerHTML='';document.getElementById('adherence-box').innerHTML='';document.getElementById('refill-alerts').innerHTML='';return}
+        let allDoses=[];
+        meds.forEach(m=>{m.timings.forEach((timing,i)=>{allDoses.push({id:m.id,name:m.name,dosage:m.dosage,timing,time:(m.times&&m.times[i])||'',icon:m.icon||'💊'})})});
+        const taken=logs.filter(l=>l.action==='taken').length;const skipped=logs.filter(l=>l.action==='skipped').length;
+        const total=allDoses.length;const pending=total-taken-skipped;
+        sum.innerHTML=`<div class="summary-card"><div class="num" style="color:#2196F3">${total}</div><div class="lbl">Total</div></div>
+            <div class="summary-card"><div class="num" style="color:#4CAF50">${taken}</div><div class="lbl">Taken</div></div>
+            <div class="summary-card"><div class="num" style="color:#FF9800">${pending}</div><div class="lbl">Pending</div></div>
+            <div class="summary-card"><div class="num" style="color:#e53935">${skipped}</div><div class="lbl">Skipped</div></div>`;
+        // Adherence
+        renderAdherence();
+        // Refill alerts
+        renderRefillAlerts();
+        // Schedule
+        let html='';
+        Object.entries(TIMING_GROUPS).forEach(([group,timings])=>{
+            const doses=allDoses.filter(d=>timings.includes(d.timing));if(!doses.length)return;
+            const icons={Morning:'🌅',Afternoon:'🌤️',Evening:'🌙'};
+            html+=`<div class="slot-group"><h3>${icons[group]} ${group}</h3>`;
+            doses.forEach(d=>{
+                const log=logs.find(l=>l.medId===d.id&&l.timing===d.timing);
+                const cls=log?(log.action==='taken'?'taken':'skipped'):'';
+                const status=log?(log.action==='taken'?' ✅':' ⏭️'):'';
+                html+=`<div class="dose-card ${cls}"><div><strong>${d.icon} ${d.name}</strong>${status}<br><small>${d.dosage} • ${d.timing}${d.time?' • 🕐'+formatTime12(d.time):''}</small></div>
+                <div>${log?'':`<button class="btn-sm btn-take" onclick="logDose('${d.id}','${d.timing}','taken')">Take</button><button class="btn-sm btn-skip" onclick="logDose('${d.id}','${d.timing}','skipped')">Skip</button>`}</div></div>`;
+            });
+            html+='</div>';
+        });
+        el.innerHTML=html||'<div class="empty">All done for today! 🎉</div>';
+    }
+    function logDose(medId,timing,action){
+        const logs=getLogs();logs.push({medId,timing,action,date:today(),time:new Date().toISOString()});saveLogs(logs);
+        // Decrease stock
+        if(action==='taken'){const meds=getMedicines();const idx=meds.findIndex(m=>m.id===medId);if(idx>=0&&meds[idx].stock>0){meds[idx].stock--;saveMedicines(meds)}}
         renderToday();
-        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+    }
+
+    // === ADHERENCE ===
+    function renderAdherence(){
+        const logs=getLogs();const meds=getMedicines();
+        if(!meds.length){document.getElementById('adherence-box').innerHTML='';return}
+        const last7=[];for(let i=0;i<7;i++){const d=new Date();d.setDate(d.getDate()-i);last7.push(d.toISOString().split('T')[0])}
+        let totalDoses=0,takenDoses=0;
+        last7.forEach(date=>{meds.forEach(m=>{totalDoses+=m.freq;takenDoses+=logs.filter(l=>l.date===date&&l.medId===m.id&&l.action==='taken').length})});
+        const pct=totalDoses?Math.round(takenDoses/totalDoses*100):0;
+        document.getElementById('adherence-box').innerHTML=`<h2>📈 Weekly Adherence</h2><div class="adherence-bar"><div class="adherence-fill" style="width:${pct}%">${pct}%</div></div>`;
+    }
+
+    // === REFILL ALERTS ===
+    function renderRefillAlerts(){
+        const meds=getMedicines();let html='';
+        meds.forEach(m=>{
+            if(m.stock>0&&m.stock<=5)html+=`<div class="alert-box danger">⚠️ <strong>${m.name}</strong> — Only ${m.stock} left! Refill soon.</div>`;
+            else if(m.stock>5&&m.stock<=10)html+=`<div class="alert-box">🔔 <strong>${m.name}</strong> — ${m.stock} left.</div>`;
+        });
+        document.getElementById('refill-alerts').innerHTML=html;
+    }
+
+    // === CALENDAR ===
+    function renderCalendar(){
+        const now=new Date();const year=now.getFullYear();const month=now.getMonth();
+        const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+        document.getElementById('cal-title').textContent='📅 '+months[month]+' '+year;
+        const firstDay=new Date(year,month,1).getDay();const daysInMonth=new Date(year,month+1,0).getDate();
+        const logs=getLogs();const meds=getMedicines();
+        let html='<div class="cal-header">S</div><div class="cal-header">M</div><div class="cal-header">T</div><div class="cal-header">W</div><div class="cal-header">T</div><div class="cal-header">F</div><div class="cal-header">S</div>';
+        for(let i=0;i<firstDay;i++)html+='<div class="cal-day empty"></div>';
+        for(let d=1;d<=daysInMonth;d++){
+            const dateStr=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            const dayLogs=logs.filter(l=>l.date===dateStr);
+            const totalDoses=meds.reduce((s,m)=>s+m.freq,0);
+            const takenCount=dayLogs.filter(l=>l.action==='taken').length;
+            let cls='';
+            if(dayLogs.length>0){cls=takenCount===totalDoses?'green':takenCount>0?'yellow':'red'}
+            if(dateStr===today())cls+=' today';
+            html+=`<div class="cal-day ${cls}">${d}</div>`;
+        }
+        document.getElementById('cal-grid').innerHTML=html;
+    }
+
+    // === STOCK ===
+    function renderStock(){
+        const meds=getMedicines();const el=document.getElementById('stock-list');
+        if(!meds.length){el.innerHTML='<div class="empty">No medicines.</div>';return}
+        el.innerHTML=meds.map(m=>{
+            const pct=m.stock?Math.min(100,Math.round(m.stock/30*100)):0;
+            const cls=pct<=20?'stock-low':pct<=50?'stock-med':'stock-ok';
+            return`<div class="stock-bar"><span style="font-size:0.8rem;width:90px;">${m.icon||'💊'} ${m.name}</span>
+            <div class="stock-fill-bg"><div class="stock-fill ${cls}" style="width:${pct}%"></div></div>
+            <span style="font-size:0.7rem;width:50px;text-align:right;">${m.stock||0} left</span></div>`;
+        }).join('');
+    }
+
+    // === DOCTORS ===
+    function renderDoctors(){
+        const docs=getDoctors();const el=document.getElementById('doctor-list');
+        el.innerHTML=docs.map((d,i)=>`<div class="doctor-card"><div class="doctor-avatar">${d.icon||'👨‍⚕️'}</div><div style="flex:1"><strong style="font-size:0.85rem">${d.name}</strong><br><small style="color:#666">${d.specialty||''} • 📞 ${d.phone||''}</small>${d.nextVisit?'<br><small style="color:#4CAF50">Next: '+d.nextVisit+'</small>':''}</div><button class="btn-sm btn-del" onclick="removeDoctor(${i})">✕</button></div>`).join('')||'<p style="font-size:0.8rem;color:#999;">No doctors added.</p>';
+    }
+    function addDoctor(){
+        const name=prompt('Doctor/Pharmacy name:');if(!name)return;
+        const phone=prompt('Phone number:')||'';
+        const specialty=prompt('Specialty (or type):')||'';
+        const nextVisit=prompt('Next visit date (optional):')||'';
+        const docs=getDoctors();docs.push({name,phone,specialty,nextVisit,icon:specialty.toLowerCase().includes('pharm')?'🏪':'👨‍⚕️'});
+        saveDoctors(docs);renderDoctors();
+    }
+    function removeDoctor(i){if(!confirm('Remove?'))return;const d=getDoctors();d.splice(i,1);saveDoctors(d);renderDoctors()}
+
+    // === CARETAKERS ===
+    function renderCaretakers(){
+        const cts=getCaretakers();const el=document.getElementById('caretaker-list');
+        el.innerHTML=cts.map((c,i)=>`<div class="caretaker-row"><div class="caretaker-avatar">${c.icon||'👤'}</div><div style="flex:1"><strong style="font-size:0.85rem">${c.name}</strong><br><small>📱 ${c.phone}</small></div><button class="btn-sm btn-del" onclick="removeCaretaker(${i})">✕</button></div>`).join('')||'<p style="font-size:0.8rem;color:#999;">No caretakers added.</p>';
+    }
+    function addCaretaker(){
+        const name=prompt('Caretaker name:');if(!name)return;
+        const phone=prompt('WhatsApp number (with country code):');if(!phone)return;
+        const cts=getCaretakers();cts.push({name,phone,icon:'👤'});saveCaretakers(cts);renderCaretakers();
+    }
+    function removeCaretaker(i){if(!confirm('Remove?'))return;const c=getCaretakers();c.splice(i,1);saveCaretakers(c);renderCaretakers()}
+
+    // === HISTORY ===
+    function renderHistory(){
+        const logs=getLogs();const meds=getMedicines();const el=document.getElementById('history-list');
+        if(!logs.length){el.innerHTML='<div class="empty">No history yet.</div>';return}
+        const grouped={};
+        logs.forEach(l=>{if(!grouped[l.date])grouped[l.date]=[];const med=meds.find(m=>m.id===l.medId);grouped[l.date].push({...l,medName:med?med.name:'Unknown'})});
+        let html='';Object.keys(grouped).sort().reverse().slice(0,14).forEach(date=>{
+            html+=`<div class="log-date-header">${new Date(date).toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})}</div>`;
+            grouped[date].forEach(l=>{html+=`<div class="log-entry">${l.action==='taken'?'✅':'⏭️'} <strong>${l.medName}</strong> - ${l.timing} <span style="float:right;color:#666;font-size:0.8rem">${new Date(l.time).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</span></div>`});
+        });
+        el.innerHTML=html;
+    }
+
+    // === EXPORTS ===
+    function getExportText(){
+        const logs=getLogs();const meds=getMedicines();let text='💊 Medicine History\n\n';
+        const grouped={};logs.forEach(l=>{if(!grouped[l.date])grouped[l.date]=[];const med=meds.find(m=>m.id===l.medId);grouped[l.date].push({...l,medName:med?med.name:'Unknown'})});
+        Object.keys(grouped).sort().reverse().forEach(date=>{text+=`📅 ${date}\n`;grouped[date].forEach(l=>{text+=`  ${l.action==='taken'?'✅':'⏭️'} ${l.medName} - ${l.timing}\n`});text+='\n'});
+        return text;
+    }
+    function exportWhatsApp(){window.open('https://wa.me/?text='+encodeURIComponent(getExportText()))}
+    function exportEmail(){window.open('mailto:?subject=Medicine History&body='+encodeURIComponent(getExportText()))}
+    function exportPDF(){const w=window.open('','_blank');const logs=getLogs();const meds=getMedicines();let h='<html><head><title>Medicine History</title><style>body{font-family:sans-serif;padding:20px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#4CAF50;color:#fff}</style></head><body><h1>💊 Medicine History</h1><table><tr><th>Date</th><th>Medicine</th><th>Timing</th><th>Status</th></tr>';logs.sort((a,b)=>b.time.localeCompare(a.time)).forEach(l=>{const med=meds.find(m=>m.id===l.medId);h+=`<tr><td>${l.date}</td><td>${med?med.name:'?'}</td><td>${l.timing}</td><td>${l.action}</td></tr>`});h+='</table></body></html>';w.document.write(h);w.document.close();setTimeout(()=>w.print(),500)}
+    function exportExcel(){const logs=getLogs();const meds=getMedicines();let csv='Date,Medicine,Timing,Status,Time\n';logs.sort((a,b)=>b.time.localeCompare(a.time)).forEach(l=>{const med=meds.find(m=>m.id===l.medId);csv+=`${l.date},"${med?med.name:'?'}",${l.timing},${l.action},${new Date(l.time).toLocaleTimeString()}\n`});const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='medicine-history.csv';a.click()}
+
+    // === NOTIFICATIONS ===
+    function getNotifSettings(){return JSON.parse(localStorage.getItem('notif_settings')||'{"m30":true,"m15":true,"m5":true,"m0":true}')}
+    function saveNotifSettings(){const s={m30:document.getElementById('notif-30').checked,m15:document.getElementById('notif-15').checked,m5:document.getElementById('notif-5').checked,m0:document.getElementById('notif-0').checked};localStorage.setItem('notif_settings',JSON.stringify(s))}
+    function loadNotifSettings(){const s=getNotifSettings();document.getElementById('notif-30').checked=s.m30;document.getElementById('notif-15').checked=s.m15;document.getElementById('notif-5').checked=s.m5;document.getElementById('notif-0').checked=s.m0}
+    function toggleNotifPermission(){
+        if(!('Notification' in window)){alert('Not supported');return}
+        if(Notification.permission==='granted'){alert('Already enabled!');return}
+        if(Notification.permission==='denied'){alert('Blocked. Enable in browser settings.');return}
+        Notification.requestPermission().then(updateNotifUI);
+    }
+    function updateNotifUI(){
+        const btn=document.getElementById('notif-btn');const st=document.getElementById('notif-status');
+        if(!('Notification' in window)){st.innerHTML='<span style="color:#e53935">❌ Not supported</span>';btn.style.display='none';return}
+        if(Notification.permission==='granted'){st.innerHTML='<span style="color:#4CAF50">✅ Notifications enabled</span>';st.style.background='#e8f5e9';btn.style.display='none'}
+        else if(Notification.permission==='denied'){st.innerHTML='<span style="color:#e53935">🚫 Blocked</span>';st.style.background='#fce4ec';btn.textContent='Blocked (check settings)';btn.style.background='#999'}
+        else{st.innerHTML='<span style="color:#FF9800">⚠️ Not enabled</span>';st.style.background='#fff8e1'}
+    }
+    function updateLastSync(){const el=document.getElementById('last-sync-info');const ts=localStorage.getItem('data_updated');el.textContent=ts&&parseInt(ts)>0?'🕐 Last synced: '+new Date(parseInt(ts)).toLocaleString('en-IN'):'No sync yet'}
+    function checkReminders(){
+        if(!('Notification' in window)||Notification.permission!=='granted')return;
+        const meds=getMedicines();const logs=getTodayStatus();const now=new Date();const nowMin=now.getHours()*60+now.getMinutes();
+        const reminded=JSON.parse(sessionStorage.getItem('reminded')||'{}');const ns=getNotifSettings();
+        meds.forEach(m=>{if(!m.times)return;m.timings.forEach((timing,i)=>{
+            const log=logs.find(l=>l.medId===m.id&&l.timing===timing);if(log)return;
+            const[h,min]=m.times[i].split(':').map(Number);const doseMin=h*60+min;const diff=doseMin-nowMin;
+            const key=m.id+'_'+i+'_'+today();
+            if(ns.m30&&diff<=30&&diff>29&&!reminded[key+'_30']){new Notification('💊 '+m.name,{body:`30 min before — ${timing} at ${formatTime12(m.times[i])}`,icon:'icon-192.png'});reminded[key+'_30']=true}
+            if(ns.m15&&diff<=15&&diff>14&&!reminded[key+'_15']){new Notification('💊 '+m.name,{body:`15 min before — ${timing} at ${formatTime12(m.times[i])}`,icon:'icon-192.png'});reminded[key+'_15']=true}
+            if(ns.m5&&diff<=5&&diff>4&&!reminded[key+'_5']){new Notification('💊 '+m.name,{body:`5 min before — ${timing} at ${formatTime12(m.times[i])}`,icon:'icon-192.png'});reminded[key+'_5']=true}
+            if(ns.m0&&diff<=0&&diff>-1&&!reminded[key+'_0']){new Notification('⏰ Take '+m.name+' NOW',{body:`${timing} — ${m.dosage}`,icon:'icon-192.png'});reminded[key+'_0']=true}
+            // Caretaker alert if missed by 30 min
+            if(diff<-30&&!reminded[key+'_missed']){sendCaretakerAlert(m,timing);reminded[key+'_missed']=true}
+        })});
+        sessionStorage.setItem('reminded',JSON.stringify(reminded));
+    }
+    function sendCaretakerAlert(med,timing){
+        const cts=getCaretakers();
+        cts.forEach(c=>{if(c.phone)window.open(`https://wa.me/${c.phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(`⚠️ Missed dose alert: ${med.name} (${timing}) was not taken by ${c.name}'s care recipient.`)}`)});
+    }
+    setInterval(checkReminders,60000);setTimeout(checkReminders,3000);
+
+    // === SYNC ===
+    function markUpdated(){localStorage.setItem('data_updated',String(Date.now()));if(accessToken)setTimeout(syncNow,1000)}
+    updateTimingOptions();renderToday();loadNotifSettings();
+    if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
     </script>
 
     <script src="https://accounts.google.com/gsi/client"></script>
     <script>
-        const GDRIVE_CLIENT_ID = '157005612520-70t1peegtr1uoinrnjv2g9uk1geni5j8.apps.googleusercontent.com';
-        const GDRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.email';
-        const SYNC_FILE = 'medicine-reminder-data.json';
-        let accessToken = null, tokenClient = null;
-
-        function initGIS() {
-            tokenClient = google.accounts.oauth2.initTokenClient({ client_id: GDRIVE_CLIENT_ID, scope: GDRIVE_SCOPE, callback: handleTokenResponse });
-            const saved = localStorage.getItem('gdrive_token');
-            if (saved) { const t = JSON.parse(saved); if (t.expiry > Date.now()) { accessToken = t.token; showSignedIn(t.email); } }
-        }
-        function gDriveSignIn() { tokenClient.requestAccessToken(); }
-        function gDriveSignOut() {
-            if (accessToken) google.accounts.oauth2.revoke(accessToken);
-            accessToken = null; localStorage.removeItem('gdrive_token');
-            document.getElementById('sync-signed-in').style.display = 'none';
-            document.getElementById('sync-signed-out').style.display = 'block';
-        }
-        async function handleTokenResponse(resp) {
-            if (resp.error) { alert('Sign-in failed'); return; }
-            accessToken = resp.access_token;
-            const info = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: 'Bearer ' + accessToken } }).then(r => r.json());
-            const email = info.email || '';
-            localStorage.setItem('gdrive_token', JSON.stringify({ token: accessToken, email, expiry: Date.now() + (resp.expires_in * 1000) }));
-            showSignedIn(email);
-            syncNow();
-        }
-        function showSignedIn(email) {
-            document.getElementById('sync-signed-out').style.display = 'none';
-            document.getElementById('sync-signed-in').style.display = 'block';
-            document.getElementById('sync-email').textContent = email;
-        }
-        function setSyncStatus(msg) { document.getElementById('sync-status').textContent = msg; }
-
-        async function driveRequest(url, opts = {}) {
-            opts.headers = { ...opts.headers, Authorization: 'Bearer ' + accessToken };
-            const r = await fetch(url, opts);
-            if (r.status === 401) { gDriveSignOut(); throw new Error('Token expired'); }
-            return r;
-        }
-        async function findSyncFile() {
-            const r = await driveRequest('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%27' + SYNC_FILE + '%27&fields=files(id)');
-            const d = await r.json(); return d.files && d.files[0];
-        }
-        async function downloadSyncFile(fileId) {
-            return (await driveRequest('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media')).json();
-        }
-        async function uploadSyncFile(content, existingId) {
-            const meta = { name: SYNC_FILE, ...(existingId ? {} : { parents: ['appDataFolder'] }) };
-            const form = new FormData();
-            form.append('metadata', new Blob([JSON.stringify(meta)], { type: 'application/json' }));
-            form.append('file', new Blob([JSON.stringify(content)], { type: 'application/json' }));
-            const url = existingId ? 'https://www.googleapis.com/upload/drive/v3/files/' + existingId + '?uploadType=multipart' : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-            await driveRequest(url, { method: existingId ? 'PATCH' : 'POST', body: form });
-        }
-        async function syncNow() {
-            if (!accessToken) return;
-            setSyncStatus('⏳ Syncing...');
-            try {
-                const local = { medicines: getMedicines(), logs: getLogs(), updatedAt: parseInt(localStorage.getItem('data_updated') || '0') };
-                const file = await findSyncFile();
-                if (file) {
-                    const remote = await downloadSyncFile(file.id);
-                    if (remote.updatedAt > local.updatedAt) {
-                        localStorage.setItem('medicines2', JSON.stringify(remote.medicines || []));
-                        localStorage.setItem('med_logs2', JSON.stringify(remote.logs || []));
-                        localStorage.setItem('data_updated', String(remote.updatedAt));
-                        renderToday();
-                        setSyncStatus('✅ Downloaded • ' + new Date().toLocaleTimeString());
-                    } else {
-                        await uploadSyncFile(local, file.id);
-                        setSyncStatus('✅ Uploaded • ' + new Date().toLocaleTimeString());
-                    }
-                } else {
-                    local.updatedAt = Date.now(); localStorage.setItem('data_updated', String(local.updatedAt));
-                    await uploadSyncFile(local);
-                    setSyncStatus('✅ First sync • ' + new Date().toLocaleTimeString());
-                }
-            } catch (e) { setSyncStatus('❌ ' + e.message); }
-        }
-        async function pullFromDrive() {
-            if (!accessToken) return;
-            try {
-                const file = await findSyncFile();
-                if (file) {
-                    const remote = await downloadSyncFile(file.id);
-                    const localTs = parseInt(localStorage.getItem('data_updated') || '0');
-                    if (remote.updatedAt > localTs) {
-                        localStorage.setItem('medicines2', JSON.stringify(remote.medicines || []));
-                        localStorage.setItem('med_logs2', JSON.stringify(remote.logs || []));
-                        localStorage.setItem('data_updated', String(remote.updatedAt));
-                        renderToday();
-                        renderMedsList();
-                    }
-                }
-            } catch(e) { console.log('Auto-pull failed:', e); }
-        }
-        window.addEventListener('load', () => {
-            if (window.google) initGIS();
-            setTimeout(pullFromDrive, 2000);
-        });
-        document.addEventListener('visibilitychange', () => { if (!document.hidden) pullFromDrive(); });
+    const GDRIVE_CLIENT_ID='157005612520-70t1peegtr1uoinrnjv2g9uk1geni5j8.apps.googleusercontent.com';
+    const GDRIVE_SCOPE='https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.email';
+    const SYNC_FILE='medicine-reminder-data.json';
+    let accessToken=null,tokenClient=null;
+    function initGIS(){tokenClient=google.accounts.oauth2.initTokenClient({client_id:GDRIVE_CLIENT_ID,scope:GDRIVE_SCOPE,callback:handleTokenResponse});const saved=localStorage.getItem('gdrive_token');if(saved){const t=JSON.parse(saved);if(t.expiry>Date.now()){accessToken=t.token;showSignedIn(t.email)}}}
+    function gDriveSignIn(){tokenClient.requestAccessToken()}
+    function gDriveSignOut(){if(accessToken)google.accounts.oauth2.revoke(accessToken);accessToken=null;localStorage.removeItem('gdrive_token');document.getElementById('sync-signed-in').style.display='none';document.getElementById('sync-signed-out').style.display='block'}
+    async function handleTokenResponse(resp){if(resp.error){alert('Sign-in failed');return}accessToken=resp.access_token;const info=await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+accessToken}}).then(r=>r.json());const email=info.email||'';localStorage.setItem('gdrive_token',JSON.stringify({token:accessToken,email,expiry:Date.now()+(resp.expires_in*1000)}));showSignedIn(email);syncNow()}
+    function showSignedIn(email){document.getElementById('sync-signed-out').style.display='none';document.getElementById('sync-signed-in').style.display='block';document.getElementById('sync-email').textContent=email}
+    function setSyncStatus(msg){document.getElementById('sync-status').textContent=msg}
+    async function driveRequest(url,opts={}){opts.headers={...opts.headers,Authorization:'Bearer '+accessToken};const r=await fetch(url,opts);if(r.status===401){gDriveSignOut();throw new Error('Token expired')}return r}
+    async function findSyncFile(){const r=await driveRequest('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%27'+SYNC_FILE+'%27&fields=files(id)');const d=await r.json();return d.files&&d.files[0]}
+    async function downloadSyncFile(fileId){return(await driveRequest('https://www.googleapis.com/drive/v3/files/'+fileId+'?alt=media')).json()}
+    async function uploadSyncFile(content,existingId){
+        const meta={name:SYNC_FILE,...(existingId?{}:{parents:['appDataFolder']})};const form=new FormData();
+        form.append('metadata',new Blob([JSON.stringify(meta)],{type:'application/json'}));
+        form.append('file',new Blob([JSON.stringify(content)],{type:'application/json'}));
+        const url=existingId?'https://www.googleapis.com/upload/drive/v3/files/'+existingId+'?uploadType=multipart':'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+        await driveRequest(url,{method:existingId?'PATCH':'POST',body:form});
+    }
+    async function syncNow(){
+        if(!accessToken)return;setSyncStatus('⏳ Syncing...');
+        try{
+            const local={medicines:getMedicines(),logs:getLogs(),doctors:getDoctors(),caretakers:getCaretakers(),notifSettings:getNotifSettings(),updatedAt:parseInt(localStorage.getItem('data_updated')||'0')};
+            const file=await findSyncFile();
+            if(file){
+                const remote=await downloadSyncFile(file.id);
+                if(remote.updatedAt>local.updatedAt){
+                    localStorage.setItem('medicines2',JSON.stringify(remote.medicines||[]));
+                    localStorage.setItem('med_logs2',JSON.stringify(remote.logs||[]));
+                    if(remote.doctors)localStorage.setItem('med_doctors',JSON.stringify(remote.doctors));
+                    if(remote.caretakers)localStorage.setItem('med_caretakers',JSON.stringify(remote.caretakers));
+                    localStorage.setItem('data_updated',String(remote.updatedAt));
+                    renderToday();setSyncStatus('✅ Downloaded • '+new Date().toLocaleTimeString());
+                }else{await uploadSyncFile(local,file.id);setSyncStatus('✅ Uploaded • '+new Date().toLocaleTimeString())}
+            }else{local.updatedAt=Date.now();localStorage.setItem('data_updated',String(local.updatedAt));await uploadSyncFile(local);setSyncStatus('✅ First sync • '+new Date().toLocaleTimeString())}
+        }catch(e){setSyncStatus('❌ '+e.message)}
+    }
+    async function pullFromDrive(){
+        if(!accessToken)return;
+        try{const file=await findSyncFile();if(file){const remote=await downloadSyncFile(file.id);const localTs=parseInt(localStorage.getItem('data_updated')||'0');
+        if(remote.updatedAt>localTs){localStorage.setItem('medicines2',JSON.stringify(remote.medicines||[]));localStorage.setItem('med_logs2',JSON.stringify(remote.logs||[]));if(remote.doctors)localStorage.setItem('med_doctors',JSON.stringify(remote.doctors));if(remote.caretakers)localStorage.setItem('med_caretakers',JSON.stringify(remote.caretakers));localStorage.setItem('data_updated',String(remote.updatedAt));renderToday()}}}catch(e){}
+    }
+    window.addEventListener('load',()=>{if(window.google)initGIS();setTimeout(pullFromDrive,2000)});
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)pullFromDrive()});
     </script>
 </body>
 </html>
+
+
+
