@@ -219,8 +219,8 @@
             </div>
         </div>
         <div class="card" style="text-align:center;">
-            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v3.1</p>
-            <p style="font-size:0.7rem;color:#bbb;">Deployed: 21 Jun 2026, 12:04:30 PM IST</p>
+            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v3.2</p>
+            <p style="font-size:0.7rem;color:#bbb;">Deployed: 21 Jun 2026, 12:25:23 PM IST</p>
             <p style="font-size:0.65rem;color:#ccc;margin-top:4px;">✨ v3.1: Auto-collapse taken doses, update notifications</p>
             <p style="font-size:0.65rem;color:#ccc;">v3.0: Clock, calendar, adherence, stock, doctors, caretakers</p>
         </div>
@@ -743,7 +743,7 @@
     document.addEventListener('visibilitychange',()=>{if(!document.hidden){pullFromDrive();checkForUpdate()}});
 
     // === UPDATE CHECK ===
-    const APP_VERSION='3.1';
+    const APP_VERSION='3.2';
     async function checkForUpdate(){
         try{
             const r=await fetch('version.json?t='+Date.now());const d=await r.json();
