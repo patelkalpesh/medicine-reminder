@@ -83,7 +83,7 @@
     <!-- MEDICINES -->
     <div id="page-meds" class="page">
         <div id="meds-list"></div>
-        <button class="btn" onclick="showPage('add')">+ Add Medicine</button>
+        <button class="btn" onclick="document.getElementById('edit-id').value='';showPage('add')">+ Add Medicine</button>
     </div>
 
     <!-- ADD/EDIT -->
@@ -265,7 +265,7 @@
         if(name==='cal')renderCalendar();
         if(name==='stock')renderStock();
         if(name==='settings'){updateNotifUI();updateLastSync();renderHistory();renderDoctors();renderCaretakers()}
-        if(name==='add'&&!document.getElementById('edit-id').value)resetForm();
+        if(name==='add'){const editId=document.getElementById('edit-id').value;if(!editId)resetForm()}
     }
 
     // === PHOTO ===
