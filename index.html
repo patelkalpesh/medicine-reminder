@@ -730,7 +730,7 @@
             return`<div class="card" style="${pausedStyle}"><div class="med-row">
             ${medPhotoHtml(m)}
             <div class="med-info"><strong>${m.name}</strong>${pausedLabel}<br><small>${m.dosage} • ${m.freq}x daily</small><br>
-            <small>⏰ ${m.timings.map((t,i)=>t+(m.times&&m.times[i]?' @ '+formatTime12(m.times[i]):'')).join(', ')}</small><br>
+            <small>⏰ ${m.timings.map((t,i)=>tTiming(t)+(m.times&&m.times[i]?' @ '+formatTime12(m.times[i]):'')).join(', ')}</small><br>
             ${getCourseInfo(m)}<br><small>${stockInfo}</small></div>
         </div><div><button class="btn-sm" style="background:${m.paused?'#4CAF50':'#FF9800'}" onclick="togglePause('${m.id}')">${m.paused?'▶️ Resume':'⏸️ Pause'}</button><button class="btn-sm btn-edit" onclick="editMedicine('${m.id}')">✏️ Edit</button><button class="btn-sm btn-del" onclick="deleteMedicine('${m.id}')">🗑️ Delete</button></div></div>`;
         }).join('');
@@ -767,14 +767,14 @@
             const L=LANG[currentLang]||LANG.en;const gn={Morning:L.morning,Afternoon:L.afternoon,Evening:L.evening};
             html+=`<div class="slot-group"><h3>${gn[group]||group}</h3>`;
             pending.forEach(d=>{
-                html+=`<div class="dose-card"><div><strong>${d.icon} ${d.name}</strong><br><small>${d.dosage} • ${d.timing}${d.time?' • 🕐'+formatTime12(d.time):''}</small></div>
+                html+=`<div class="dose-card"><div><strong>${d.icon} ${d.name}</strong><br><small>${d.dosage} • ${tTiming(d.timing)}${d.time?' • 🕐'+formatTime12(d.time):''}</small></div>
                 <div><button class="btn-sm btn-take" onclick="logDose('${d.id}','${d.timing}','taken')">${L.take}</button><button class="btn-sm" style="background:#FF9800;font-size:0.65rem;" data-snooze-key="${d.name}_${d.timing}" onclick="snoozeDose('${d.name}','${d.timing}',this)">${L.snooze}</button></div></div>`;
             });
             if(done.length){
-                html+=`<div class="done-group"><div class="done-header" onclick="this.nextElementSibling.classList.toggle('open')"><span>✅ ${done.length} done</span><span>▼</span></div><div class="done-list">`;
+                html+=`<div class="done-group"><div class="done-header" onclick="this.nextElementSibling.classList.toggle('open')"><span>✅ ${done.length} ${L.done}</span><span>▼</span></div><div class="done-list">`;
                 done.forEach(d=>{
                     const log=logs.find(l=>l.medId===d.id&&l.timing===d.timing);
-                    html+=`<div class="done-item">${log.action==='taken'?'✅':'⏭️'} ${d.icon} ${d.name} • ${d.timing}</div>`;
+                    html+=`<div class="done-item">${log.action==='taken'?'✅':'⏭️'} ${d.icon} ${d.name} • ${tTiming(d.timing)}</div>`;
                 });
                 html+='</div></div>';
             }
@@ -1306,6 +1306,11 @@
         document.querySelectorAll('[data-lang]').forEach(el=>{const key=el.dataset.lang;if(L[key])el.textContent=L[key]});
     }
     function loadLanguage(){currentLang=localStorage.getItem('app_lang')||'en';document.getElementById('lang-select').value=currentLang;applyLanguage()}
+    const TIMING_LANG={
+        hi:{'Before Breakfast':'नाश्ते से पहले','After Breakfast':'नाश्ते के बाद','Before Lunch':'दोपहर खाने से पहले','After Lunch':'दोपहर खाने के बाद','Before Dinner':'रात खाने से पहले','After Dinner':'रात खाने के बाद','Bedtime':'सोते समय','SOS':'आपातकालीन'},
+        gu:{'Before Breakfast':'નાસ્તા પહેલાં','After Breakfast':'નાસ્તા પછી','Before Lunch':'બપોરના ભોજન પહેલાં','After Lunch':'બપોરના ભોજન પછી','Before Dinner':'રાત્રિ ભોજન પહેલાં','After Dinner':'રાત્રિ ભોજન પછી','Bedtime':'સૂતી વખતે','SOS':'ઈમરજન્સી'}
+    };
+    function tTiming(t){return(TIMING_LANG[currentLang]&&TIMING_LANG[currentLang][t])||t}
 
     // === SOUND ===
     function playAlertSound(){
