@@ -948,7 +948,9 @@
         })});
         const el=document.getElementById('next-dose-widget');
         if(!nextDose){el.innerHTML='';return}
-        el.innerHTML=`<div class="next-dose-widget"><div class="ndw-label">⏭️ NEXT DOSE</div><div class="ndw-name">${nextDose.icon} ${nextDose.name}</div><div class="ndw-time">${nextDose.dosage} • ${nextDose.timing} • 🕐 ${formatTime12(nextDose.time)} (in ${nextDose.diff} min)</div></div>`;
+        const hrs=Math.floor(nextDose.diff/60);const mins=nextDose.diff%60;
+        const timeLeft=hrs>0?hrs+' hr'+(hrs>1?'s':'')+' '+mins+' min':mins+' min';
+        el.innerHTML=`<div class="next-dose-widget"><div class="ndw-label">⏭️ NEXT DOSE</div><div class="ndw-name">${nextDose.icon} ${nextDose.name}</div><div class="ndw-time">${nextDose.dosage} • ${nextDose.timing} • 🕐 ${formatTime12(nextDose.time)} (in ${timeLeft})</div></div>`;
     }
 
     // === DARK MODE ===
