@@ -94,11 +94,31 @@
         </div>
     </div>
 
+    <!-- Sync Page -->
+    <div id="page-sync" class="page">
+        <div class="card">
+            <h2 style="margin-bottom:12px;">☁️ Google Drive Sync</h2>
+            <p style="font-size:0.85rem;color:#666;margin-bottom:12px;">Sign in to sync your medicines across all your devices.</p>
+            <div id="sync-signed-out">
+                <button class="btn" onclick="gDriveSignIn()" id="btn-signin">🔑 Sign in with Google</button>
+            </div>
+            <div id="sync-signed-in" style="display:none;">
+                <div style="background:#e8f5e9;padding:12px;border-radius:8px;margin-bottom:12px;">
+                    <strong>✅ Signed in as</strong> <span id="sync-email"></span>
+                </div>
+                <button class="btn" onclick="syncNow()" style="background:#2196F3;">🔄 Sync Now</button>
+                <button class="btn" onclick="gDriveSignOut()" style="background:#666;margin-top:8px;">Sign Out</button>
+                <div id="sync-status" style="font-size:0.8rem;color:#666;margin-top:12px;text-align:center;"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Tab Bar -->
     <div class="tab-bar">
         <button class="active" onclick="showPage('home')"><span>💊</span>Medicines</button>
         <button onclick="showPage('add')"><span>➕</span>Add</button>
         <button onclick="showPage('log')"><span>📋</span>History</button>
+        <button onclick="showPage('sync')"><span>☁️</span>Sync</button>
     </div>
 
     <script>
@@ -111,7 +131,7 @@
         function showPage(name) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById('page-' + name).classList.add('active');
-            document.querySelectorAll('.tab-bar button').forEach((b, i) => b.classList.toggle('active', ['home','add','log'][i] === name));
+            document.querySelectorAll('.tab-bar button').forEach((b, i) => b.classList.toggle('active', ['home','add','log','sync'][i] === name));
             if (name === 'home') renderMedicines();
             if (name === 'log') renderLogs();
         }
@@ -278,6 +298,152 @@
         renderMedicines();
         scheduleNotifications();
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+    </script>
+    <script src="https://accounts.google.com/gsi/client"></script>
+    <script>
+        // ===== GOOGLE DRIVE SYNC =====
+        // ⚠️ REPLACE THIS with your OAuth Client ID from Google Cloud Console
+        const GDRIVE_CLIENT_ID = '157005612520-70t1peegtr1uoinrnjv2g9uk1geni5j8.apps.googleusercontent.com';
+        const GDRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.email';
+        const SYNC_FILE = 'medicine-reminder-data.json';
+
+        let accessToken = null;
+        let tokenClient = null;
+
+        function initGIS() {
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: GDRIVE_CLIENT_ID,
+                scope: GDRIVE_SCOPE,
+                callback: handleTokenResponse
+            });
+            // Auto-restore session
+            const saved = localStorage.getItem('gdrive_token');
+            if (saved) {
+                const t = JSON.parse(saved);
+                if (t.expiry > Date.now()) {
+                    accessToken = t.token;
+                    showSignedIn(t.email);
+                }
+            }
+        }
+
+        function gDriveSignIn() { tokenClient.requestAccessToken(); }
+
+        function gDriveSignOut() {
+            if (accessToken) google.accounts.oauth2.revoke(accessToken);
+            accessToken = null;
+            localStorage.removeItem('gdrive_token');
+            document.getElementById('sync-signed-in').style.display = 'none';
+            document.getElementById('sync-signed-out').style.display = 'block';
+            setSyncStatus('Signed out');
+        }
+
+        async function handleTokenResponse(resp) {
+            if (resp.error) { alert('Sign-in failed: ' + resp.error); return; }
+            accessToken = resp.access_token;
+            // Get user email
+            const info = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: { Authorization: 'Bearer ' + accessToken }
+            }).then(r => r.json());
+            const email = info.email || 'Unknown';
+            localStorage.setItem('gdrive_token', JSON.stringify({
+                token: accessToken, email, expiry: Date.now() + (resp.expires_in * 1000)
+            }));
+            showSignedIn(email);
+            syncNow();
+        }
+
+        function showSignedIn(email) {
+            document.getElementById('sync-signed-out').style.display = 'none';
+            document.getElementById('sync-signed-in').style.display = 'block';
+            document.getElementById('sync-email').textContent = email;
+        }
+
+        function setSyncStatus(msg) {
+            document.getElementById('sync-status').textContent = msg;
+        }
+
+        // --- Drive API helpers ---
+        async function driveRequest(url, opts = {}) {
+            opts.headers = { ...opts.headers, Authorization: 'Bearer ' + accessToken };
+            const r = await fetch(url, opts);
+            if (r.status === 401) { accessToken = null; localStorage.removeItem('gdrive_token'); gDriveSignOut(); throw new Error('Token expired'); }
+            return r;
+        }
+
+        async function findSyncFile() {
+            const r = await driveRequest('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%27' + SYNC_FILE + '%27&fields=files(id,modifiedTime)');
+            const data = await r.json();
+            return data.files && data.files[0];
+        }
+
+        async function downloadSyncFile(fileId) {
+            const r = await driveRequest('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media');
+            return r.json();
+        }
+
+        async function uploadSyncFile(content, existingId) {
+            const metadata = { name: SYNC_FILE, ...(existingId ? {} : { parents: ['appDataFolder'] }) };
+            const form = new FormData();
+            form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+            form.append('file', new Blob([JSON.stringify(content)], { type: 'application/json' }));
+            const url = existingId
+                ? 'https://www.googleapis.com/upload/drive/v3/files/' + existingId + '?uploadType=multipart'
+                : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+            await driveRequest(url, { method: existingId ? 'PATCH' : 'POST', body: form });
+        }
+
+        // --- Sync logic (latest-wins) ---
+        async function syncNow() {
+            if (!accessToken) return;
+            setSyncStatus('⏳ Syncing...');
+            try {
+                const local = {
+                    medicines: getMedicines(),
+                    logs: getLogs(),
+                    updatedAt: parseInt(localStorage.getItem('data_updated') || '0')
+                };
+                const file = await findSyncFile();
+                if (file) {
+                    const remote = await downloadSyncFile(file.id);
+                    if (remote.updatedAt > local.updatedAt) {
+                        // Remote is newer — use it
+                        saveMedicines(remote.medicines || []);
+                        saveLogs(remote.logs || []);
+                        localStorage.setItem('data_updated', String(remote.updatedAt));
+                        renderMedicines();
+                        setSyncStatus('✅ Downloaded from cloud • ' + new Date().toLocaleTimeString());
+                    } else {
+                        // Local is newer — push it
+                        await uploadSyncFile(local, file.id);
+                        setSyncStatus('✅ Uploaded to cloud • ' + new Date().toLocaleTimeString());
+                    }
+                } else {
+                    // No file yet — upload
+                    local.updatedAt = Date.now();
+                    localStorage.setItem('data_updated', String(local.updatedAt));
+                    await uploadSyncFile(local);
+                    setSyncStatus('✅ First sync done • ' + new Date().toLocaleTimeString());
+                }
+            } catch (e) {
+                setSyncStatus('❌ Sync failed: ' + e.message);
+            }
+        }
+
+        // Mark data as updated on any change
+        function markUpdated() {
+            localStorage.setItem('data_updated', String(Date.now()));
+            if (accessToken) setTimeout(syncNow, 1000); // Auto-sync after change
+        }
+
+        // Patch save functions to trigger sync
+        const _origSaveMedicines = saveMedicines;
+        saveMedicines = function(m) { _origSaveMedicines(m); markUpdated(); };
+        const _origSaveLogs = saveLogs;
+        saveLogs = function(l) { _origSaveLogs(l); markUpdated(); };
+
+        // Init GIS when library loads
+        window.addEventListener('load', () => { if (window.google) initGIS(); });
     </script>
 </body>
 </html>
