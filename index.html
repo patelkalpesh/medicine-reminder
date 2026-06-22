@@ -1566,8 +1566,9 @@
         let i=0;
         function next(){
             if(i>=enabled.length)return;
-            window.open(`https://wa.me/${enabled[i].phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(msg)}`);
-            i++;if(i<enabled.length)setTimeout(next,1500);
+            const c=enabled[i];i++;
+            window.open(`https://wa.me/${c.phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(msg)}`);
+            if(i<enabled.length)setTimeout(()=>{if(confirm(`✅ Sent to ${enabled[i-1].name}.\n\nSend to ${enabled[i].name} next?`))next()},500);
         }
         next();
     }
