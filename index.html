@@ -270,6 +270,8 @@
             <p style="font-size:0.8rem;color:#666;margin-bottom:8px;">Auto-WhatsApp if dose missed by 30 min</p>
             <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#f9f9f9;border-radius:8px;margin-bottom:10px;"><input type="checkbox" id="caretaker-enabled" onchange="localStorage.setItem('caretaker_enabled',this.checked);markUpdated()" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">Enable missed-dose alerts</span></label>
             <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#e8f5e9;border-radius:8px;margin-bottom:10px;"><input type="checkbox" id="notify-on-take" onchange="localStorage.setItem('notify_on_take',this.checked);markUpdated()" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">📤 WhatsApp when I take medicine</span></label>
+            <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#e3f2fd;border-radius:8px;margin-bottom:10px;"><input type="checkbox" id="email-on-take" onchange="localStorage.setItem('email_on_take',this.checked);markUpdated()" style="width:auto;margin:0;accent-color:#2196F3"> <span style="font-size:0.85rem;">📧 Email when I take medicine</span></label>
+            <div id="email-on-take-addr" style="display:none;margin-bottom:10px;"><input type="email" id="take-email-addr" placeholder="Recipient email" onchange="localStorage.setItem('take_email_to',this.value);markUpdated()" style="margin:0;padding:8px;font-size:0.85rem;"></div>
             <div id="caretaker-list"></div>
             <button class="btn" onclick="addCaretaker()">+ Add Caretaker</button>
             <button class="btn" style="background:#FF9800;margin-top:8px;" onclick="testCaretakerAlert()">🧪 Test Alert (send now)</button>
@@ -1298,6 +1300,13 @@
                 const cts=getCaretakers().filter(c=>c.enabled!==false&&c.phone);
                 if(cts.length)window.open(`https://wa.me/${cts[0].phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(msg)}`);
             }
+            // Email on take
+            if(localStorage.getItem('email_on_take')==='true'){
+                const med=getMedicines().find(m=>m.id===medId);
+                const timeStr=new Date(takenTime).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+                const toEmail=localStorage.getItem('take_email_to')||'';
+                if(toEmail){const subj=`💊 ${med?med.name:'Medicine'} taken`;const body=`${med?med.name:'Medicine'} (${timing}) was taken at ${timeStr} on ${today()}`;window.open(`mailto:${toEmail}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`)}
+            }
         }
         renderToday();
     }
@@ -1545,6 +1554,10 @@
         const cts=getCaretakers();const el=document.getElementById('caretaker-list');
         document.getElementById('caretaker-enabled').checked=localStorage.getItem('caretaker_enabled')==='true';
         document.getElementById('notify-on-take').checked=localStorage.getItem('notify_on_take')==='true';
+        document.getElementById('email-on-take').checked=localStorage.getItem('email_on_take')==='true';
+        document.getElementById('email-on-take-addr').style.display=localStorage.getItem('email_on_take')==='true'?'block':'none';
+        document.getElementById('take-email-addr').value=localStorage.getItem('take_email_to')||'';
+        document.getElementById('email-on-take').onchange=function(){localStorage.setItem('email_on_take',this.checked);document.getElementById('email-on-take-addr').style.display=this.checked?'block':'none';markUpdated()};
         el.innerHTML=cts.map((c,i)=>`<div class="caretaker-row"><div class="caretaker-avatar">${c.icon||'👤'}</div><div style="flex:1"><strong style="font-size:0.85rem">${c.name}</strong><br><small>📱 ${c.phone}</small><br><label style="font-size:0.7rem;color:#666;display:flex;align-items:center;gap:4px;margin-top:3px;"><input type="checkbox" ${c.enabled!==false?'checked':''} onchange="toggleCaretaker(${i},this.checked)" style="width:auto;margin:0;accent-color:#4CAF50"> Alerts ON</label></div><button class="btn-sm btn-edit" onclick="editCaretaker(${i})">✏️</button><button class="btn-sm btn-del" onclick="removeCaretaker(${i})">✕</button></div>`).join('')||'<p style="font-size:0.8rem;color:#999;">No caretakers added.</p>';
     }
     function toggleCaretaker(i,enabled){
