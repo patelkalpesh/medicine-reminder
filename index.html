@@ -1463,7 +1463,10 @@
     function renderCaretakers(){
         const cts=getCaretakers();const el=document.getElementById('caretaker-list');
         document.getElementById('caretaker-enabled').checked=localStorage.getItem('caretaker_enabled')==='true';
-        el.innerHTML=cts.map((c,i)=>`<div class="caretaker-row"><div class="caretaker-avatar">${c.icon||'👤'}</div><div style="flex:1"><strong style="font-size:0.85rem">${c.name}</strong><br><small>📱 ${c.phone}</small></div><button class="btn-sm btn-edit" onclick="editCaretaker(${i})">✏️</button><button class="btn-sm btn-del" onclick="removeCaretaker(${i})">✕</button></div>`).join('')||'<p style="font-size:0.8rem;color:#999;">No caretakers added.</p>';
+        el.innerHTML=cts.map((c,i)=>`<div class="caretaker-row"><div class="caretaker-avatar">${c.icon||'👤'}</div><div style="flex:1"><strong style="font-size:0.85rem">${c.name}</strong><br><small>📱 ${c.phone}</small><br><label style="font-size:0.7rem;color:#666;display:flex;align-items:center;gap:4px;margin-top:3px;"><input type="checkbox" ${c.enabled!==false?'checked':''} onchange="toggleCaretaker(${i},this.checked)" style="width:auto;margin:0;accent-color:#4CAF50"> Alerts ON</label></div><button class="btn-sm btn-edit" onclick="editCaretaker(${i})">✏️</button><button class="btn-sm btn-del" onclick="removeCaretaker(${i})">✕</button></div>`).join('')||'<p style="font-size:0.8rem;color:#999;">No caretakers added.</p>';
+    }
+    function toggleCaretaker(i,enabled){
+        const cts=getCaretakers();cts[i].enabled=enabled;saveCaretakers(cts);
     }
     function addCaretaker(){
         const name=prompt('Caretaker name:');if(!name)return;
@@ -1558,12 +1561,13 @@
         sendCaretakerMessages(cts,`🧪 TEST: This is a test caretaker alert from Medicine Reminder app. If you received this, alerts are working! ✅`);
     }
     function sendCaretakerMessages(cts,msg){
+        const enabled=cts.filter(c=>c.enabled!==false&&c.phone);
+        if(!enabled.length)return;
         let i=0;
         function next(){
-            if(i>=cts.length)return;
-            const c=cts[i];i++;
-            if(c.phone)window.open(`https://wa.me/${c.phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(msg)}`);
-            if(i<cts.length)setTimeout(next,1500);
+            if(i>=enabled.length)return;
+            window.open(`https://wa.me/${enabled[i].phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(msg)}`);
+            i++;if(i<enabled.length)setTimeout(next,1500);
         }
         next();
     }
