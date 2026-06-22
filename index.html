@@ -229,6 +229,11 @@
             <div id="appointment-list"></div>
             <button class="btn" onclick="addAppointment()" style="background:#2196F3;">+ Add Appointment</button>
         </div>
+        <div class="card">
+            <h2>📋 Prescriptions</h2>
+            <div id="prescription-list"></div>
+            <button class="btn" onclick="addPrescription()">+ Add Prescription</button>
+        </div>
     </div>
 
     <!-- STOCK -->
@@ -263,7 +268,8 @@
         <div class="card">
             <h2>💬 Caretaker Alerts</h2>
             <p style="font-size:0.8rem;color:#666;margin-bottom:8px;">Auto-WhatsApp if dose missed by 30 min</p>
-            <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#f9f9f9;border-radius:8px;margin-bottom:10px;"><input type="checkbox" id="caretaker-enabled" onchange="localStorage.setItem('caretaker_enabled',this.checked);markUpdated()" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">Enable caretaker alerts</span></label>
+            <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#f9f9f9;border-radius:8px;margin-bottom:10px;"><input type="checkbox" id="caretaker-enabled" onchange="localStorage.setItem('caretaker_enabled',this.checked);markUpdated()" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">Enable missed-dose alerts</span></label>
+            <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#e8f5e9;border-radius:8px;margin-bottom:10px;"><input type="checkbox" id="notify-on-take" onchange="localStorage.setItem('notify_on_take',this.checked);markUpdated()" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">📤 WhatsApp when I take medicine</span></label>
             <div id="caretaker-list"></div>
             <button class="btn" onclick="addCaretaker()">+ Add Caretaker</button>
             <button class="btn" style="background:#FF9800;margin-top:8px;" onclick="testCaretakerAlert()">🧪 Test Alert (send now)</button>
@@ -534,7 +540,7 @@
         if(name==='home')renderToday();
         if(name==='meds')renderMedsList();
         if(name==='cal')renderCalendar();
-        if(name==='health'){renderBPHistory();renderAppointments()}
+        if(name==='health'){renderBPHistory();renderAppointments();renderPrescriptions()}
         if(name==='stock'){renderStock();renderOrderPlan()}
         if(name==='settings'){updateNotifUI();updateLastSync();renderHistory();renderDoctors();renderCaretakers();loadReorderSettings()}
         if(name==='add'){const editId=document.getElementById('edit-id').value;if(!editId)resetForm()}
@@ -1132,6 +1138,72 @@
         }).join('');
     }
 
+    // === PRESCRIPTIONS ===
+    function getPrescriptions(){return JSON.parse(localStorage.getItem('med_prescriptions')||'[]')}
+    function savePrescriptions(p){localStorage.setItem('med_prescriptions',JSON.stringify(p));markUpdated()}
+    function addPrescription(){
+        const date=prompt('Prescription date (YYYY-MM-DD):',today());if(!date)return;
+        const doctor=prompt('Doctor name:');if(!doctor)return;
+        const note=prompt('Notes (optional):')||'';
+        const id=Date.now().toString(36);
+        const rx=getPrescriptions();rx.unshift({id,date,doctor,note,photos:[]});savePrescriptions(rx);
+        uploadPrescriptionPhotos(id);
+    }
+    function uploadPrescriptionPhotos(id){
+        const input=document.createElement('input');input.type='file';input.accept='image/*';input.multiple=true;
+        input.onchange=function(){
+            const files=Array.from(input.files).slice(0,2);
+            let loaded=0;const photos=[];
+            files.forEach(f=>{
+                const reader=new FileReader();
+                reader.onload=function(e){
+                    compressPhoto(e.target.result,function(data){
+                        photos.push(data);loaded++;
+                        if(loaded===files.length){
+                            const rx=getPrescriptions();const idx=rx.findIndex(r=>r.id===id);
+                            if(idx>=0){rx[idx].photos=photos;savePrescriptions(rx)}
+                            renderPrescriptions();
+                        }
+                    });
+                };reader.readAsDataURL(f);
+            });
+            if(!files.length)renderPrescriptions();
+        };input.click();
+    }
+    function compressPhoto(src,cb){
+        const img=new Image();img.onload=function(){
+            const max=800;let w=img.width,h=img.height;
+            if(w>max){h=h*(max/w);w=max}if(h>max){w=w*(max/h);h=max}
+            const c=document.createElement('canvas');c.width=w;c.height=h;
+            c.getContext('2d').drawImage(img,0,0,w,h);
+            cb(c.toDataURL('image/jpeg',0.5));
+        };img.src=src;
+    }
+    function renderPrescriptions(){
+        const rx=getPrescriptions();const el=document.getElementById('prescription-list');
+        if(!rx.length){el.innerHTML='<p style="font-size:0.8rem;color:#999;">No prescriptions yet.</p>';return}
+        el.innerHTML=rx.slice(0,5).map(r=>{
+            const d=new Date(r.date+'T00:00');
+            const dateStr=d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+            const thumbs=r.photos.map((p,i)=>`<img src="${p}" style="width:50px;height:50px;border-radius:6px;object-fit:cover;cursor:pointer;border:1px solid #ddd;" onclick="viewPrescriptionPhoto('${r.id}',${i})">`).join(' ');
+            return`<div style="padding:10px;background:#f9f9f9;border-radius:8px;margin-bottom:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div><strong>📋 ${dateStr}</strong><br><small>👨‍⚕️ ${r.doctor}</small>${r.note?'<br><small style="color:#666">📝 '+r.note+'</small>':''}</div>
+                    <div><button class="btn-sm" style="background:#2196F3" onclick="uploadPrescriptionPhotos('${r.id}')">📷</button><button class="btn-sm btn-del" onclick="removePrescription('${r.id}')">✕</button></div>
+                </div>
+                ${thumbs?'<div style="margin-top:8px;display:flex;gap:6px;">'+thumbs+'</div>':'<small style="color:#999">No photos yet</small>'}
+            </div>`;
+        }).join('');
+    }
+    function viewPrescriptionPhoto(id,idx){
+        const rx=getPrescriptions().find(r=>r.id===id);if(!rx||!rx.photos[idx])return;
+        const modal=document.createElement('div');modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+        modal.onclick=function(){modal.remove()};
+        modal.innerHTML=`<img src="${rx.photos[idx]}" style="max-width:100%;max-height:90vh;border-radius:8px;"><button style="position:absolute;top:16px;right:16px;background:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:1.2rem;cursor:pointer;">✕</button>`;
+        document.body.appendChild(modal);
+    }
+    function removePrescription(id){if(!confirm('Delete this prescription?'))return;savePrescriptions(getPrescriptions().filter(r=>r.id!==id));renderPrescriptions()}
+
     // === SNOOZE ===
     function getSnoozed(){return JSON.parse(localStorage.getItem('snoozed')||'{}')}
     function snoozeDose(medName,timing,btn){
@@ -1218,6 +1290,14 @@
         if(action==='taken'){
             const meds=getMedicines();const idx=meds.findIndex(m=>m.id===medId);
             if(idx>=0&&meds[idx].stock>0){meds[idx].stock--;meds[idx].loose=(meds[idx].stock)%(meds[idx].perStrip||10);meds[idx].strips=Math.floor(meds[idx].stock/(meds[idx].perStrip||10));saveMedicines(meds)}
+            // Notify caretaker on take
+            if(localStorage.getItem('notify_on_take')==='true'){
+                const med=getMedicines().find(m=>m.id===medId);
+                const timeStr=new Date(takenTime).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+                const msg=`✅ ${med?med.name:'Medicine'} (${timing}) taken at ${timeStr}`;
+                const cts=getCaretakers().filter(c=>c.enabled!==false&&c.phone);
+                if(cts.length)window.open(`https://wa.me/${cts[0].phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(msg)}`);
+            }
         }
         renderToday();
     }
@@ -1412,7 +1492,7 @@
 
     // === BACKUP / RESTORE ===
     function backupWhatsApp(){
-        const data={medicines:getMedicines(),logs:getLogs(),doctors:getDoctors(),caretakers:getCaretakers(),backup_date:new Date().toISOString()};
+        const data={medicines:getMedicines(),logs:getLogs(),doctors:getDoctors(),caretakers:getCaretakers(),prescriptions:getPrescriptions(),backup_date:new Date().toISOString()};
         const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
         const url=URL.createObjectURL(blob);
         const a=document.createElement('a');a.href=url;a.download='medicine-reminder-backup.json';a.click();
@@ -1428,6 +1508,7 @@
                 if(data.logs)localStorage.setItem('med_logs2',JSON.stringify(data.logs));
                 if(data.doctors)localStorage.setItem('med_doctors',JSON.stringify(data.doctors));
                 if(data.caretakers)localStorage.setItem('med_caretakers',JSON.stringify(data.caretakers));
+                if(data.prescriptions)localStorage.setItem('med_prescriptions',JSON.stringify(data.prescriptions));
                 markUpdated();alert('✅ Restored! '+data.medicines.length+' medicines loaded.');
                 renderToday();
             }catch(err){alert('❌ Invalid backup file')}
@@ -1463,6 +1544,7 @@
     function renderCaretakers(){
         const cts=getCaretakers();const el=document.getElementById('caretaker-list');
         document.getElementById('caretaker-enabled').checked=localStorage.getItem('caretaker_enabled')==='true';
+        document.getElementById('notify-on-take').checked=localStorage.getItem('notify_on_take')==='true';
         el.innerHTML=cts.map((c,i)=>`<div class="caretaker-row"><div class="caretaker-avatar">${c.icon||'👤'}</div><div style="flex:1"><strong style="font-size:0.85rem">${c.name}</strong><br><small>📱 ${c.phone}</small><br><label style="font-size:0.7rem;color:#666;display:flex;align-items:center;gap:4px;margin-top:3px;"><input type="checkbox" ${c.enabled!==false?'checked':''} onchange="toggleCaretaker(${i},this.checked)" style="width:auto;margin:0;accent-color:#4CAF50"> Alerts ON</label></div><button class="btn-sm btn-edit" onclick="editCaretaker(${i})">✏️</button><button class="btn-sm btn-del" onclick="removeCaretaker(${i})">✕</button></div>`).join('')||'<p style="font-size:0.8rem;color:#999;">No caretakers added.</p>';
     }
     function toggleCaretaker(i,enabled){
@@ -1625,7 +1707,7 @@
     async function syncNow(){
         if(!accessToken)return;setSyncStatus('⏳ Syncing...');
         try{
-            const local={medicines:getMedicines(),logs:getLogs(),doctors:getDoctors(),caretakers:getCaretakers(),bpLogs:getBPLogs(),appointments:getAppointments(),snoozed:getSnoozed(),notifSettings:getNotifSettings(),updatedAt:parseInt(localStorage.getItem('data_updated')||'0')};
+            const local={medicines:getMedicines(),logs:getLogs(),doctors:getDoctors(),caretakers:getCaretakers(),bpLogs:getBPLogs(),appointments:getAppointments(),prescriptions:getPrescriptions(),snoozed:getSnoozed(),notifSettings:getNotifSettings(),updatedAt:parseInt(localStorage.getItem('data_updated')||'0')};
             const file=await findSyncFile();
             if(file){
                 const remote=await downloadSyncFile(file.id);
@@ -1636,6 +1718,7 @@
                     if(remote.caretakers)localStorage.setItem('med_caretakers',JSON.stringify(remote.caretakers));
                     if(remote.bpLogs)localStorage.setItem('bp_logs',JSON.stringify(remote.bpLogs));
                     if(remote.appointments)localStorage.setItem('med_appointments',JSON.stringify(remote.appointments));
+                    if(remote.prescriptions)localStorage.setItem('med_prescriptions',JSON.stringify(remote.prescriptions));
                     if(remote.snoozed)localStorage.setItem('snoozed',JSON.stringify(remote.snoozed));
                     localStorage.setItem('data_updated',String(remote.updatedAt));
                     renderToday();setSyncStatus('✅ Downloaded • '+new Date().toLocaleTimeString());
@@ -1646,7 +1729,7 @@
     async function pullFromDrive(){
         if(!accessToken)return;
         try{const file=await findSyncFile();if(file){const remote=await downloadSyncFile(file.id);const localTs=parseInt(localStorage.getItem('data_updated')||'0');
-        if(remote.updatedAt>localTs){localStorage.setItem('medicines2',JSON.stringify(remote.medicines||[]));localStorage.setItem('med_logs2',JSON.stringify(remote.logs||[]));if(remote.doctors)localStorage.setItem('med_doctors',JSON.stringify(remote.doctors));if(remote.caretakers)localStorage.setItem('med_caretakers',JSON.stringify(remote.caretakers));if(remote.bpLogs)localStorage.setItem('bp_logs',JSON.stringify(remote.bpLogs));if(remote.appointments)localStorage.setItem('med_appointments',JSON.stringify(remote.appointments));if(remote.snoozed)localStorage.setItem('snoozed',JSON.stringify(remote.snoozed));localStorage.setItem('data_updated',String(remote.updatedAt));renderToday()}}}catch(e){}
+        if(remote.updatedAt>localTs){localStorage.setItem('medicines2',JSON.stringify(remote.medicines||[]));localStorage.setItem('med_logs2',JSON.stringify(remote.logs||[]));if(remote.doctors)localStorage.setItem('med_doctors',JSON.stringify(remote.doctors));if(remote.caretakers)localStorage.setItem('med_caretakers',JSON.stringify(remote.caretakers));if(remote.bpLogs)localStorage.setItem('bp_logs',JSON.stringify(remote.bpLogs));if(remote.appointments)localStorage.setItem('med_appointments',JSON.stringify(remote.appointments));if(remote.prescriptions)localStorage.setItem('med_prescriptions',JSON.stringify(remote.prescriptions));if(remote.snoozed)localStorage.setItem('snoozed',JSON.stringify(remote.snoozed));localStorage.setItem('data_updated',String(remote.updatedAt));renderToday()}}}catch(e){}
     }
     window.addEventListener('load',()=>{if(window.google)initGIS();setTimeout(pullFromDrive,2000)});
     // === PWA INSTALL ===
