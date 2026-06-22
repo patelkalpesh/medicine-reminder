@@ -1550,12 +1550,22 @@
     function sendCaretakerAlert(med,timing){
         if(localStorage.getItem('caretaker_enabled')!=='true')return;
         const cts=getCaretakers();
-        cts.forEach(c=>{if(c.phone)window.open(`https://wa.me/${c.phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(`⚠️ Missed dose alert: ${med.name} (${timing}) was not taken by ${c.name}'s care recipient.`)}`)});
+        sendCaretakerMessages(cts,`⚠️ Missed dose alert: ${med.name} (${timing}) was not taken. Please check.`);
     }
     function testCaretakerAlert(){
         const cts=getCaretakers();
         if(!cts.length){alert('Add a caretaker first!');return}
-        cts.forEach(c=>{if(c.phone)window.open(`https://wa.me/${c.phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(`🧪 TEST: This is a test caretaker alert from Medicine Reminder app. If you received this, alerts are working! ✅`)}`)});
+        sendCaretakerMessages(cts,`🧪 TEST: This is a test caretaker alert from Medicine Reminder app. If you received this, alerts are working! ✅`);
+    }
+    function sendCaretakerMessages(cts,msg){
+        let i=0;
+        function next(){
+            if(i>=cts.length)return;
+            const c=cts[i];i++;
+            if(c.phone)window.open(`https://wa.me/${c.phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(msg)}`);
+            if(i<cts.length)setTimeout(next,1500);
+        }
+        next();
     }
     setInterval(checkReminders,60000);setTimeout(checkReminders,3000);
     setInterval(checkAppointmentReminders,3600000);setTimeout(checkAppointmentReminders,10000);
