@@ -1,5 +1,5 @@
 {
-  "version": "4.3",
-  "deployed": "23 Jun 2026, 09:30:00 PM IST",
-  "features": "Overdue dose red button, Google sync fix, multi-email caretakers, notification reliability, price display, cost formatting"
+  "version": "4.4",
+  "deployed": "23 Jun 2026, 09:55:00 PM IST",
+  "features": "EmailJS silent emails, full Hindi/Gujarati translation, better snooze, no time prompt, login widget, monthly cost breakdown, notification reliability"
 }

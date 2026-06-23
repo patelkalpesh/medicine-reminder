@@ -96,6 +96,7 @@
 <body>
     <!-- LOGIN SCREEN -->
     <div id="login-screen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:90vh;padding:20px;">
+        <div id="login-next-dose" style="width:100%;max-width:300px;margin-bottom:16px;"></div>
         <div style="text-align:center;margin-bottom:30px;">
             <div style="font-size:3rem;margin-bottom:10px;">💊</div>
             <h1 style="color:#4CAF50;margin:0;font-size:1.6rem;">Medicine Reminder</h1>
@@ -272,7 +273,16 @@
             <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#f9f9f9;border-radius:8px;margin-bottom:10px;"><input type="checkbox" id="caretaker-enabled" onchange="localStorage.setItem('caretaker_enabled',this.checked);markUpdated()" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">Enable missed-dose alerts</span></label>
             <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#e8f5e9;border-radius:8px;margin-bottom:10px;"><input type="checkbox" id="notify-on-take" onchange="localStorage.setItem('notify_on_take',this.checked);markUpdated()" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">📤 WhatsApp when I take medicine</span></label>
             <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#e3f2fd;border-radius:8px;margin-bottom:10px;"><input type="checkbox" id="email-on-take" onchange="localStorage.setItem('email_on_take',this.checked);markUpdated()" style="width:auto;margin:0;accent-color:#2196F3"> <span style="font-size:0.85rem;">📧 Email when I take medicine</span></label>
-            <div id="email-on-take-addr" style="display:none;margin-bottom:10px;"><input type="text" id="take-email-addr" placeholder="Emails (comma separated, e.g. a@b.com, c@d.com)" onchange="localStorage.setItem('take_email_to',this.value);markUpdated()" style="margin:0;padding:8px;font-size:0.85rem;"></div>
+            <div id="email-on-take-addr" style="display:none;margin-bottom:10px;">
+                <input type="text" id="take-email-addr" placeholder="Emails (comma separated, e.g. a@b.com, c@d.com)" onchange="localStorage.setItem('take_email_to',this.value);markUpdated()" style="margin:0;padding:8px;font-size:0.85rem;">
+                <details style="margin-top:6px;font-size:0.75rem;color:#666;"><summary style="cursor:pointer;color:#2196F3;">⚙️ EmailJS Setup (one-time)</summary>
+                <p style="margin:6px 0 4px;">Sign up free at <a href="https://emailjs.com" target="_blank">emailjs.com</a> → get these 3 values:</p>
+                <input type="text" id="emailjs-service" placeholder="Service ID (e.g. service_xxx)" onchange="localStorage.setItem('emailjs_service_id',this.value)" style="margin:4px 0;padding:6px;font-size:0.8rem;">
+                <input type="text" id="emailjs-template" placeholder="Template ID (e.g. template_xxx)" onchange="localStorage.setItem('emailjs_template_id',this.value)" style="margin:4px 0;padding:6px;font-size:0.8rem;">
+                <input type="text" id="emailjs-pubkey" placeholder="Public Key (e.g. abc123xyz)" onchange="localStorage.setItem('emailjs_public_key',this.value)" style="margin:4px 0;padding:6px;font-size:0.8rem;">
+                <p style="margin:4px 0;color:#999;">Template vars: {{to_email}}, {{medicine_name}}, {{timing}}, {{time_taken}}, {{date}}</p>
+                </details>
+            </div>
             <div id="caretaker-list"></div>
             <button class="btn" onclick="addCaretaker()">+ Add Caretaker</button>
             <button class="btn" style="background:#FF9800;margin-top:8px;" onclick="testCaretakerAlert()">🧪 Test Alert (send now)</button>
@@ -414,7 +424,7 @@
             </div>
         </div>
         <div class="card" style="text-align:center;">
-            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v4.3</p>
+            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v4.4</p>
             <p style="font-size:0.7rem;color:#bbb;">Deployed: 21 Jun 2026, 05:35:00 PM IST</p>
             <p style="font-size:0.7rem;color:#888;margin-top:8px;">Made by <strong>Kalpesh Patel</strong></p>
             <p style="font-size:0.7rem;margin-top:4px;"><a href="tel:+917405856226" style="color:#4CAF50;text-decoration:none;">📞 +91 74058 56226</a> • <a href="https://wa.me/917405856226" style="color:#25D366;text-decoration:none;">💬 WhatsApp</a></p>
@@ -439,11 +449,36 @@
     const FIXED_EMAIL='kal.shooter007@gmail.com';
     function initLogin(){
         document.getElementById('login-email').textContent=FIXED_EMAIL;
+        renderLoginNextDose();
         // Skip PIN if already unlocked this session
         if(sessionStorage.getItem('unlocked')==='1'){unlockApp();return}
         const savedPin=localStorage.getItem('app_pin');
         if(!savedPin){document.getElementById('pin-title').textContent='Set New PIN';document.getElementById('pin-title').dataset.mode='setup'}
         else{document.getElementById('pin-title').textContent='Enter PIN'}
+    }
+    function renderLoginNextDose(){
+        const el=document.getElementById('login-next-dose');
+        try{
+            const meds=JSON.parse(localStorage.getItem('medicines2')||'[]').filter(m=>m.freq!=='sos'&&!m.paused);
+            const logs=(JSON.parse(localStorage.getItem('med_logs2')||'[]')).filter(l=>l.date===new Date().toISOString().split('T')[0]);
+            const now=new Date();const nowMin=now.getHours()*60+now.getMinutes();
+            let next=null,minDiff=Infinity;
+            meds.forEach(m=>{if(!m.times)return;m.timings.forEach((timing,i)=>{
+                if(logs.find(l=>l.medId===m.id&&l.timing===timing))return;
+                const[h,min]=m.times[i].split(':').map(Number);const diff=(h*60+min)-nowMin;
+                if(diff>-60&&diff<minDiff){minDiff=diff;next={name:m.name,dosage:m.dosage,timing,time:m.times[i],icon:m.icon||'💊',diff}}
+            })});
+            if(!next){el.innerHTML='';return}
+            const late=next.diff<0;
+            const absDiff=Math.abs(next.diff);
+            const timeText=late?absDiff+' min overdue!':(absDiff>=60?Math.floor(absDiff/60)+'h '+absDiff%60+'m':absDiff+' min');
+            const bg=late?'linear-gradient(135deg,#e53935,#c62828)':'linear-gradient(135deg,#4CAF50,#2E7D32)';
+            el.innerHTML=`<div style="background:${bg};color:#fff;border-radius:12px;padding:12px;text-align:center;box-shadow:0 3px 10px rgba(0,0,0,0.2);">
+                <div style="font-size:0.7rem;opacity:0.85;">${late?'⚠️ OVERDUE':'⏭️ NEXT DOSE'}</div>
+                <div style="font-size:1.1rem;font-weight:bold;margin:4px 0;">${next.icon} ${next.name}</div>
+                <div style="font-size:0.8rem;opacity:0.9;">${next.dosage} • ${next.timing} • ${timeText}</div>
+            </div>`;
+        }catch(e){el.innerHTML=''}
     }
     function pinInput(num){
         if(!num&&num!=='0')return;
@@ -492,21 +527,22 @@
     function installFromBanner(){
         dismissInstallBanner();
         if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>{deferredPrompt=null});return}
-        const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
-        if(isIOS){alert('📲 To install:\n\n1. Tap Share button (⬆️) at bottom\n2. Tap "Add to Home Screen"\n3. Tap Add ✅')}
-        else{alert('📲 Tap your browser menu (⋮) → "Install app" or "Add to Home Screen"')}
+        const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);const L=LANG[currentLang]||LANG.en;
+        if(isIOS){alert(L.installIOS)}
+        else{alert(L.installAndroid)}
     }
     function dismissInstallBanner(){
         localStorage.setItem('install_banner_dismissed','1');
         const b=document.getElementById('install-banner-top');if(b)b.remove();
     }
     function changePin(){
-        const current=prompt('Enter current PIN:');
-        if(current!==localStorage.getItem('app_pin')){alert('❌ Wrong PIN');return}
-        const newPin=prompt('Enter new 4-digit PIN:');
-        if(!newPin||newPin.length!==4||isNaN(newPin)){alert('PIN must be 4 digits');return}
+        const L=LANG[currentLang]||LANG.en;
+        const current=prompt(L.enterCurrentPin);
+        if(current!==localStorage.getItem('app_pin')){alert(L.wrongPinAlert);return}
+        const newPin=prompt(L.enterNewPin);
+        if(!newPin||newPin.length!==4||isNaN(newPin)){alert(L.pinMust4);return}
         localStorage.setItem('app_pin',newPin);
-        alert('✅ PIN changed successfully!');
+        alert(L.pinChanged);
     }
     initLogin();
 
@@ -675,20 +711,20 @@
         const loose=parseInt(document.getElementById('med-loose').value)||0;
         const price=parseFloat(document.getElementById('med-price').value)||0;
         const stock=strips*perStrip+loose;
-        if(!name){alert('Enter medicine name');return}
+        if(!name){alert((LANG[currentLang]||LANG.en).enterMedName);return}
 
         let timings=[],times=[],sosNote='';
         if(freq==='sos'){
             sosNote=document.getElementById('med-sos-note').value.trim();
-            if(!sosNote){alert('Enter when to take this SOS medicine');return}
+            if(!sosNote){alert((LANG[currentLang]||LANG.en).sosInstructions);return}
         }else{
             const f=parseInt(freq);
             for(let i=0;i<f;i++){
                 const sel=document.querySelector(`.timing-chip[data-dose="${i}"].selected`);
-                if(!sel){alert(`Select timing for dose ${i+1}`);return}
+                if(!sel){alert((LANG[currentLang]||LANG.en).selectTiming+' '+(i+1));return}
                 timings.push(sel.dataset.timing);
                 const tv=document.getElementById('dose-time-'+i).value;
-                if(!tv){alert(`Set time for dose ${i+1}`);return}
+                if(!tv){alert((LANG[currentLang]||LANG.en).setTime+' '+(i+1));return}
                 times.push(tv);
             }
         }
@@ -766,7 +802,7 @@
     function renderToday(){
         const meds=getMedicines();const logs=getTodayStatus();
         const el=document.getElementById('today-schedule');const sum=document.getElementById('summary');
-        if(!meds.length){el.innerHTML='<div class="empty">No medicines added yet.</div>';sum.innerHTML='';document.getElementById('adherence-box').innerHTML='';document.getElementById('refill-alerts').innerHTML='';return}
+        if(!meds.length){el.innerHTML='<div class="empty">'+(LANG[currentLang]||LANG.en).noMeds+'</div>';sum.innerHTML='';document.getElementById('adherence-box').innerHTML='';document.getElementById('refill-alerts').innerHTML='';return}
         const regularMeds=meds.filter(m=>m.freq!=='sos'&&!m.paused);
         const sosMeds=meds.filter(m=>m.freq==='sos'&&!m.paused);
         let allDoses=[];
@@ -810,7 +846,7 @@
             }
             html+='</div>';
         });
-        el.innerHTML=html||'<div class="empty">All done for today! 🎉</div>';
+        el.innerHTML=html||'<div class="empty">'+(LANG[currentLang]||LANG.en).allDone+'</div>';
         // SOS section
         if(sosMeds.length){
             let sosHtml='<div class="slot-group"><h3 style="color:#e53935">🆘 SOS / Emergency</h3>';
@@ -828,7 +864,7 @@
         if(idx<0)return;
         const current=new Date(logs[idx].time);
         const hh=String(current.getHours()).padStart(2,'0');const mm=String(current.getMinutes()).padStart(2,'0');
-        const timeInput=prompt('Edit time taken (HH:MM, 24hr):',hh+':'+mm);
+        const timeInput=prompt((LANG[currentLang]||LANG.en).editTime,hh+':'+mm);
         if(!timeInput||!timeInput.includes(':'))return;
         const[th,tm]=timeInput.split(':').map(Number);
         if(isNaN(th)||isNaN(tm))return;
@@ -956,9 +992,20 @@
         const costEl=document.getElementById('monthly-cost-summary');
         const activeMeds=meds.filter(m=>m.freq!=='sos'&&!m.paused&&m.price);
         if(activeMeds.length){
-            let total30=0;
-            activeMeds.forEach(m=>{const freq=parseInt(m.freq)||1;const perStrip=m.perStrip||10;total30+=Math.ceil((freq*30)/perStrip)*(m.price||0)});
-            costEl.innerHTML=`<div style="background:linear-gradient(135deg,#FF9800,#F57C00);color:#fff;padding:12px;border-radius:10px;text-align:center;"><div style="font-size:0.75rem;opacity:0.9;">💰 Monthly Medicine Cost (30 days)</div><div style="font-size:1.5rem;font-weight:bold;margin-top:4px;">₹${total30.toFixed(2)}</div></div>`;
+            let total30=0;let breakdownHtml='';
+            activeMeds.forEach(m=>{
+                const freq=parseInt(m.freq)||1;const perStrip=m.perStrip||10;
+                const tabsNeeded=freq*30;const stripsNeeded=Math.ceil(tabsNeeded/perStrip);
+                const cost=stripsNeeded*(m.price||0);total30+=cost;
+                breakdownHtml+=`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.2);font-size:0.75rem;">
+                    <span>${m.icon||'💊'} ${m.name}</span>
+                    <span>${stripsNeeded} strips (${tabsNeeded} tabs) = ₹${cost.toFixed(2)}</span></div>`;
+            });
+            costEl.innerHTML=`<div onclick="this.querySelector('.cost-detail').style.display=this.querySelector('.cost-detail').style.display==='none'?'block':'none'" style="background:linear-gradient(135deg,#FF9800,#F57C00);color:#fff;padding:12px;border-radius:10px;text-align:center;cursor:pointer;">
+                <div style="font-size:0.75rem;opacity:0.9;">${(LANG[currentLang]||LANG.en).monthlyCost} ▼</div>
+                <div style="font-size:1.5rem;font-weight:bold;margin-top:4px;">₹${total30.toFixed(2)}</div>
+                <div class="cost-detail" style="display:none;margin-top:10px;text-align:left;border-top:1px solid rgba(255,255,255,0.3);padding-top:8px;">${breakdownHtml}</div>
+            </div>`;
         }else{costEl.innerHTML=''}
         renderStockTimeline();
     }
@@ -1042,7 +1089,7 @@
         el.innerHTML=html;
     }
     function buyStock(id){
-        const strips=parseInt(prompt('How many strips bought?'));if(!strips||strips<=0)return;
+        const strips=parseInt(prompt((LANG[currentLang]||LANG.en).howManyStrips));if(!strips||strips<=0)return;
         const meds=getMedicines();const idx=meds.findIndex(m=>m.id===id);if(idx<0)return;
         const perStrip=meds[idx].perStrip||10;
         meds[idx].stock=(meds[idx].stock||0)+strips*perStrip;
@@ -1084,7 +1131,7 @@
         const upper=parseInt(document.getElementById('bp-upper').value);
         const lower=parseInt(document.getElementById('bp-lower').value);
         const hr=parseInt(document.getElementById('bp-hr').value);
-        if(!upper||!lower){alert('Enter upper and lower BP');return}
+        if(!upper||!lower){alert((LANG[currentLang]||LANG.en).enterBP);return}
         const logs=getBPLogs();
         logs.unshift({upper,lower,hr:hr||0,date:today(),time:new Date().toISOString()});
         saveBPLogs(logs);
@@ -1092,7 +1139,7 @@
         document.getElementById('bp-lower').value='';
         document.getElementById('bp-hr').value='';
         renderBPHistory();
-        alert('✅ BP logged: '+upper+'/'+lower+(hr?' HR:'+hr:''));
+        alert((LANG[currentLang]||LANG.en).bpLogged+': '+upper+'/'+lower+(hr?' HR:'+hr:''));
     }
     function renderBPHistory(){
         const logs=getBPLogs();const el=document.getElementById('bp-history');
@@ -1113,10 +1160,11 @@
     function getAppointments(){return JSON.parse(localStorage.getItem('med_appointments')||'[]')}
     function saveAppointments(a){localStorage.setItem('med_appointments',JSON.stringify(a));markUpdated()}
     function addAppointment(){
-        const doctor=prompt('Doctor name:');if(!doctor)return;
-        const date=prompt('Date (YYYY-MM-DD e.g. 2026-07-01)\nLeave blank if no date yet:')||'';
-        const time=prompt('Time (HH:MM e.g. 10:30)\nLeave blank if no time:')||'';
-        const note=prompt('Reason/Note:')||'';
+        const L=LANG[currentLang]||LANG.en;
+        const doctor=prompt(L.doctorName);if(!doctor)return;
+        const date=prompt(L.apptDate)||'';
+        const time=prompt(L.apptTime)||'';
+        const note=prompt(L.apptNote)||'';
         const appts=getAppointments();
         appts.push({id:Date.now().toString(),doctor,date,time,note});
         if(date)appts.sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'));
@@ -1158,9 +1206,10 @@
     function getPrescriptions(){return JSON.parse(localStorage.getItem('med_prescriptions')||'[]')}
     function savePrescriptions(p){localStorage.setItem('med_prescriptions',JSON.stringify(p));markUpdated()}
     function addPrescription(){
-        const date=prompt('Prescription date (YYYY-MM-DD):',today());if(!date)return;
-        const doctor=prompt('Doctor name:');if(!doctor)return;
-        const note=prompt('Notes (optional):')||'';
+        const L=LANG[currentLang]||LANG.en;
+        const date=prompt(L.presDate,today());if(!date)return;
+        const doctor=prompt(L.presDoctor);if(!doctor)return;
+        const note=prompt(L.presNotes)||'';
         const id=Date.now().toString(36);
         const rx=getPrescriptions();rx.unshift({id,date,doctor,note,photos:[]});savePrescriptions(rx);
         uploadPrescriptionPhotos(id);
@@ -1223,7 +1272,7 @@
     // === SNOOZE ===
     function getSnoozed(){return JSON.parse(localStorage.getItem('snoozed')||'{}')}
     function snoozeDose(medName,timing,btn){
-        const mins=prompt('Snooze for how many minutes?\n\nEnter: 10 or 30','10');
+        const mins=prompt((LANG[currentLang]||LANG.en).snoozeMin,'10');
         if(!mins)return;
         const m=parseInt(mins);if(!m||m<1)return;
         const key=medName+'_'+timing;
@@ -1241,9 +1290,9 @@
             if(left<=0){
                 clearInterval(iv);btn.disabled=false;btn.style.background='#FF9800';btn.textContent='⏰ Snooze';
                 delete snoozed[key];localStorage.setItem('snoozed',JSON.stringify(snoozed));
-                if('Notification' in window&&Notification.permission==='granted'){new Notification('⏰ '+medName,{body:timing+' — Take now!',icon:'icon-192.png'});playAlertSound()}
+                if('Notification' in window&&Notification.permission==='granted'){new Notification('⏰ Snooze done: '+medName,{body:timing+' — Take now! 💊',icon:'icon-192.png',tag:'snooze_'+key,requireInteraction:true});playAlertSound()}
             }else{btn.textContent='⏰ '+left+'m'}
-        },10000);
+        },5000);
     }
     // Resume active snoozes on render
     function resumeSnoozes(){
@@ -1259,7 +1308,7 @@
 
     // === MONTHLY PDF EMAIL ===
     function monthlyPDFEmail(){
-        const email=prompt('Email address to send monthly report:',localStorage.getItem('report_email')||'kal.shooter007@gmail.com');
+        const email=prompt((LANG[currentLang]||LANG.en).monthlyEmailPrompt,localStorage.getItem('report_email')||'kal.shooter007@gmail.com');
         if(!email)return;
         localStorage.setItem('report_email',email);
         generateMonthlyReport(email);
@@ -1291,17 +1340,8 @@
     // === NOTES PER DOSE ===
     function logDoseWithNote(medId,timing,action){
         const now=new Date();
-        const hh=String(now.getHours()).padStart(2,'0');const mm=String(now.getMinutes()).padStart(2,'0');
         let takenTime=now.toISOString();
-        if(action==='taken'){
-            const timeInput=prompt('Time taken (HH:MM, 24hr format):\n\nDefault = now. Edit if you took it earlier.',hh+':'+mm);
-            if(timeInput===null)return; // cancelled
-            if(timeInput&&timeInput.includes(':')){
-                const[th,tm]=timeInput.split(':').map(Number);
-                if(!isNaN(th)&&!isNaN(tm)){const d=new Date();d.setHours(th,tm,0,0);takenTime=d.toISOString()}
-            }
-        }
-        const note=action==='taken'?prompt('Any note? (e.g. felt dizzy, BP 140/90) — leave blank to skip')||'':'';
+        const note='';
         const logs=getLogs();logs.push({medId,timing,action,date:today(),time:takenTime,note});saveLogs(logs);
         if(action==='taken'){
             const meds=getMedicines();const idx=meds.findIndex(m=>m.id===medId);
@@ -1314,12 +1354,21 @@
                 const cts=getCaretakers().filter(c=>c.enabled!==false&&c.phone);
                 if(cts.length)window.open(`https://wa.me/${cts[0].phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(msg)}`);
             }
-            // Email on take
+            // Email on take (silent via EmailJS)
             if(localStorage.getItem('email_on_take')==='true'){
                 const med=getMedicines().find(m=>m.id===medId);
                 const timeStr=new Date(takenTime).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
                 const toEmails=localStorage.getItem('take_email_to')||'';
-                if(toEmails){const subj=`💊 ${med?med.name:'Medicine'} taken`;const body=`${med?med.name:'Medicine'} (${timing}) was taken at ${timeStr} on ${today()}`;window.open(`mailto:${toEmails.split(',').map(e=>e.trim()).join(',')}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`)}
+                if(toEmails&&window.emailjs){
+                    const pubKey=localStorage.getItem('emailjs_public_key')||'';
+                    const svcId=localStorage.getItem('emailjs_service_id')||'';
+                    const tplId=localStorage.getItem('emailjs_template_id')||'';
+                    if(pubKey&&svcId&&tplId){
+                        toEmails.split(',').map(e=>e.trim()).filter(Boolean).forEach(email=>{
+                            emailjs.send(svcId,tplId,{to_email:email,medicine_name:med?med.name:'Medicine',timing:timing,time_taken:timeStr,date:today()},{publicKey:pubKey}).catch(()=>{});
+                        });
+                    }
+                }
             }
         }
         renderToday();
@@ -1376,7 +1425,23 @@
             shareWA:'📱 Share via WhatsApp',copyLink:'📋 Copy Link',about:'✨ About This App',
             enterPin:'Enter PIN',setPin:'Set New PIN',wrongPin:'Wrong PIN. Try again.',
             doctors:'🏥 Doctor / Pharmacy',caretakers:'💬 Caretaker Alerts',
-            daysLeft:'days left',balance:'balance',consumed:'consumed',total:'Total',taken:'Taken',pending:'Pending',skipped:'Skipped'},
+            daysLeft:'days left',balance:'balance',consumed:'consumed',total:'Total',taken:'Taken',pending:'Pending',skipped:'Skipped',
+            enterMedName:'Enter medicine name',selectTiming:'Select timing for dose',setTime:'Set time for dose',
+            howManyStrips:'How many strips bought?',enterBP:'Enter upper and lower BP',bpLogged:'✅ BP logged',
+            doctorName:'Doctor name:',apptDate:'Date (YYYY-MM-DD):',apptTime:'Time (HH:MM):',apptNote:'Reason/Note:',
+            presDate:'Prescription date (YYYY-MM-DD):',presDoctor:'Doctor name:',presNotes:'Notes (optional):',
+            snoozeMin:'Snooze for how many minutes?\n\nEnter: 10 or 30',
+            monthlyEmailPrompt:'Email address to send monthly report:',
+            linkCopied:'✅ Link copied!',copyThis:'Copy this link:',
+            restoreWarn:'This will replace ALL your current data. Continue?',restored:'✅ Restored!',medsLoaded:'medicines loaded.',
+            invalidBackup:'❌ Invalid backup file',enterCurrentPin:'Enter current PIN:',wrongPinAlert:'❌ Wrong PIN',
+            enterNewPin:'Enter new 4-digit PIN:',pinMust4:'PIN must be 4 digits',pinChanged:'✅ PIN changed successfully!',
+            caretakerName:'Caretaker name:',caretakerPhone:'WhatsApp number (with country code):',
+            editTime:'Edit time taken (HH:MM, 24hr):',noMeds:'No medicines added yet.',allDone:'All done for today! 🎉',
+            sosInstructions:'Enter when to take this SOS medicine',addCaretakerFirst:'Add a caretaker first!',
+            installIOS:'📲 To install:\n\n1. Tap Share button (⬆️) at bottom\n2. Tap "Add to Home Screen"\n3. Tap Add ✅',
+            installAndroid:'📲 Tap your browser menu (⋮) → "Install app" or "Add to Home Screen"',
+            remove2:'Remove?',monthlyCost:'💰 Monthly Medicine Cost (30 days)'},
         hi:{title:'💊 दवाई रिमाइंडर',today:'आज',meds:'दवाइयाँ',health:'स्वास्थ्य',stock:'स्टॉक',settings:'सेटिंग्स',
             take:'लें',snooze:'⏰ बाद में',morning:'🌅 सुबह',afternoon:'🌤️ दोपहर',evening:'🌙 शाम',
             nextDose:'⏭️ अगली खुराक',adherence:'📈 साप्ताहिक पालन',done:'हो गया',
@@ -1401,7 +1466,23 @@
             shareWA:'📱 व्हाट्सएप से शेयर',copyLink:'📋 लिंक कॉपी',about:'✨ ऐप के बारे में',
             enterPin:'PIN दर्ज करें',setPin:'नया PIN सेट करें',wrongPin:'गलत PIN। फिर से कोशिश करें।',
             doctors:'🏥 डॉक्टर / फार्मेसी',caretakers:'💬 देखभालकर्ता अलर्ट',
-            daysLeft:'दिन बाकी',balance:'शेष',consumed:'खाई',total:'कुल',taken:'ली',pending:'बाकी',skipped:'छोड़ी'},
+            daysLeft:'दिन बाकी',balance:'शेष',consumed:'खाई',total:'कुल',taken:'ली',pending:'बाकी',skipped:'छोड़ी',
+            enterMedName:'दवा का नाम दर्ज करें',selectTiming:'डोज़ के लिए समय चुनें',setTime:'डोज़ का समय सेट करें',
+            howManyStrips:'कितनी स्ट्रिप्स खरीदी?',enterBP:'ऊपरी और निचला BP दर्ज करें',bpLogged:'✅ BP लॉग हुआ',
+            doctorName:'डॉक्टर का नाम:',apptDate:'तारीख (YYYY-MM-DD):',apptTime:'समय (HH:MM):',apptNote:'कारण/नोट:',
+            presDate:'प्रिस्क्रिप्शन तारीख (YYYY-MM-DD):',presDoctor:'डॉक्टर का नाम:',presNotes:'नोट्स (वैकल्पिक):',
+            snoozeMin:'कितने मिनट बाद याद दिलाएं?\n\nदर्ज करें: 10 या 30',
+            monthlyEmailPrompt:'मासिक रिपोर्ट भेजने के लिए ईमेल:',
+            linkCopied:'✅ लिंक कॉपी हो गया!',copyThis:'यह लिंक कॉपी करें:',
+            restoreWarn:'यह आपका सारा डेटा बदल देगा। जारी रखें?',restored:'✅ रिस्टोर हो गया!',medsLoaded:'दवाइयाँ लोड हुईं।',
+            invalidBackup:'❌ गलत बैकअप फाइल',enterCurrentPin:'वर्तमान PIN दर्ज करें:',wrongPinAlert:'❌ गलत PIN',
+            enterNewPin:'नया 4-अंकों का PIN दर्ज करें:',pinMust4:'PIN 4 अंकों का होना चाहिए',pinChanged:'✅ PIN बदल गया!',
+            caretakerName:'देखभालकर्ता का नाम:',caretakerPhone:'WhatsApp नंबर (देश कोड के साथ):',
+            editTime:'समय बदलें (HH:MM, 24hr):',noMeds:'अभी कोई दवा नहीं जोड़ी।',allDone:'आज सब हो गया! 🎉',
+            sosInstructions:'यह SOS दवा कब लें, दर्ज करें',addCaretakerFirst:'पहले देखभालकर्ता जोड़ें!',
+            installIOS:'📲 इंस्टॉल करने के लिए:\n\n1. नीचे Share बटन (⬆️) दबाएं\n2. "Add to Home Screen" दबाएं\n3. Add ✅ दबाएं',
+            installAndroid:'📲 ब्राउज़र मेनू (⋮) → "ऐप इंस्टॉल करें" या "होम स्क्रीन पर जोड़ें"',
+            remove2:'हटाएं?',monthlyCost:'💰 मासिक दवा खर्च (30 दिन)'},
         gu:{title:'💊 દવા રીમાઇન્ડર',today:'આજ',meds:'દવાઓ',health:'સ્વાસ્થ્ય',stock:'સ્ટોક',settings:'સેટિંગ્સ',
             take:'લો',snooze:'⏰ પછી',morning:'🌅 સવાર',afternoon:'🌤️ બપોર',evening:'🌙 સાંજ',
             nextDose:'⏭️ આગળની ડોઝ',adherence:'📈 સાપ્તાહિક પાલન',done:'થઈ ગયું',
@@ -1426,7 +1507,23 @@
             shareWA:'📱 વોટ્સએપથી શેર',copyLink:'📋 લિંક કૉપી',about:'✨ એપ વિશે',
             enterPin:'PIN નાખો',setPin:'નવો PIN સેટ કરો',wrongPin:'ખોટો PIN. ફરી પ્રયાસ કરો.',
             doctors:'🏥 ડૉક્ટર / ફાર્મસી',caretakers:'💬 સંભાળ રાખનાર અલર્ટ',
-            daysLeft:'દિવસ બાકી',balance:'બાકી',consumed:'વપરાયેલ',total:'કુલ',taken:'લીધી',pending:'બાકી',skipped:'છોડી'}
+            daysLeft:'દિવસ બાકી',balance:'બાકી',consumed:'વપરાયેલ',total:'કુલ',taken:'લીધી',pending:'બાકી',skipped:'છોડી',
+            enterMedName:'દવાનું નામ નાખો',selectTiming:'ડોઝ માટે સમય પસંદ કરો',setTime:'ડોઝનો સમય સેટ કરો',
+            howManyStrips:'કેટલી સ્ટ્રિપ્સ ખરીદી?',enterBP:'ઉપલું અને નીચલું BP નાખો',bpLogged:'✅ BP લોગ થયું',
+            doctorName:'ડૉક્ટરનું નામ:',apptDate:'તારીખ (YYYY-MM-DD):',apptTime:'સમય (HH:MM):',apptNote:'કારણ/નોંધ:',
+            presDate:'પ્રિસ્ક્રિપ્શન તારીખ (YYYY-MM-DD):',presDoctor:'ડૉક્ટરનું નામ:',presNotes:'નોંધ (વૈકલ્પિક):',
+            snoozeMin:'કેટલી મિનિટ પછી યાદ કરાવવું?\n\nનાખો: 10 અથવા 30',
+            monthlyEmailPrompt:'માસિક રિપોર્ટ મોકલવા માટે ઈમેલ:',
+            linkCopied:'✅ લિંક કૉપી થઈ!',copyThis:'આ લિંક કૉપી કરો:',
+            restoreWarn:'આ તમારો બધો ડેટા બદલશે. ચાલુ રાખવું?',restored:'✅ રિસ્ટોર થયું!',medsLoaded:'દવાઓ લોડ થઈ.',
+            invalidBackup:'❌ ખોટી બેકઅપ ફાઈલ',enterCurrentPin:'હાલનો PIN નાખો:',wrongPinAlert:'❌ ખોટો PIN',
+            enterNewPin:'નવો 4-અંકનો PIN નાખો:',pinMust4:'PIN 4 અંકનો હોવો જોઈએ',pinChanged:'✅ PIN બદલાઈ ગયો!',
+            caretakerName:'સંભાળ રાખનારનું નામ:',caretakerPhone:'WhatsApp નંબર (દેશ કોડ સાથે):',
+            editTime:'સમય બદલો (HH:MM, 24hr):',noMeds:'હજુ કોઈ દવા ઉમેરી નથી.',allDone:'આજે બધું થઈ ગયું! 🎉',
+            sosInstructions:'આ SOS દવા ક્યારે લેવી તે નાખો',addCaretakerFirst:'પહેલાં સંભાળ રાખનાર ઉમેરો!',
+            installIOS:'📲 ઇન્સ્ટોલ કરવા:\n\n1. નીચે Share બટન (⬆️) દબાવો\n2. "Add to Home Screen" દબાવો\n3. Add ✅ દબાવો',
+            installAndroid:'📲 બ્રાઉઝર મેનુ (⋮) → "એપ ઇન્સ્ટોલ કરો" અથવા "હોમ સ્ક્રીન પર ઉમેરો"',
+            remove2:'કાઢવું?',monthlyCost:'💰 માસિક દવા ખર્ચ (30 દિવસ)'}
     };
     let currentLang='en';
     function setLanguage(lang){currentLang=lang;localStorage.setItem('app_lang',lang);applyLanguage();renderToday()}
@@ -1510,7 +1607,7 @@
         const url='https://patelkalpesh.github.io/medicine-reminder/';
         const text='💊 Medicine Reminder — Free app to track medicines, get dose reminders, sync across devices.\n\n✅ No download needed\n✅ Works on any phone\n✅ Your own PIN-protected data\n\n👉 '+url;
         if(method==='whatsapp')window.open('https://wa.me/?text='+encodeURIComponent(text));
-        else{navigator.clipboard.writeText(url).then(()=>alert('✅ Link copied!')).catch(()=>{prompt('Copy this link:',url)})}
+        else{navigator.clipboard.writeText(url).then(()=>alert((LANG[currentLang]||LANG.en).linkCopied)).catch(()=>{prompt((LANG[currentLang]||LANG.en).copyThis,url)})}
     }
 
     // === BACKUP / RESTORE ===
@@ -1522,8 +1619,8 @@
         setTimeout(()=>{window.open('https://wa.me/?text='+encodeURIComponent('💊 Medicine Reminder Backup\n📅 '+new Date().toLocaleString('en-IN')+'\n\nBackup file downloaded. Share it in this chat for safekeeping.'))},500);
     }
     function restoreBackup(input){
-        const file=input.files[0];if(!file)return;
-        if(!confirm('This will replace ALL your current data. Continue?'))return;
+        const file=input.files[0];if(!file)return;const L=LANG[currentLang]||LANG.en;
+        if(!confirm(L.restoreWarn))return;
         const reader=new FileReader();reader.onload=function(e){
             try{
                 const data=JSON.parse(e.target.result);
@@ -1532,9 +1629,9 @@
                 if(data.doctors)localStorage.setItem('med_doctors',JSON.stringify(data.doctors));
                 if(data.caretakers)localStorage.setItem('med_caretakers',JSON.stringify(data.caretakers));
                 if(data.prescriptions)localStorage.setItem('med_prescriptions',JSON.stringify(data.prescriptions));
-                markUpdated();alert('✅ Restored! '+data.medicines.length+' medicines loaded.');
+                markUpdated();alert(L.restored+' '+data.medicines.length+' '+L.medsLoaded);
                 renderToday();
-            }catch(err){alert('❌ Invalid backup file')}
+            }catch(err){alert(L.invalidBackup)}
         };reader.readAsText(file);
     }
 
@@ -1571,6 +1668,9 @@
         document.getElementById('email-on-take').checked=localStorage.getItem('email_on_take')==='true';
         document.getElementById('email-on-take-addr').style.display=localStorage.getItem('email_on_take')==='true'?'block':'none';
         document.getElementById('take-email-addr').value=localStorage.getItem('take_email_to')||'';
+        document.getElementById('emailjs-service').value=localStorage.getItem('emailjs_service_id')||'';
+        document.getElementById('emailjs-template').value=localStorage.getItem('emailjs_template_id')||'';
+        document.getElementById('emailjs-pubkey').value=localStorage.getItem('emailjs_public_key')||'';
         document.getElementById('email-on-take').onchange=function(){localStorage.setItem('email_on_take',this.checked);document.getElementById('email-on-take-addr').style.display=this.checked?'block':'none';markUpdated()};
         el.innerHTML=cts.map((c,i)=>`<div class="caretaker-row"><div class="caretaker-avatar">${c.icon||'👤'}</div><div style="flex:1"><strong style="font-size:0.85rem">${c.name}</strong><br><small>📱 ${c.phone}</small><br><label style="font-size:0.7rem;color:#666;display:flex;align-items:center;gap:4px;margin-top:3px;"><input type="checkbox" ${c.enabled!==false?'checked':''} onchange="toggleCaretaker(${i},this.checked)" style="width:auto;margin:0;accent-color:#4CAF50"> Alerts ON</label></div><button class="btn-sm btn-edit" onclick="editCaretaker(${i})">✏️</button><button class="btn-sm btn-del" onclick="removeCaretaker(${i})">✕</button></div>`).join('')||'<p style="font-size:0.8rem;color:#999;">No caretakers added.</p>';
     }
@@ -1578,8 +1678,9 @@
         const cts=getCaretakers();cts[i].enabled=enabled;saveCaretakers(cts);
     }
     function addCaretaker(){
-        const name=prompt('Caretaker name:');if(!name)return;
-        const phone=prompt('WhatsApp number (with country code):');if(!phone)return;
+        const L=LANG[currentLang]||LANG.en;
+        const name=prompt(L.caretakerName);if(!name)return;
+        const phone=prompt(L.caretakerPhone);if(!phone)return;
         const cts=getCaretakers();cts.push({name,phone,icon:'👤'});saveCaretakers(cts);renderCaretakers();
     }
     function editCaretaker(i){
@@ -1666,7 +1767,7 @@
     }
     function testCaretakerAlert(){
         const cts=getCaretakers();
-        if(!cts.length){alert('Add a caretaker first!');return}
+        if(!cts.length){alert((LANG[currentLang]||LANG.en).addCaretakerFirst);return}
         sendCaretakerMessages(cts,`🧪 TEST: This is a test caretaker alert from Medicine Reminder app. If you received this, alerts are working! ✅`);
     }
     function sendCaretakerMessages(cts,msg){
@@ -1682,6 +1783,9 @@
         next();
     }
     setInterval(checkReminders,30000);setTimeout(checkReminders,3000);
+    // Re-check immediately when tab becomes visible (phone unlock, switch back)
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden){checkReminders();renderToday()}});
+    window.addEventListener('focus',()=>{checkReminders();renderToday()});
     setInterval(checkAppointmentReminders,3600000);setTimeout(checkAppointmentReminders,10000);
     setTimeout(checkMonthlyEmail,15000);
     function checkAppointmentReminders(){
@@ -1710,6 +1814,7 @@
     </script>
 
     <script src="https://accounts.google.com/gsi/client"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script>
     const GDRIVE_CLIENT_ID='157005612520-70t1peegtr1uoinrnjv2g9uk1geni5j8.apps.googleusercontent.com';
     const GDRIVE_SCOPE='https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.email';
@@ -1787,7 +1892,7 @@
     document.addEventListener('visibilitychange',()=>{if(!document.hidden){pullFromDrive();checkForUpdate()}});
 
     // === UPDATE CHECK ===
-    const APP_VERSION='4.3';
+    const APP_VERSION='4.4';
     async function checkForUpdate(){
         try{
             const r=await fetch('version.json?t='+Date.now());const d=await r.json();
