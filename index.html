@@ -242,6 +242,7 @@
             <h2>📦 Medicine Stock</h2>
             <div id="stock-list"></div>
             <button class="btn" onclick="stockReport()" style="background:#2196F3;">📄 Stock Statement Report</button>
+            <div id="monthly-cost-summary" style="margin-top:12px;"></div>
         </div>
         <div class="card">
             <h2>📊 Stock Timeline</h2>
@@ -271,7 +272,7 @@
             <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#f9f9f9;border-radius:8px;margin-bottom:10px;"><input type="checkbox" id="caretaker-enabled" onchange="localStorage.setItem('caretaker_enabled',this.checked);markUpdated()" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">Enable missed-dose alerts</span></label>
             <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#e8f5e9;border-radius:8px;margin-bottom:10px;"><input type="checkbox" id="notify-on-take" onchange="localStorage.setItem('notify_on_take',this.checked);markUpdated()" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">📤 WhatsApp when I take medicine</span></label>
             <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#e3f2fd;border-radius:8px;margin-bottom:10px;"><input type="checkbox" id="email-on-take" onchange="localStorage.setItem('email_on_take',this.checked);markUpdated()" style="width:auto;margin:0;accent-color:#2196F3"> <span style="font-size:0.85rem;">📧 Email when I take medicine</span></label>
-            <div id="email-on-take-addr" style="display:none;margin-bottom:10px;"><input type="email" id="take-email-addr" placeholder="Recipient email" onchange="localStorage.setItem('take_email_to',this.value);markUpdated()" style="margin:0;padding:8px;font-size:0.85rem;"></div>
+            <div id="email-on-take-addr" style="display:none;margin-bottom:10px;"><input type="text" id="take-email-addr" placeholder="Emails (comma separated, e.g. a@b.com, c@d.com)" onchange="localStorage.setItem('take_email_to',this.value);markUpdated()" style="margin:0;padding:8px;font-size:0.85rem;"></div>
             <div id="caretaker-list"></div>
             <button class="btn" onclick="addCaretaker()">+ Add Caretaker</button>
             <button class="btn" style="background:#FF9800;margin-top:8px;" onclick="testCaretakerAlert()">🧪 Test Alert (send now)</button>
@@ -413,7 +414,7 @@
             </div>
         </div>
         <div class="card" style="text-align:center;">
-            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v4.2</p>
+            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v4.3</p>
             <p style="font-size:0.7rem;color:#bbb;">Deployed: 21 Jun 2026, 05:35:00 PM IST</p>
             <p style="font-size:0.7rem;color:#888;margin-top:8px;">Made by <strong>Kalpesh Patel</strong></p>
             <p style="font-size:0.7rem;margin-top:4px;"><a href="tel:+917405856226" style="color:#4CAF50;text-decoration:none;">📞 +91 74058 56226</a> • <a href="https://wa.me/917405856226" style="color:#25D366;text-decoration:none;">💬 WhatsApp</a></p>
@@ -543,7 +544,7 @@
         if(name==='meds')renderMedsList();
         if(name==='cal')renderCalendar();
         if(name==='health'){renderBPHistory();renderAppointments();renderPrescriptions()}
-        if(name==='stock'){renderStock();renderOrderPlan()}
+        if(name==='stock'){renderStock();renderOrderPlan();renderCaretakers()}
         if(name==='settings'){updateNotifUI();updateLastSync();renderHistory();renderDoctors();renderCaretakers();loadReorderSettings()}
         if(name==='add'){const editId=document.getElementById('edit-id').value;if(!editId)resetForm()}
     }
@@ -743,10 +744,11 @@
         if(!meds.length){el.innerHTML='<div class="empty">No medicines yet. Tap + Add.</div>';return}
         el.innerHTML=meds.map(m=>{
             const stockInfo=m.stock?`📦 ${Math.floor(m.stock/(m.perStrip||10))} strips + ${m.stock%(m.perStrip||10)} tabs (${m.stock} total)`:'';
+            const priceInfo=m.price?`💰 ₹${parseFloat(m.price).toFixed(2)}/strip`:'';
             if(m.freq==='sos')return`<div class="card" style="border-left:4px solid #e53935"><div class="med-row">
                 ${medPhotoHtml(m)}
                 <div class="med-info"><strong>🆘 ${m.name}</strong><br><small>${m.dosage} • SOS / As needed</small><br>
-                <small style="color:#e53935">⚠️ ${m.sosNote||''}</small><br><small>${stockInfo}</small></div>
+                <small style="color:#e53935">⚠️ ${m.sosNote||''}</small><br><small>${stockInfo}${priceInfo?' • '+priceInfo:''}</small></div>
             </div><div><button class="btn-sm btn-take" onclick="logDose('${m.id}','SOS','taken')">💊 Take Now</button><button class="btn-sm btn-edit" onclick="editMedicine('${m.id}')">✏️</button><button class="btn-sm btn-del" onclick="deleteMedicine('${m.id}')">🗑️</button></div></div>`;
             const pausedStyle=m.paused?'opacity:0.5;border-left:4px solid #FF9800;':'';
             const pausedLabel=m.paused?' <span style="background:#FF9800;color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:4px;">⏸️ PAUSED</span>':'';
@@ -754,7 +756,7 @@
             ${medPhotoHtml(m)}
             <div class="med-info"><strong>${m.name}</strong>${pausedLabel}<br><small>${m.dosage} • ${m.freq}x daily</small><br>
             <small>⏰ ${m.timings.map((t,i)=>tTiming(t)+(m.times&&m.times[i]?' @ '+formatTime12(m.times[i]):'')).join(', ')}</small><br>
-            ${getCourseInfo(m)}<br><small>${stockInfo}</small></div>
+            ${getCourseInfo(m)}<br><small>${stockInfo}${priceInfo?' • '+priceInfo:''}</small></div>
         </div><div><button class="btn-sm" style="background:${m.paused?'#4CAF50':'#FF9800'}" onclick="togglePause('${m.id}')">${m.paused?'▶️ Resume':'⏸️ Pause'}</button><button class="btn-sm btn-edit" onclick="editMedicine('${m.id}')">✏️ Edit</button><button class="btn-sm btn-del" onclick="deleteMedicine('${m.id}')">🗑️ Delete</button></div></div>`;
         }).join('');
     }
@@ -790,8 +792,12 @@
             const L=LANG[currentLang]||LANG.en;const gn={Morning:L.morning,Afternoon:L.afternoon,Evening:L.evening};
             html+=`<div class="slot-group"><h3>${gn[group]||group}</h3>`;
             pending.forEach(d=>{
-                html+=`<div class="dose-card"><div><strong>${d.icon} ${d.name}</strong><br><small>${d.dosage} • ${tTiming(d.timing)}${d.time?' • 🕐'+formatTime12(d.time):''}</small></div>
-                <div><button class="btn-sm btn-take" onclick="logDose('${d.id}','${d.timing}','taken')">${L.take}</button><button class="btn-sm" style="background:#FF9800;font-size:0.65rem;" data-snooze-key="${d.name}_${d.timing}" onclick="snoozeDose('${d.name}','${d.timing}',this)">${L.snooze}</button></div></div>`;
+                const now=new Date(),nowMin=now.getHours()*60+now.getMinutes();
+                let overdue=0;if(d.time){const[hh,mmm]=d.time.split(':').map(Number);overdue=nowMin-(hh*60+mmm)}
+                const btnStyle=overdue>0?'background:#e53935':'background:#4CAF50';
+                const btnText=overdue>0?`${L.take} (${overdue} min late)`:L.take;
+                html+=`<div class="dose-card"${overdue>0?' style="border-left:3px solid #e53935"':''}><div><strong>${d.icon} ${d.name}</strong><br><small>${d.dosage} • ${tTiming(d.timing)}${d.time?' • 🕐'+formatTime12(d.time):''}</small></div>
+                <div><button class="btn-sm" style="${btnStyle};color:#fff" onclick="logDose('${d.id}','${d.timing}','taken')">${btnText}</button><button class="btn-sm" style="background:#FF9800;font-size:0.65rem;" data-snooze-key="${d.name}_${d.timing}" onclick="snoozeDose('${d.name}','${d.timing}',this)">${L.snooze}</button></div></div>`;
             });
             if(done.length){
                 html+=`<div class="done-group"><div class="done-header" onclick="this.nextElementSibling.classList.toggle('open')"><span>✅ ${done.length} ${L.done}</span><span>▼</span></div><div class="done-list">`;
@@ -946,6 +952,14 @@
                 <button class="btn-sm" style="background:#4CAF50;margin-top:6px;" onclick="buyStock('${m.id}')">+ Buy New Stock</button>
             </div>`;
         }).join('');
+        // Monthly cost summary
+        const costEl=document.getElementById('monthly-cost-summary');
+        const activeMeds=meds.filter(m=>m.freq!=='sos'&&!m.paused&&m.price);
+        if(activeMeds.length){
+            let total30=0;
+            activeMeds.forEach(m=>{const freq=parseInt(m.freq)||1;const perStrip=m.perStrip||10;total30+=Math.ceil((freq*30)/perStrip)*(m.price||0)});
+            costEl.innerHTML=`<div style="background:linear-gradient(135deg,#FF9800,#F57C00);color:#fff;padding:12px;border-radius:10px;text-align:center;"><div style="font-size:0.75rem;opacity:0.9;">💰 Monthly Medicine Cost (30 days)</div><div style="font-size:1.5rem;font-weight:bold;margin-top:4px;">₹${total30.toFixed(2)}</div></div>`;
+        }else{costEl.innerHTML=''}
         renderStockTimeline();
     }
     function renderStockTimeline(){
@@ -975,9 +989,9 @@
                 <div style="display:flex;justify-content:space-between;font-size:0.75rem;"><span><strong>${m.icon||'💊'} ${m.name}</strong></span><span style="color:${barColor};font-weight:bold;">${dateStr} (${daysLeft}d)</span></div>
                 <div style="height:10px;background:#eee;border-radius:6px;overflow:hidden;margin:4px 0;"><div style="height:100%;width:${pct}%;background:${barColor};border-radius:6px;"></div></div>
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;font-size:0.65rem;text-align:center;margin-top:4px;">
-                    <div style="background:#e3f2fd;padding:4px;border-radius:4px;"><strong>${strips15}</strong> strips<br>15 days${price?'<br>₹'+strips15*price:''}</div>
-                    <div style="background:#e8f5e9;padding:4px;border-radius:4px;"><strong>${strips30}</strong> strips<br>30 days${price?'<br>₹'+strips30*price:''}</div>
-                    <div style="background:#f3e5f5;padding:4px;border-radius:4px;"><strong>${strips60}</strong> strips<br>60 days${price?'<br>₹'+strips60*price:''}</div>
+                    <div style="background:#e3f2fd;padding:4px;border-radius:4px;"><strong>${strips15}</strong> strips<br>15 days${price?'<br>₹'+(strips15*price).toFixed(2):''}</div>
+                    <div style="background:#e8f5e9;padding:4px;border-radius:4px;"><strong>${strips30}</strong> strips<br>30 days${price?'<br>₹'+(strips30*price).toFixed(2):''}</div>
+                    <div style="background:#f3e5f5;padding:4px;border-radius:4px;"><strong>${strips60}</strong> strips<br>60 days${price?'<br>₹'+(strips60*price).toFixed(2):''}</div>
                 </div>
             </div>`;
         });
@@ -986,9 +1000,9 @@
             html+=`<div style="background:#fff8e1;padding:10px;border-radius:8px;margin-top:8px;text-align:center;font-size:0.8rem;">
                 <strong>💰 Total Medicine Cost</strong><br>
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:6px;font-size:0.75rem;">
-                    <div>15 days<br><strong>₹${totalCost15}</strong></div>
-                    <div>30 days<br><strong>₹${totalCost30}</strong></div>
-                    <div>60 days<br><strong>₹${totalCost60}</strong></div>
+                    <div>15 days<br><strong>₹${totalCost15.toFixed(2)}</strong></div>
+                    <div>30 days<br><strong>₹${totalCost30.toFixed(2)}</strong></div>
+                    <div>60 days<br><strong>₹${totalCost60.toFixed(2)}</strong></div>
                 </div>
             </div>`;
         }
@@ -1019,11 +1033,11 @@
             const cost=stripsToBuy*price;
             totalBuy+=stripsToBuy;totalCost+=cost;
             const rowBg=deficit>0?'background:#fff3e0;':'';
-            html+=`<tr style="${rowBg}"><td style="padding:5px;border-bottom:1px solid #eee;">${m.icon||'💊'} ${m.name}</td><td style="text-align:center;border-bottom:1px solid #eee;">${totalNeeded}</td><td style="text-align:center;border-bottom:1px solid #eee;">${have}</td><td style="text-align:center;border-bottom:1px solid #eee;font-weight:bold;color:${deficit>0?'#e53935':'#4CAF50'}">${stripsToBuy>0?stripsToBuy+' strips':'✅'}</td><td style="text-align:center;border-bottom:1px solid #eee;">${cost>0?'₹'+cost:'—'}</td></tr>`;
+            html+=`<tr style="${rowBg}"><td style="padding:5px;border-bottom:1px solid #eee;">${m.icon||'💊'} ${m.name}</td><td style="text-align:center;border-bottom:1px solid #eee;">${totalNeeded}</td><td style="text-align:center;border-bottom:1px solid #eee;">${have}</td><td style="text-align:center;border-bottom:1px solid #eee;font-weight:bold;color:${deficit>0?'#e53935':'#4CAF50'}">${stripsToBuy>0?stripsToBuy+' strips':'✅'}</td><td style="text-align:center;border-bottom:1px solid #eee;">${cost>0?'₹'+cost.toFixed(2):'—'}</td></tr>`;
         });
         html+='</table>';
         html+=`<div style="margin-top:10px;padding:10px;background:#e8f5e9;border-radius:8px;text-align:center;font-size:0.8rem;">
-            <strong>🛒 Total: ${totalBuy} strips to buy${totalCost>0?' • ₹'+totalCost:''}</strong>
+            <strong>🛒 Total: ${totalBuy} strips to buy${totalCost>0?' • ₹'+totalCost.toFixed(2):''}</strong>
         </div>`;
         el.innerHTML=html;
     }
@@ -1304,8 +1318,8 @@
             if(localStorage.getItem('email_on_take')==='true'){
                 const med=getMedicines().find(m=>m.id===medId);
                 const timeStr=new Date(takenTime).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-                const toEmail=localStorage.getItem('take_email_to')||'';
-                if(toEmail){const subj=`💊 ${med?med.name:'Medicine'} taken`;const body=`${med?med.name:'Medicine'} (${timing}) was taken at ${timeStr} on ${today()}`;window.open(`mailto:${toEmail}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`)}
+                const toEmails=localStorage.getItem('take_email_to')||'';
+                if(toEmails){const subj=`💊 ${med?med.name:'Medicine'} taken`;const body=`${med?med.name:'Medicine'} (${timing}) was taken at ${timeStr} on ${today()}`;window.open(`mailto:${toEmails.split(',').map(e=>e.trim()).join(',')}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`)}
             }
         }
         renderToday();
@@ -1631,19 +1645,19 @@
     function checkReminders(){
         if(!('Notification' in window)||Notification.permission!=='granted')return;
         const meds=getMedicines().filter(m=>!m.paused&&m.freq!=='sos');const logs=getTodayStatus();const now=new Date();const nowMin=now.getHours()*60+now.getMinutes();
-        const reminded=JSON.parse(sessionStorage.getItem('reminded')||'{}');const ns=getNotifSettings();
+        const reminded=JSON.parse(localStorage.getItem('reminded_'+today())||'{}');const ns=getNotifSettings();
         meds.forEach(m=>{if(!m.times)return;m.timings.forEach((timing,i)=>{
             const log=logs.find(l=>l.medId===m.id&&l.timing===timing);if(log)return;
             const[h,min]=m.times[i].split(':').map(Number);const doseMin=h*60+min;const diff=doseMin-nowMin;
-            const key=m.id+'_'+i+'_'+today();
-            if(ns.m30&&diff<=30&&diff>29&&!reminded[key+'_30']){new Notification('💊 '+m.name,{body:`30 min before — ${timing} at ${formatTime12(m.times[i])}`,icon:'icon-192.png'});playAlertSound();reminded[key+'_30']=true}
-            if(ns.m15&&diff<=15&&diff>14&&!reminded[key+'_15']){new Notification('💊 '+m.name,{body:`15 min before — ${timing} at ${formatTime12(m.times[i])}`,icon:'icon-192.png'});playAlertSound();reminded[key+'_15']=true}
-            if(ns.m5&&diff<=5&&diff>4&&!reminded[key+'_5']){new Notification('💊 '+m.name,{body:`5 min before — ${timing} at ${formatTime12(m.times[i])}`,icon:'icon-192.png'});playAlertSound();reminded[key+'_5']=true}
-            if(ns.m0&&diff<=0&&diff>-1&&!reminded[key+'_0']){new Notification('⏰ Take '+m.name+' NOW',{body:`${timing} — ${m.dosage}`,icon:'icon-192.png'});playAlertSound();reminded[key+'_0']=true}
+            const key=m.id+'_'+i;
+            if(ns.m30&&diff<=30&&diff>15&&!reminded[key+'_30']){new Notification('💊 '+m.name,{body:`30 min before — ${timing} at ${formatTime12(m.times[i])}`,icon:'icon-192.png',tag:key+'_30'});playAlertSound();reminded[key+'_30']=true}
+            if(ns.m15&&diff<=15&&diff>5&&!reminded[key+'_15']){new Notification('💊 '+m.name,{body:`15 min before — ${timing} at ${formatTime12(m.times[i])}`,icon:'icon-192.png',tag:key+'_15'});playAlertSound();reminded[key+'_15']=true}
+            if(ns.m5&&diff<=5&&diff>0&&!reminded[key+'_5']){new Notification('💊 '+m.name,{body:`5 min before — ${timing} at ${formatTime12(m.times[i])}`,icon:'icon-192.png',tag:key+'_5'});playAlertSound();reminded[key+'_5']=true}
+            if(ns.m0&&diff<=0&&diff>-30&&!reminded[key+'_0']){new Notification('⏰ Take '+m.name+' NOW',{body:`${timing} — ${m.dosage}`,icon:'icon-192.png',tag:key+'_0'});playAlertSound();reminded[key+'_0']=true}
             // Caretaker alert if missed by 30 min
             if(diff<-30&&!reminded[key+'_missed']){sendCaretakerAlert(m,timing);reminded[key+'_missed']=true}
         })});
-        sessionStorage.setItem('reminded',JSON.stringify(reminded));
+        localStorage.setItem('reminded_'+today(),JSON.stringify(reminded));
     }
     function sendCaretakerAlert(med,timing){
         if(localStorage.getItem('caretaker_enabled')!=='true')return;
@@ -1667,7 +1681,7 @@
         }
         next();
     }
-    setInterval(checkReminders,60000);setTimeout(checkReminders,3000);
+    setInterval(checkReminders,30000);setTimeout(checkReminders,3000);
     setInterval(checkAppointmentReminders,3600000);setTimeout(checkAppointmentReminders,10000);
     setTimeout(checkMonthlyEmail,15000);
     function checkAppointmentReminders(){
@@ -1690,7 +1704,7 @@
 
     // === SYNC ===
     function markUpdated(){localStorage.setItem('data_updated',String(Date.now()));if(accessToken)setTimeout(syncNow,1000)}
-    updateTimingOptions();renderToday();loadNotifSettings();loadDarkMode();loadLanguage();
+    updateTimingOptions();renderToday();loadNotifSettings();loadDarkMode();loadLanguage();renderCaretakers();
     document.getElementById('sound-toggle').checked=localStorage.getItem('sound_on')!=='false';
     if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
     </script>
@@ -1701,13 +1715,15 @@
     const GDRIVE_SCOPE='https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.email';
     const SYNC_FILE='medicine-reminder-data.json';
     let accessToken=null,tokenClient=null;
-    function initGIS(){tokenClient=google.accounts.oauth2.initTokenClient({client_id:GDRIVE_CLIENT_ID,scope:GDRIVE_SCOPE,callback:handleTokenResponse});const saved=localStorage.getItem('gdrive_token');if(saved){const t=JSON.parse(saved);if(t.expiry>Date.now()){accessToken=t.token;showSignedIn(t.email)}}}
+    function initGIS(){tokenClient=google.accounts.oauth2.initTokenClient({client_id:GDRIVE_CLIENT_ID,scope:GDRIVE_SCOPE,callback:handleTokenResponse});const saved=localStorage.getItem('gdrive_token');if(saved){const t=JSON.parse(saved);if(t.expiry>Date.now()){accessToken=t.token;showSignedIn(t.email)}else if(t.email){showSignedIn(t.email);silentRefresh()}}}
+    function silentRefresh(){if(!tokenClient)return;tokenClient.requestAccessToken({prompt:''})}
+    setInterval(()=>{const s=localStorage.getItem('gdrive_token');if(s){const t=JSON.parse(s);if(t.expiry&&t.expiry-Date.now()<300000&&t.email)silentRefresh()}},240000)
     function gDriveSignIn(){tokenClient.requestAccessToken()}
     function gDriveSignOut(){if(accessToken)google.accounts.oauth2.revoke(accessToken);accessToken=null;localStorage.removeItem('gdrive_token');document.getElementById('sync-signed-in').style.display='none';document.getElementById('sync-signed-out').style.display='block'}
     async function handleTokenResponse(resp){if(resp.error){alert('Sign-in failed');return}accessToken=resp.access_token;const info=await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+accessToken}}).then(r=>r.json());const email=info.email||'';localStorage.setItem('gdrive_token',JSON.stringify({token:accessToken,email,expiry:Date.now()+(resp.expires_in*1000)}));showSignedIn(email);syncNow()}
     function showSignedIn(email){document.getElementById('sync-signed-out').style.display='none';document.getElementById('sync-signed-in').style.display='block';document.getElementById('sync-email').textContent=email}
     function setSyncStatus(msg){document.getElementById('sync-status').textContent=msg}
-    async function driveRequest(url,opts={}){opts.headers={...opts.headers,Authorization:'Bearer '+accessToken};const r=await fetch(url,opts);if(r.status===401){gDriveSignOut();throw new Error('Token expired')}return r}
+    async function driveRequest(url,opts={}){opts.headers={...opts.headers,Authorization:'Bearer '+accessToken};const r=await fetch(url,opts);if(r.status===401){await new Promise(res=>{const orig=tokenClient.callback;tokenClient.callback=resp=>{tokenClient.callback=orig;if(!resp.error){accessToken=resp.access_token;const s=JSON.parse(localStorage.getItem('gdrive_token')||'{}');s.token=accessToken;s.expiry=Date.now()+(resp.expires_in*1000);localStorage.setItem('gdrive_token',JSON.stringify(s))}res()};tokenClient.requestAccessToken({prompt:''})});opts.headers.Authorization='Bearer '+accessToken;return fetch(url,opts)}return r}
     async function findSyncFile(){const r=await driveRequest('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%27'+SYNC_FILE+'%27&fields=files(id)');const d=await r.json();return d.files&&d.files[0]}
     async function downloadSyncFile(fileId){return(await driveRequest('https://www.googleapis.com/drive/v3/files/'+fileId+'?alt=media')).json()}
     async function uploadSyncFile(content,existingId){
@@ -1771,7 +1787,7 @@
     document.addEventListener('visibilitychange',()=>{if(!document.hidden){pullFromDrive();checkForUpdate()}});
 
     // === UPDATE CHECK ===
-    const APP_VERSION='4.2';
+    const APP_VERSION='4.3';
     async function checkForUpdate(){
         try{
             const r=await fetch('version.json?t='+Date.now());const d=await r.json();

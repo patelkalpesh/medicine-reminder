@@ -1,5 +1,5 @@
 {
-  "version": "4.2",
-  "deployed": "21 Jun 2026, 05:35:00 PM IST",
-  "features": "Showcase page, share app button, photo crop, order planner, configurable alerts"
+  "version": "4.3",
+  "deployed": "23 Jun 2026, 09:30:00 PM IST",
+  "features": "Overdue dose red button, Google sync fix, multi-email caretakers, notification reliability, price display, cost formatting"
 }
