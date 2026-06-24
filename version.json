@@ -1,5 +1,5 @@
 {
-  "version": "4.5",
-  "deployed": "24 Jun 2026, 11:56:00 AM IST",
-  "features": "100% Hindi/Gujarati translation (all labels, prompts, alerts, dynamic text — 252 keys)"
+  "version": "4.6",
+  "deployed": "24 Jun 2026, 12:08:00 PM IST",
+  "features": "Flexible schedules (specific days, alternate, weekly) + full i18n"
 }

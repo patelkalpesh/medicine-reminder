@@ -172,6 +172,26 @@
                 <option value="3">Three times daily</option>
                 <option value="sos">🆘 SOS / As needed (Emergency)</option>
             </select>
+            <div id="schedule-section" style="display:none;">
+                <label>Schedule</label>
+                <select id="med-schedule" onchange="updateScheduleUI()">
+                    <option value="daily">Every day</option>
+                    <option value="specific">Specific days (Mon/Wed/Fri...)</option>
+                    <option value="alternate">Alternate days</option>
+                    <option value="weekly">Once a week</option>
+                </select>
+                <div id="day-picker" style="display:none;margin-top:8px;">
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                        <label class="timing-chip" style="padding:8px 12px;cursor:pointer;"><input type="checkbox" value="0" style="display:none;" onchange="this.parentElement.classList.toggle('selected',this.checked)"> Sun</label>
+                        <label class="timing-chip" style="padding:8px 12px;cursor:pointer;"><input type="checkbox" value="1" style="display:none;" onchange="this.parentElement.classList.toggle('selected',this.checked)"> Mon</label>
+                        <label class="timing-chip" style="padding:8px 12px;cursor:pointer;"><input type="checkbox" value="2" style="display:none;" onchange="this.parentElement.classList.toggle('selected',this.checked)"> Tue</label>
+                        <label class="timing-chip" style="padding:8px 12px;cursor:pointer;"><input type="checkbox" value="3" style="display:none;" onchange="this.parentElement.classList.toggle('selected',this.checked)"> Wed</label>
+                        <label class="timing-chip" style="padding:8px 12px;cursor:pointer;"><input type="checkbox" value="4" style="display:none;" onchange="this.parentElement.classList.toggle('selected',this.checked)"> Thu</label>
+                        <label class="timing-chip" style="padding:8px 12px;cursor:pointer;"><input type="checkbox" value="5" style="display:none;" onchange="this.parentElement.classList.toggle('selected',this.checked)"> Fri</label>
+                        <label class="timing-chip" style="padding:8px 12px;cursor:pointer;"><input type="checkbox" value="6" style="display:none;" onchange="this.parentElement.classList.toggle('selected',this.checked)"> Sat</label>
+                    </div>
+                </div>
+            </div>
             <div id="sos-section" style="display:none;">
                 <label>When to take (Emergency instructions)</label>
                 <textarea id="med-sos-note" rows="2" placeholder="e.g. Take when BP goes above 160, or chest pain, or panic attack"></textarea>
@@ -424,8 +444,8 @@
             </div>
         </div>
         <div class="card" style="text-align:center;">
-            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v4.5</p>
-            <p style="font-size:0.7rem;color:#bbb;">Deployed: 24 Jun 2026, 11:56:00 AM IST</p>
+            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v4.6</p>
+            <p style="font-size:0.7rem;color:#bbb;">Deployed: 24 Jun 2026, 12:08:00 PM IST</p>
             <p style="font-size:0.7rem;color:#888;margin-top:8px;">Made by <strong>Kalpesh Patel</strong></p>
             <p style="font-size:0.7rem;margin-top:4px;"><a href="tel:+917405856226" style="color:#4CAF50;text-decoration:none;">📞 +91 74058 56226</a> • <a href="https://wa.me/917405856226" style="color:#25D366;text-decoration:none;">💬 WhatsApp</a></p>
             <p style="font-size:0.7rem;"><a href="mailto:kal.shooter007@gmail.com" style="color:#2196F3;text-decoration:none;">📧 kal.shooter007@gmail.com</a></p>
@@ -667,8 +687,10 @@
         const freq=document.getElementById('med-freq').value;
         const container=document.getElementById('timing-sections');
         const sosSection=document.getElementById('sos-section');
-        if(freq==='sos'){sosSection.style.display='block';container.innerHTML='';return}
+        const schedSection=document.getElementById('schedule-section');
+        if(freq==='sos'){sosSection.style.display='block';container.innerHTML='';schedSection.style.display='none';return}
         sosSection.style.display='none';
+        schedSection.style.display='block';
         const f=parseInt(freq);
         const L=LANG[currentLang]||LANG.en;
         const labels=[L.dose1,L.dose2,L.dose3];
@@ -682,6 +704,23 @@
         container.innerHTML=html;
     }
     function toggleTiming(el){const dose=el.dataset.dose;document.querySelectorAll(`.timing-chip[data-dose="${dose}"]`).forEach(c=>c.classList.remove('selected'));el.classList.add('selected')}
+    function updateScheduleUI(){
+        const sched=document.getElementById('med-schedule').value;
+        document.getElementById('day-picker').style.display=(sched==='specific'||sched==='weekly')?'block':'none';
+        // For weekly, only allow 1 day selection
+        if(sched==='weekly'){
+            document.querySelectorAll('#day-picker input[type=checkbox]').forEach(cb=>{
+                cb.onchange=function(){
+                    if(this.checked)document.querySelectorAll('#day-picker input[type=checkbox]').forEach(o=>{if(o!==this){o.checked=false;o.parentElement.classList.remove('selected')}});
+                    this.parentElement.classList.toggle('selected',this.checked);
+                };
+            });
+        }else{
+            document.querySelectorAll('#day-picker input[type=checkbox]').forEach(cb=>{
+                cb.onchange=function(){this.parentElement.classList.toggle('selected',this.checked)};
+            });
+        }
+    }
     function resetForm(){
         document.getElementById('form-title').textContent=(LANG[currentLang]||LANG.en).addMed;
         document.getElementById('edit-id').value='';
@@ -698,6 +737,9 @@
         document.getElementById('med-price').value='';
         document.getElementById('med-sos-note').value='';
         document.getElementById('sos-section').style.display='none';
+        document.getElementById('med-schedule').value='daily';
+        document.getElementById('day-picker').style.display='none';
+        document.querySelectorAll('#day-picker input[type=checkbox]').forEach(cb=>{cb.checked=false;cb.parentElement.classList.remove('selected')});
         updateTimingOptions();
     }
     function saveMedicine(){
@@ -729,12 +771,18 @@
                 times.push(tv);
             }
         }
+        const schedule=freq==='sos'?'daily':document.getElementById('med-schedule').value;
+        const scheduleDays=[];
+        if(schedule==='specific'||schedule==='weekly'){
+            document.querySelectorAll('#day-picker input[type=checkbox]:checked').forEach(cb=>scheduleDays.push(parseInt(cb.value)));
+            if(!scheduleDays.length){alert((LANG[currentLang]||LANG.en).selectDays);return}
+        }
         const meds=getMedicines();const editId=document.getElementById('edit-id').value;
         if(editId){
             const idx=meds.findIndex(m=>m.id===editId);
-            if(idx>=0)meds[idx]={...meds[idx],name,dosage,icon,photo,freq,timings,times,course,stock,strips,perStrip,loose,price,sosNote};
+            if(idx>=0)meds[idx]={...meds[idx],name,dosage,icon,photo,freq,timings,times,course,stock,strips,perStrip,loose,price,sosNote,schedule,scheduleDays};
         }else{
-            meds.push({id:Date.now().toString(),name,dosage,icon,photo,freq,timings,times,course,stock,strips,perStrip,loose,price,sosNote,startDate:today()});
+            meds.push({id:Date.now().toString(),name,dosage,icon,photo,freq,timings,times,course,stock,strips,perStrip,loose,price,sosNote,startDate:today(),schedule,scheduleDays});
         }
         saveMedicines(meds);resetForm();showPage('meds');
     }
@@ -761,6 +809,17 @@
             if(chip)chip.classList.add('selected');
             if(med.times&&med.times[i])document.getElementById('dose-time-'+i).value=med.times[i];
         })}
+        // Load schedule
+        if(med.schedule&&med.schedule!=='daily'){
+            document.getElementById('med-schedule').value=med.schedule;
+            updateScheduleUI();
+            if(med.scheduleDays&&med.scheduleDays.length){
+                med.scheduleDays.forEach(d=>{
+                    const cb=document.querySelector(`#day-picker input[value="${d}"]`);
+                    if(cb){cb.checked=true;cb.parentElement.classList.add('selected')}
+                });
+            }
+        }
         showPage('add');
     }
     function deleteMedicine(id){if(!confirm((LANG[currentLang]||LANG.en).delete2))return;saveMedicines(getMedicines().filter(m=>m.id!==id));renderMedsList()}
@@ -792,7 +851,7 @@
             const pausedLabel=m.paused?' <span style="background:#FF9800;color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:4px;">⏸️ PAUSED</span>':'';
             return`<div class="card" style="${pausedStyle}"><div class="med-row">
             ${medPhotoHtml(m)}
-            <div class="med-info"><strong>${m.name}</strong>${pausedLabel}<br><small>${m.dosage} • ${m.freq}x daily</small><br>
+            <div class="med-info"><strong>${m.name}</strong>${pausedLabel}<br><small>${m.dosage} • ${m.freq}x ${getScheduleLabel(m)}</small><br>
             <small>⏰ ${m.timings.map((t,i)=>tTiming(t)+(m.times&&m.times[i]?' @ '+formatTime12(m.times[i]):'')).join(', ')}</small><br>
             ${getCourseInfo(m)}<br><small>${stockInfo}${priceInfo?' • '+priceInfo:''}</small></div>
         </div><div><button class="btn-sm" style="background:${m.paused?'#4CAF50':'#FF9800'}" onclick="togglePause('${m.id}')">${m.paused?'▶️ Resume':'⏸️ Pause'}</button><button class="btn-sm btn-edit" onclick="editMedicine('${m.id}')">✏️ Edit</button><button class="btn-sm btn-del" onclick="deleteMedicine('${m.id}')">🗑️ Delete</button></div></div>`;
@@ -800,12 +859,43 @@
     }
 
     // === TODAY ===
+    function isMedDueToday(m){
+        const sched=m.schedule||'daily';
+        if(sched==='daily')return true;
+        const dow=new Date().getDay(); // 0=Sun
+        if(sched==='specific'||sched==='weekly')return(m.scheduleDays||[]).includes(dow);
+        if(sched==='alternate'){
+            const start=new Date(m.startDate||today());
+            const diff=Math.floor((new Date()-start)/(86400000));
+            return diff%2===0;
+        }
+        return true;
+    }
+    function getDosesPerWeek(m){
+        const freq=parseInt(m.freq)||1;
+        const sched=m.schedule||'daily';
+        if(sched==='daily')return freq*7;
+        if(sched==='specific')return freq*(m.scheduleDays||[]).length;
+        if(sched==='weekly')return freq;
+        if(sched==='alternate')return freq*3.5;
+        return freq*7;
+    }
+    function getScheduleLabel(m){
+        const L=LANG[currentLang]||LANG.en;
+        const sched=m.schedule||'daily';
+        if(sched==='daily')return L.schedDaily||'daily';
+        const dayNames=L.dayNamesShort||['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        if(sched==='specific')return(m.scheduleDays||[]).map(d=>dayNames[d]).join('/');
+        if(sched==='alternate')return L.schedAlternate||'alternate days';
+        if(sched==='weekly')return(m.scheduleDays||[]).map(d=>dayNames[d]).join('')+' '+(L.schedWeekly||'weekly');
+        return L.schedDaily||'daily';
+    }
     function getTodayStatus(){return getLogs().filter(l=>l.date===today())}
     function renderToday(){
         const meds=getMedicines();const logs=getTodayStatus();
         const el=document.getElementById('today-schedule');const sum=document.getElementById('summary');
         if(!meds.length){el.innerHTML='<div class="empty">'+(LANG[currentLang]||LANG.en).noMeds+'</div>';sum.innerHTML='';document.getElementById('adherence-box').innerHTML='';document.getElementById('refill-alerts').innerHTML='';return}
-        const regularMeds=meds.filter(m=>m.freq!=='sos'&&!m.paused);
+        const regularMeds=meds.filter(m=>m.freq!=='sos'&&!m.paused&&isMedDueToday(m));
         const sosMeds=meds.filter(m=>m.freq==='sos'&&!m.paused);
         let allDoses=[];
         regularMeds.forEach(m=>{m.timings.forEach((timing,i)=>{allDoses.push({id:m.id,name:m.name,dosage:m.dosage,timing,time:(m.times&&m.times[i])||'',icon:m.icon||'💊'})})});
@@ -894,7 +984,8 @@
         meds.forEach(m=>{
             if(m.paused||m.freq==='sos')return;
             const freq=parseInt(m.freq)||1;
-            const daysLeft=freq>0?Math.floor((m.stock||0)/freq):999;
+            const dosesPerDayR=freq>0?getDosesPerWeek(m)/7:0;
+            const daysLeft=dosesPerDayR>0?Math.floor((m.stock||0)/dosesPerDayR):999;
             if(daysLeft<=thresholdDays&&daysLeft<999){
                 const lastDate=new Date();lastDate.setDate(lastDate.getDate()+daysLeft);
                 html+=`<div class="alert-box${daysLeft<=3?' danger':''}">⚠️ <strong>${m.name}</strong> — ${m.stock} tabs left (${daysLeft} days). Order by <strong>${lastDate.toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</strong></div>`;
@@ -967,7 +1058,8 @@
             const looseTabs=totalTabs%perStrip;
             const consumed=logs.filter(l=>l.medId===m.id&&l.action==='taken').length;
             const freq=m.freq==='sos'?0:parseInt(m.freq)||1;
-            const daysLeft=freq>0?Math.floor(totalTabs/freq):999;
+            const dosesPerDay=freq>0?getDosesPerWeek(m)/7:0;
+            const daysLeft=dosesPerDay>0?Math.floor(totalTabs/dosesPerDay):999;
             const lastDate=new Date();lastDate.setDate(lastDate.getDate()+daysLeft);
             const lastDateStr=daysLeft<999?lastDate.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):'—';
             const pct=totalTabs?Math.min(100,Math.round(totalTabs/(perStrip*3)*100)):0;
@@ -1022,7 +1114,8 @@
             const freq=parseInt(m.freq)||1;
             const perStrip=m.perStrip||10;
             const price=m.price||0;
-            const daysLeft=Math.floor((m.stock||0)/freq);
+            const dosesPerDayT=getDosesPerWeek(m)/7;
+            const daysLeft=dosesPerDayT>0?Math.floor((m.stock||0)/dosesPerDayT):999;
             const pct=Math.min(100,Math.round(daysLeft/maxDays*100));
             const endDate=new Date();endDate.setDate(endDate.getDate()+daysLeft);
             const dateStr=endDate.toLocaleDateString('en-IN',{day:'numeric',month:'short'});
@@ -1076,7 +1169,7 @@
             const freq=parseInt(m.freq)||1;
             const perStrip=m.perStrip||10;
             const price=m.price||0;
-            const totalNeeded=freq*targetDays;
+            const totalNeeded=Math.ceil(getDosesPerWeek(m)/7*targetDays);
             const have=m.stock||0;
             const deficit=Math.max(0,totalNeeded-have);
             const stripsToBuy=Math.ceil(deficit/perStrip);
@@ -1110,7 +1203,8 @@
             const strips=Math.floor(total/perStrip);const loose=total%perStrip;
             const consumed=logs.filter(l=>l.medId===m.id&&l.action==='taken').length;
             const freq=m.freq==='sos'?0:parseInt(m.freq)||1;
-            const daysLeft=freq>0?Math.floor(total/freq):999;
+            const dosesPerDay2=freq>0?getDosesPerWeek(m)/7:0;
+            const daysLeft=dosesPerDay2>0?Math.floor(total/dosesPerDay2):999;
             const lastDate=new Date();lastDate.setDate(lastDate.getDate()+daysLeft);
             const cls=total<=5?'low':m.paused?'paused':'';
             const status=m.paused?'⏸️ Paused':total<=5?'⚠️ Low':total<=perStrip?'🟡 Reorder soon':'✅ OK';
@@ -1379,7 +1473,7 @@
 
     // === NEXT DOSE WIDGET ===
     function renderNextDoseWidget(){
-        const meds=getMedicines().filter(m=>m.freq!=='sos'&&!m.paused);
+        const meds=getMedicines().filter(m=>m.freq!=='sos'&&!m.paused&&isMedDueToday(m));
         const logs=getTodayStatus();const now=new Date();const nowMin=now.getHours()*60+now.getMinutes();
         let nextDose=null,minDiff=Infinity;
         meds.forEach(m=>{if(!m.times)return;m.timings.forEach((timing,i)=>{
@@ -1525,7 +1619,12 @@
             monthlyReport:'💊 Monthly Medicine Report',adherenceLabel:'Adherence',activeMedicines:'Active Medicines',
             recentBP:'Recent BP:',
             // WhatsApp
-            waNumber:'WhatsApp number:'},
+            waNumber:'WhatsApp number:',
+            // Schedule
+            schedDaily:'daily',schedSpecific:'Specific days',schedAlternate:'alternate days',schedWeekly:'weekly',
+            selectDays:'Select at least one day',everyDay:'Every day',specificDays:'Specific days (Mon/Wed/Fri...)',
+            alternateDays:'Alternate days',onceAWeek:'Once a week',
+            dayNamesShort:['Sun','Mon','Tue','Wed','Thu','Fri','Sat']},
         hi:{title:'💊 दवाई रिमाइंडर',today:'आज',meds:'दवाइयाँ',health:'स्वास्थ्य',stock:'स्टॉक',settings:'सेटिंग्स',
             take:'लें',snooze:'⏰ बाद में',morning:'🌅 सुबह',afternoon:'🌤️ दोपहर',evening:'🌙 शाम',
             nextDose:'⏭️ अगली खुराक',adherence:'📈 साप्ताहिक पालन',done:'हो गया',
@@ -1620,7 +1719,11 @@
             refresh:'🔄 रिफ्रेश',
             monthlyReport:'💊 मासिक दवा रिपोर्ट',adherenceLabel:'पालन',activeMedicines:'सक्रिय दवाइयाँ',
             recentBP:'हाल का BP:',
-            waNumber:'WhatsApp नंबर:'},
+            waNumber:'WhatsApp नंबर:',
+            schedDaily:'रोज़',schedSpecific:'चुने हुए दिन',schedAlternate:'एक दिन छोड़कर',schedWeekly:'साप्ताहिक',
+            selectDays:'कम से कम एक दिन चुनें',everyDay:'हर दिन',specificDays:'चुने हुए दिन (सोम/बुध/शुक्र...)',
+            alternateDays:'एक दिन छोड़कर',onceAWeek:'हफ्ते में एक बार',
+            dayNamesShort:['रवि','सोम','मंगल','बुध','गुरु','शुक्र','शनि']},
         gu:{title:'💊 દવા રીમાઇન્ડર',today:'આજ',meds:'દવાઓ',health:'સ્વાસ્થ્ય',stock:'સ્ટોક',settings:'સેટિંગ્સ',
             take:'લો',snooze:'⏰ પછી',morning:'🌅 સવાર',afternoon:'🌤️ બપોર',evening:'🌙 સાંજ',
             nextDose:'⏭️ આગળની ડોઝ',adherence:'📈 સાપ્તાહિક પાલન',done:'થઈ ગયું',
@@ -1715,7 +1818,11 @@
             refresh:'🔄 રિફ્રેશ',
             monthlyReport:'💊 માસિક દવા રિપોર્ટ',adherenceLabel:'પાલન',activeMedicines:'સક્રિય દવાઓ',
             recentBP:'તાજેતરનું BP:',
-            waNumber:'WhatsApp નંબર:'}
+            waNumber:'WhatsApp નંબર:',
+            schedDaily:'રોજ',schedSpecific:'ચોક્કસ દિવસો',schedAlternate:'એક દિવસ છોડીને',schedWeekly:'સાપ્તાહિક',
+            selectDays:'ઓછામાં ઓછો એક દિવસ પસંદ કરો',everyDay:'દરરોજ',specificDays:'ચોક્કસ દિવસો (સોમ/બુધ/શુક્ર...)',
+            alternateDays:'એક દિવસ છોડીને',onceAWeek:'અઠવાડિયામાં એક વાર',
+            dayNamesShort:['રવિ','સોમ','મંગળ','બુધ','ગુરુ','શુક્ર','શનિ']}
     };
     let currentLang='en';
     function setLanguage(lang){currentLang=lang;localStorage.setItem('app_lang',lang);applyLanguage();renderToday()}
@@ -1946,7 +2053,7 @@
     }
     function checkReminders(){
         if(!('Notification' in window)||Notification.permission!=='granted')return;
-        const meds=getMedicines().filter(m=>!m.paused&&m.freq!=='sos');const logs=getTodayStatus();const now=new Date();const nowMin=now.getHours()*60+now.getMinutes();
+        const meds=getMedicines().filter(m=>!m.paused&&m.freq!=='sos'&&isMedDueToday(m));const logs=getTodayStatus();const now=new Date();const nowMin=now.getHours()*60+now.getMinutes();
         const reminded=JSON.parse(localStorage.getItem('reminded_'+today())||'{}');const ns=getNotifSettings();
         meds.forEach(m=>{if(!m.times)return;m.timings.forEach((timing,i)=>{
             const log=logs.find(l=>l.medId===m.id&&l.timing===timing);if(log)return;
@@ -2093,7 +2200,7 @@
     document.addEventListener('visibilitychange',()=>{if(!document.hidden){pullFromDrive();checkForUpdate()}});
 
     // === UPDATE CHECK ===
-    const APP_VERSION='4.5';
+    const APP_VERSION='4.6';
     async function checkForUpdate(){
         try{
             const r=await fetch('version.json?t='+Date.now());const d=await r.json();
