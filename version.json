@@ -1,5 +1,5 @@
 {
-  "version": "4.4",
-  "deployed": "23 Jun 2026, 09:55:00 PM IST",
-  "features": "EmailJS silent emails, full Hindi/Gujarati translation, better snooze, no time prompt, login widget, monthly cost breakdown, notification reliability"
+  "version": "4.5",
+  "deployed": "24 Jun 2026, 11:56:00 AM IST",
+  "features": "100% Hindi/Gujarati translation (all labels, prompts, alerts, dynamic text — 252 keys)"
 }
