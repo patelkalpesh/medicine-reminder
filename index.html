@@ -72,10 +72,10 @@
         .next-dose-widget{background:linear-gradient(135deg,#4CAF50,#2E7D32);color:#fff;border-radius:14px;padding:16px;margin-bottom:14px;text-align:center;box-shadow:0 4px 12px rgba(76,175,80,0.3)}
         .next-dose-widget .ndw-label{font-size:0.75rem;opacity:0.8}.next-dose-widget .ndw-name{font-size:1.2rem;font-weight:bold;margin:4px 0}.next-dose-widget .ndw-time{font-size:0.9rem;opacity:0.9}
         .paused{opacity:0.4;border-left:3px solid #FF9800}
-        .pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid #4CAF50;transition:all 0.2s}
-        .pin-dot.filled{background:#4CAF50}
-        .pin-key{width:60px;height:60px;border-radius:50%;border:2px solid #ddd;background:#fff;font-size:1.3rem;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center}
-        .pin-key:active{background:#e8f5e9;border-color:#4CAF50}
+        .pin-dot{width:18px;height:18px;border-radius:50%;border:2px solid #4CAF50;transition:all 0.2s;background:#e8f5e9}
+        .pin-dot.filled{background:#4CAF50;transform:scale(1.15);box-shadow:0 2px 8px rgba(76,175,80,0.4)}
+        .pin-key{width:64px;height:64px;border-radius:50%;border:1px solid #e0e0e0;background:#fafafa;font-size:1.4rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;box-shadow:0 2px 4px rgba(0,0,0,0.05)}
+        .pin-key:active{background:#4CAF50;color:#fff;transform:scale(0.92);border-color:#4CAF50}
         @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
         body.dark{background:#1a1a1a;color:#eee}
         body.dark .card{background:#2a2a2a;box-shadow:0 2px 8px rgba(0,0,0,0.3)}
@@ -95,20 +95,19 @@
 </head>
 <body>
     <!-- LOGIN SCREEN -->
-    <div id="login-screen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:90vh;padding:20px;">
-        <div id="login-next-dose" style="width:100%;max-width:300px;margin-bottom:16px;"></div>
-        <div style="text-align:center;margin-bottom:30px;">
-            <div style="font-size:3rem;margin-bottom:10px;">💊</div>
-            <h1 style="color:#4CAF50;margin:0;font-size:1.6rem;">Medicine Reminder</h1>
-            <p style="color:#666;font-size:0.85rem;margin-top:4px;" id="login-email"></p>
-            <p style="color:#999;font-size:0.7rem;margin-top:8px;max-width:280px;">Track daily medicines, get dose reminders, manage stock, log BP & vitals. Syncs across devices.</p>
+    <div id="login-screen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:linear-gradient(180deg,#e8f5e9 0%,#fff 50%,#e3f2fd 100%);">
+        <div id="login-next-dose" style="width:100%;max-width:320px;margin-bottom:16px;"></div>
+        <div style="text-align:center;margin-bottom:24px;">
+            <div style="font-size:3.5rem;margin-bottom:8px;filter:drop-shadow(0 4px 8px rgba(76,175,80,0.3));">💊</div>
+            <h1 style="color:#2E7D32;margin:0;font-size:1.5rem;font-weight:700;">Medicine Reminder</h1>
+            <p style="color:#666;font-size:0.8rem;margin-top:6px;" id="login-email"></p>
         </div>
-        <div class="card" style="width:100%;max-width:300px;text-align:center;">
-            <h2 id="pin-title" style="margin-bottom:16px;">Enter PIN</h2>
-            <div id="pin-dots" style="display:flex;justify-content:center;gap:12px;margin-bottom:20px;">
+        <div style="width:100%;max-width:300px;background:#fff;border-radius:20px;padding:24px 20px;box-shadow:0 8px 32px rgba(0,0,0,0.1);text-align:center;">
+            <h2 id="pin-title" style="margin-bottom:20px;font-size:1.1rem;color:#333;">Enter PIN</h2>
+            <div id="pin-dots" style="display:flex;justify-content:center;gap:16px;margin-bottom:24px;">
                 <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;max-width:220px;margin:0 auto;">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;max-width:240px;margin:0 auto;">
                 <button class="pin-key" onclick="pinInput('1')">1</button>
                 <button class="pin-key" onclick="pinInput('2')">2</button>
                 <button class="pin-key" onclick="pinInput('3')">3</button>
@@ -118,12 +117,13 @@
                 <button class="pin-key" onclick="pinInput('7')">7</button>
                 <button class="pin-key" onclick="pinInput('8')">8</button>
                 <button class="pin-key" onclick="pinInput('9')">9</button>
-                <button class="pin-key" onclick="pinInput('')"></button>
+                <button class="pin-key" onclick="pinInput('')" style="visibility:hidden;"></button>
                 <button class="pin-key" onclick="pinInput('0')">0</button>
-                <button class="pin-key" onclick="pinDelete()">⌫</button>
+                <button class="pin-key" onclick="pinDelete()" style="font-size:1.1rem;">⌫</button>
             </div>
-            <p id="pin-error" style="color:#e53935;font-size:0.8rem;margin-top:12px;display:none;">Wrong PIN. Try again.</p>
+            <p id="pin-error" style="color:#e53935;font-size:0.8rem;margin-top:14px;display:none;">Wrong PIN. Try again.</p>
         </div>
+        <p style="color:#999;font-size:0.65rem;margin-top:16px;max-width:260px;text-align:center;">Track medicines, reminders, stock & health — syncs across devices</p>
     </div>
 
     <!-- APP (hidden until PIN verified) -->
@@ -293,9 +293,10 @@
             <p style="font-size:0.8rem;color:#666;margin-bottom:8px;">Auto-WhatsApp if dose missed by 30 min</p>
             <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#f9f9f9;border-radius:8px;margin-bottom:10px;"><input type="checkbox" id="caretaker-enabled" onchange="localStorage.setItem('caretaker_enabled',this.checked);markUpdated()" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">Enable missed-dose alerts</span></label>
             <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#e8f5e9;border-radius:8px;margin-bottom:10px;"><input type="checkbox" id="notify-on-take" onchange="localStorage.setItem('notify_on_take',this.checked);markUpdated()" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">📤 WhatsApp when I take medicine</span></label>
-            <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#e3f2fd;border-radius:8px;margin-bottom:10px;"><input type="checkbox" id="email-on-take" onchange="localStorage.setItem('email_on_take',this.checked);markUpdated()" style="width:auto;margin:0;accent-color:#2196F3"> <span style="font-size:0.85rem;">📧 Email when I take medicine</span></label>
+            <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#e3f2fd;border-radius:8px;margin-bottom:10px;"><input type="checkbox" id="email-on-take" onchange="localStorage.setItem('email_on_take',this.checked);document.getElementById('email-on-take-addr').style.display=this.checked?'block':'none';markUpdated()" style="width:auto;margin:0;accent-color:#2196F3"> <span style="font-size:0.85rem;">📧 Email when I take medicine</span></label>
             <div id="email-on-take-addr" style="display:none;margin-bottom:10px;">
-                <input type="text" id="take-email-addr" placeholder="Emails (comma separated, e.g. a@b.com, c@d.com)" onchange="localStorage.setItem('take_email_to',this.value);markUpdated()" style="margin:0;padding:8px;font-size:0.85rem;">
+                <input type="text" id="take-email-addr" placeholder="Caretaker email (e.g. kal.shooter007@gmail.com)" value="kal.shooter007@gmail.com" onchange="localStorage.setItem('take_email_to',this.value);markUpdated()" style="margin:0;padding:8px;font-size:0.85rem;">
+                <button class="btn-sm" style="background:#2196F3;margin-top:6px;" onclick="testTakeEmail()">🧪 Test Email</button>
                 <details style="margin-top:6px;font-size:0.75rem;color:#666;"><summary style="cursor:pointer;color:#2196F3;">⚙️ EmailJS Setup (one-time)</summary>
                 <p style="margin:6px 0 4px;">Sign up free at <a href="https://emailjs.com" target="_blank">emailjs.com</a> → get these 3 values:</p>
                 <input type="text" id="emailjs-service" placeholder="Service ID (e.g. service_xxx)" onchange="localStorage.setItem('emailjs_service_id',this.value)" style="margin:4px 0;padding:6px;font-size:0.8rem;">
@@ -445,8 +446,8 @@
             </div>
         </div>
         <div class="card" style="text-align:center;">
-            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v4.7</p>
-            <p style="font-size:0.7rem;color:#bbb;">Deployed: 24 Jun 2026, 03:23:00 PM IST</p>
+            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v4.8</p>
+            <p style="font-size:0.7rem;color:#bbb;">Deployed: 25 Jun 2026, 07:45:00 AM IST</p>
             <p style="font-size:0.7rem;color:#888;margin-top:8px;">Made by <strong>Kalpesh Patel</strong></p>
             <p style="font-size:0.7rem;margin-top:4px;"><a href="tel:+917405856226" style="color:#4CAF50;text-decoration:none;">📞 +91 74058 56226</a> • <a href="https://wa.me/917405856226" style="color:#25D366;text-decoration:none;">💬 WhatsApp</a></p>
             <p style="font-size:0.7rem;"><a href="mailto:kal.shooter007@gmail.com" style="color:#2196F3;text-decoration:none;">📧 kal.shooter007@gmail.com</a></p>
@@ -683,11 +684,36 @@
         document.getElementById('med-photo-input').value='';
     }
     function viewMedPhoto(id){
-        const m=getMedicines().find(x=>x.id===id);if(!m||!m.photo)return;
+        const meds=getMedicines().filter(m=>m.photo);
+        let idx=meds.findIndex(x=>x.id===id);if(idx<0)return;
+        function showSlide(i){
+            const m=meds[i];
+            const freq=m.freq==='sos'?'SOS':m.freq+'x daily';
+            const schedule=getScheduleLabel(m);
+            const timesStr=m.times?m.timings.map((t,j)=>tTiming(t)+(m.times[j]?' @ '+formatTime12(m.times[j]):'')).join(', '):'';
+            const stockInfo=m.stock?`📦 ${m.stock} tabs (${Math.floor(m.stock/(m.perStrip||10))} strips + ${m.stock%(m.perStrip||10)} loose)`:'';
+            const priceInfo=m.price?`💰 ₹${parseFloat(m.price).toFixed(2)}/strip`:'';
+            const courseInfo=getCourseInfo(m);
+            modal.querySelector('.gal-img').src=m.photo;
+            modal.querySelector('.gal-info').innerHTML=`<div style="font-size:1.1rem;font-weight:bold;">${m.icon||'💊'} ${m.name}</div>
+                <div style="font-size:0.85rem;opacity:0.9;margin-top:4px;">${m.dosage} • ${freq} • ${schedule}</div>
+                ${timesStr?'<div style="font-size:0.8rem;margin-top:6px;">⏰ '+timesStr+'</div>':''}
+                ${stockInfo?'<div style="font-size:0.8rem;margin-top:4px;">'+stockInfo+'</div>':''}
+                ${priceInfo?'<div style="font-size:0.8rem;margin-top:4px;">'+priceInfo+'</div>':''}
+                ${courseInfo?'<div style="font-size:0.8rem;margin-top:4px;">'+courseInfo+'</div>':''}
+                <div style="font-size:0.7rem;margin-top:8px;opacity:0.6;">${i+1} / ${meds.length} — Swipe ← → or tap arrows</div>`;
+        }
         const modal=document.createElement('div');modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;';
-        modal.onclick=function(){modal.remove()};
-        modal.innerHTML=`<div style="color:#fff;font-size:1rem;font-weight:bold;margin-bottom:12px;">${m.icon||'💊'} ${m.name}</div><img src="${m.photo}" style="max-width:90%;max-height:70vh;border-radius:12px;"><div style="color:#aaa;font-size:0.8rem;margin-top:10px;">${m.dosage||''}</div><button style="position:absolute;top:16px;right:16px;background:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:1.2rem;cursor:pointer;">✕</button>`;
-        document.body.appendChild(modal);
+        modal.innerHTML=`<button onclick="this.parentElement.remove()" style="position:absolute;top:16px;right:16px;background:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:1.2rem;cursor:pointer;z-index:10;">✕</button>
+            <button class="gal-prev" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.2);border:none;color:#fff;font-size:1.5rem;padding:12px;border-radius:50%;cursor:pointer;">◀</button>
+            <button class="gal-next" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.2);border:none;color:#fff;font-size:1.5rem;padding:12px;border-radius:50%;cursor:pointer;">▶</button>
+            <img class="gal-img" style="max-width:85%;max-height:55vh;border-radius:12px;object-fit:contain;">
+            <div class="gal-info" style="color:#fff;text-align:center;margin-top:14px;max-width:90%;"></div>`;
+        modal.querySelector('.gal-prev').onclick=function(e){e.stopPropagation();idx=(idx-1+meds.length)%meds.length;showSlide(idx)};
+        modal.querySelector('.gal-next').onclick=function(e){e.stopPropagation();idx=(idx+1)%meds.length;showSlide(idx)};
+        let touchX=0;modal.addEventListener('touchstart',e=>{touchX=e.touches[0].clientX});
+        modal.addEventListener('touchend',e=>{const diff=e.changedTouches[0].clientX-touchX;if(Math.abs(diff)>50){idx=diff<0?(idx+1)%meds.length:(idx-1+meds.length)%meds.length;showSlide(idx)}});
+        document.body.appendChild(modal);showSlide(idx);
     }
 
     // === MEDICINE FORM ===
@@ -960,6 +986,21 @@
             sosHtml+='</div>';el.innerHTML+=sosHtml;
         }
         renderNextDoseWidget();
+        // Morning gap display
+        const morningTimings=TIMING_GROUPS['Morning'];
+        const morningDoses=allDoses.filter(d=>morningTimings.includes(d.timing)&&d.time).sort((a,b)=>a.time.localeCompare(b.time));
+        if(morningDoses.length>1){
+            let gapHtml='<div class="card" style="background:#fff8e1;padding:10px 14px;"><strong style="font-size:0.8rem;">🌅 Morning Medicine Gaps</strong><div style="font-size:0.75rem;color:#555;margin-top:6px;">';
+            for(let g=0;g<morningDoses.length-1;g++){
+                const[h1,m1]=morningDoses[g].time.split(':').map(Number);
+                const[h2,m2]=morningDoses[g+1].time.split(':').map(Number);
+                const gap=(h2*60+m2)-(h1*60+m1);
+                const gh=Math.floor(Math.abs(gap)/60),gm=Math.abs(gap)%60;
+                gapHtml+=`${morningDoses[g].icon} ${morningDoses[g].name} → ${morningDoses[g+1].icon} ${morningDoses[g+1].name}: <strong>${gh>0?gh+'h ':''}${gm}min</strong><br>`;
+            }
+            gapHtml+='</div></div>';
+            el.innerHTML=gapHtml+el.innerHTML;
+        }
         resumeSnoozes();
     }
     function logDose(medId,timing,action){
@@ -2018,9 +2059,19 @@
         if(!logs.length){el.innerHTML='<div class="empty">'+(LANG[currentLang]||LANG.en).noHistory+'</div>';return}
         const grouped={};
         logs.forEach(l=>{if(!grouped[l.date])grouped[l.date]=[];const med=meds.find(m=>m.id===l.medId);grouped[l.date].push({...l,medName:med?med.name:'Unknown'})});
+        const todayStr=today();
         let html='';Object.keys(grouped).sort().reverse().slice(0,14).forEach(date=>{
-            html+=`<div class="log-date-header">${new Date(date).toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})}</div>`;
+            const isToday=date===todayStr;
+            const dateLabel=new Date(date).toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})+(isToday?' (Today)':'');
+            const count=grouped[date].length;
+            html+=`<div style="margin-bottom:6px;border:1px solid #eee;border-radius:8px;overflow:hidden;">
+                <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.hist-arrow').textContent=this.nextElementSibling.style.display==='none'?'▶':'▼'" style="padding:10px 12px;background:${isToday?'#e8f5e9':'#f9f9f9'};cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-weight:bold;color:${isToday?'#2e7d32':'#4CAF50'};font-size:0.9rem;">${dateLabel}</span>
+                    <span style="font-size:0.75rem;color:#666;">${count} entries <span class="hist-arrow">${isToday?'▼':'▶'}</span></span>
+                </div>
+                <div style="display:${isToday?'block':'none'};padding:6px 10px;">`;
             grouped[date].forEach(l=>{html+=`<div class="log-entry">${l.action==='taken'?'✅':'⏭️'} <strong>${l.medName}</strong> - ${l.timing} <span style="float:right;color:#666;font-size:0.8rem">${new Date(l.time).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</span>${l.note?'<br><small style="color:#FF9800">📝 '+l.note+'</small>':''}</div>`});
+            html+=`</div></div>`;
         });
         el.innerHTML=html;
     }
@@ -2033,7 +2084,13 @@
         return text;
     }
     function exportWhatsApp(){window.open('https://wa.me/?text='+encodeURIComponent(getExportText()))}
-    function exportEmail(){window.open('mailto:?subject=Medicine History&body='+encodeURIComponent(getExportText()))}
+    function exportEmail(){
+        const defaultEmail=localStorage.getItem('report_email')||'kal.shooter007@gmail.com';
+        const to=prompt('📧 Send to email:',defaultEmail);
+        if(!to)return;
+        localStorage.setItem('report_email',to);
+        window.open('mailto:'+encodeURIComponent(to)+'?subject=Medicine History&body='+encodeURIComponent(getExportText()));
+    }
     function exportPDF(){const logs=getLogs();const meds=getMedicines();let h='<html><head><title>Medicine History</title><style>body{font-family:sans-serif;padding:20px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#4CAF50;color:#fff}</style></head><body><h1>💊 Medicine History</h1><table><tr><th>Date</th><th>Medicine</th><th>Timing</th><th>Status</th></tr>';logs.sort((a,b)=>b.time.localeCompare(a.time)).forEach(l=>{const med=meds.find(m=>m.id===l.medId);h+=`<tr><td>${l.date}</td><td>${med?med.name:'?'}</td><td>${l.timing}</td><td>${l.action}</td></tr>`});h+='</table></body></html>';openReport(h)}
     function exportExcel(){const logs=getLogs();const meds=getMedicines();let csv='Date,Medicine,Timing,Status,Time\n';logs.sort((a,b)=>b.time.localeCompare(a.time)).forEach(l=>{const med=meds.find(m=>m.id===l.medId);csv+=`${l.date},"${med?med.name:'?'}",${l.timing},${l.action},${new Date(l.time).toLocaleTimeString()}\n`});const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='medicine-history.csv';a.click()}
 
@@ -2067,16 +2124,16 @@
     }
     function checkReminders(){
         if(!('Notification' in window)||Notification.permission!=='granted')return;
-        const meds=getMedicines().filter(m=>!m.paused&&m.freq!=='sos'&&isMedDueToday(m));const logs=getTodayStatus();const now=new Date();const nowMin=now.getHours()*60+now.getMinutes();
+        const meds=getMedicines().filter(m=>!m.paused&&m.freq!=='sos'&&isMedDueToday(m));const logs=getTodayStatus();const now=new Date();const nowMin=now.getHours()*60+now.getMinutes()+now.getSeconds()/60;
         const reminded=JSON.parse(localStorage.getItem('reminded_'+today())||'{}');const ns=getNotifSettings();
         meds.forEach(m=>{if(!m.times)return;m.timings.forEach((timing,i)=>{
             const log=logs.find(l=>l.medId===m.id&&l.timing===timing);if(log)return;
             const[h,min]=m.times[i].split(':').map(Number);const doseMin=h*60+min;const diff=doseMin-nowMin;
             const key=m.id+'_'+i;
-            if(ns.m30&&diff<=30&&diff>15&&!reminded[key+'_30']){new Notification('💊 '+m.name,{body:`30 min before — ${timing} at ${formatTime12(m.times[i])}`,icon:'icon-192.png',tag:key+'_30'});playAlertSound();reminded[key+'_30']=true}
-            if(ns.m15&&diff<=15&&diff>5&&!reminded[key+'_15']){new Notification('💊 '+m.name,{body:`15 min before — ${timing} at ${formatTime12(m.times[i])}`,icon:'icon-192.png',tag:key+'_15'});playAlertSound();reminded[key+'_15']=true}
-            if(ns.m5&&diff<=5&&diff>0&&!reminded[key+'_5']){new Notification('💊 '+m.name,{body:`5 min before — ${timing} at ${formatTime12(m.times[i])}`,icon:'icon-192.png',tag:key+'_5'});playAlertSound();reminded[key+'_5']=true}
-            if(ns.m0&&diff<=0&&diff>-30&&!reminded[key+'_0']){new Notification('⏰ Take '+m.name+' NOW',{body:`${timing} — ${m.dosage}`,icon:'icon-192.png',tag:key+'_0'});playAlertSound();reminded[key+'_0']=true}
+            if(ns.m30&&diff<=31&&diff>15&&!reminded[key+'_30']){new Notification('💊 '+m.name,{body:`30 min before — ${timing} at ${formatTime12(m.times[i])}`,icon:'icon-192.png',tag:key+'_30',requireInteraction:true});playAlertSound();reminded[key+'_30']=true}
+            if(ns.m15&&diff<=16&&diff>5&&!reminded[key+'_15']){new Notification('💊 '+m.name,{body:`15 min before — ${timing} at ${formatTime12(m.times[i])}`,icon:'icon-192.png',tag:key+'_15',requireInteraction:true});playAlertSound();reminded[key+'_15']=true}
+            if(ns.m5&&diff<=6&&diff>0&&!reminded[key+'_5']){new Notification('💊 '+m.name,{body:`5 min before — ${timing} at ${formatTime12(m.times[i])}`,icon:'icon-192.png',tag:key+'_5',requireInteraction:true});playAlertSound();reminded[key+'_5']=true}
+            if(ns.m0&&diff<=1&&diff>-30&&!reminded[key+'_0']){new Notification('⏰ Take '+m.name+' NOW',{body:`${timing} — ${m.dosage}`,icon:'icon-192.png',tag:key+'_0',requireInteraction:true});playAlertSound();reminded[key+'_0']=true}
             // Caretaker alert if missed by 30 min
             if(diff<-30&&!reminded[key+'_missed']){sendCaretakerAlert(m,timing);reminded[key+'_missed']=true}
         })});
@@ -2104,7 +2161,16 @@
         }
         next();
     }
-    setInterval(checkReminders,30000);setTimeout(checkReminders,3000);
+    function testTakeEmail(){
+        const toEmails=localStorage.getItem('take_email_to')||document.getElementById('take-email-addr').value||'kal.shooter007@gmail.com';
+        const pubKey=localStorage.getItem('emailjs_public_key')||'';
+        const svcId=localStorage.getItem('emailjs_service_id')||'';
+        const tplId=localStorage.getItem('emailjs_template_id')||'';
+        if(!pubKey||!svcId||!tplId){alert('⚙️ Please configure EmailJS first (expand setup section below email field)');return}
+        if(!window.emailjs){alert('EmailJS not loaded. Check internet.');return}
+        emailjs.send(svcId,tplId,{to_email:toEmails.split(',')[0].trim(),medicine_name:'TEST Medicine',timing:'After Breakfast',time_taken:new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),date:today()},{publicKey:pubKey}).then(()=>alert('✅ Test email sent to '+toEmails.split(',')[0].trim())).catch(e=>alert('❌ Failed: '+e.text));
+    }
+    setInterval(checkReminders,15000);setTimeout(checkReminders,2000);
     // Re-check immediately when tab becomes visible (phone unlock, switch back)
     document.addEventListener('visibilitychange',()=>{if(!document.hidden){checkReminders();renderToday()}});
     window.addEventListener('focus',()=>{checkReminders();renderToday()});
@@ -2214,7 +2280,7 @@
     document.addEventListener('visibilitychange',()=>{if(!document.hidden){pullFromDrive();checkForUpdate()}});
 
     // === UPDATE CHECK ===
-    const APP_VERSION='4.7';
+    const APP_VERSION='4.8';
     async function checkForUpdate(){
         try{
             const r=await fetch('version.json?t='+Date.now());const d=await r.json();
