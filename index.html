@@ -260,6 +260,11 @@
             <div id="prescription-list"></div>
             <button class="btn" onclick="addPrescription()">+ Add Prescription</button>
         </div>
+        <div class="card">
+            <h2>🏥 Doctor / Pharmacy</h2>
+            <div id="doctor-list"></div>
+            <button class="btn" onclick="addDoctor()">+ Add Doctor/Pharmacy</button>
+        </div>
     </div>
 
     <!-- STOCK -->
@@ -287,38 +292,23 @@
             </select>
             <div id="order-plan" style="margin-top:10px;"></div>
         </div>
-        <div class="card">
-            <h2>🏥 Doctor / Pharmacy</h2>
-            <div id="doctor-list"></div>
-            <button class="btn" onclick="addDoctor()">+ Add Doctor/Pharmacy</button>
-        </div>
-        <div class="card">
-            <h2>💬 Caretaker Alerts</h2>
-            <p style="font-size:0.8rem;color:#666;margin-bottom:8px;">Auto-WhatsApp if dose missed by 30 min</p>
-            <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#f9f9f9;border-radius:8px;margin-bottom:10px;"><input type="checkbox" id="caretaker-enabled" onchange="localStorage.setItem('caretaker_enabled',this.checked);markUpdated()" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">Enable missed-dose alerts</span></label>
-            <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#e8f5e9;border-radius:8px;margin-bottom:10px;"><input type="checkbox" id="notify-on-take" onchange="localStorage.setItem('notify_on_take',this.checked);markUpdated()" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">📤 WhatsApp when I take medicine</span></label>
-            <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#e3f2fd;border-radius:8px;margin-bottom:10px;"><input type="checkbox" id="email-on-take" onchange="localStorage.setItem('email_on_take',this.checked);document.getElementById('email-on-take-addr').style.display=this.checked?'block':'none';markUpdated()" style="width:auto;margin:0;accent-color:#2196F3"> <span style="font-size:0.85rem;">📧 Email when I take medicine</span></label>
-            <div id="email-on-take-addr" style="display:none;margin-bottom:10px;">
-                <input type="text" id="take-email-addr" placeholder="email1@gmail.com, email2@gmail.com" value="" onchange="localStorage.setItem('take_email_to',this.value);markUpdated()" style="margin:0;padding:8px;font-size:0.85rem;">
-                <button class="btn-sm" style="background:#2196F3;margin-top:6px;" onclick="testTakeEmail()">🧪 Test Email</button>
-                <details style="margin-top:6px;font-size:0.75rem;color:#666;"><summary style="cursor:pointer;color:#2196F3;">⚙️ EmailJS Setup (one-time)</summary>
-                <p style="margin:6px 0 4px;">Sign up free at <a href="https://emailjs.com" target="_blank">emailjs.com</a> → get these 3 values:</p>
-                <input type="text" id="emailjs-service" placeholder="Service ID (e.g. service_xxx)" onchange="localStorage.setItem('emailjs_service_id',this.value)" style="margin:4px 0;padding:6px;font-size:0.8rem;">
-                <input type="text" id="emailjs-template" placeholder="Template ID (e.g. template_xxx)" onchange="localStorage.setItem('emailjs_template_id',this.value)" style="margin:4px 0;padding:6px;font-size:0.8rem;">
-                <input type="text" id="emailjs-pubkey" placeholder="Public Key (e.g. abc123xyz)" onchange="localStorage.setItem('emailjs_public_key',this.value)" style="margin:4px 0;padding:6px;font-size:0.8rem;">
-                <p style="margin:4px 0;color:#999;">Template vars: {{to_email}}, {{medicine_name}}, {{timing}}, {{time_taken}}, {{date}}</p>
-                </details>
-            </div>
-            <div id="caretaker-list"></div>
-            <button class="btn" onclick="addCaretaker()">+ Add Caretaker</button>
-            <button class="btn" style="background:#FF9800;margin-top:8px;" onclick="testCaretakerAlert()">🧪 Test Alert (send now)</button>
-        </div>
     </div>
 
     <!-- SETTINGS -->
     <div id="page-settings" class="page">
         <div class="card">
-            <h2>🔔 Reminder Notifications</h2>
+            <h2>☁️ Sync & Account</h2>
+            <div id="sync-signed-out"><button class="btn" onclick="gDriveSignIn()">🔑 Sign in with Google</button></div>
+            <div id="sync-signed-in" style="display:none;">
+                <div style="background:#e8f5e9;padding:12px;border-radius:8px;margin-bottom:12px;"><strong>✅</strong> <span id="sync-email"></span></div>
+                <button class="btn" onclick="syncNow()" style="background:#2196F3;">🔄 Sync Now</button>
+                <button class="btn" onclick="gDriveSignOut()" style="background:#666;margin-top:8px;">Sign Out</button>
+                <div id="sync-status" style="font-size:0.8rem;color:#666;margin-top:12px;text-align:center;"></div>
+            </div>
+            <div id="last-sync-info" style="margin-top:12px;padding:10px;background:#f0f0f0;border-radius:8px;font-size:0.8rem;color:#555;text-align:center;"></div>
+        </div>
+        <div class="card">
+            <h2>🔔 Notifications</h2>
             <p style="font-size:0.8rem;color:#666;margin-bottom:12px;">Get reminded before each dose</p>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
                 <label style="display:flex;align-items:center;gap:8px;padding:10px;background:#f9f9f9;border-radius:8px;cursor:pointer"><input type="checkbox" id="notif-30" checked onchange="saveNotifSettings()" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">30 min</span></label>
@@ -330,31 +320,32 @@
             <button class="btn" id="notif-btn" onclick="toggleNotifPermission()">Enable Notifications</button>
         </div>
         <div class="card">
-            <h2>☁️ Google Drive Sync</h2>
-            <div id="sync-signed-out"><button class="btn" onclick="gDriveSignIn()">🔑 Sign in with Google</button></div>
-            <div id="sync-signed-in" style="display:none;">
-                <div style="background:#e8f5e9;padding:12px;border-radius:8px;margin-bottom:12px;"><strong>✅</strong> <span id="sync-email"></span></div>
-                <button class="btn" onclick="syncNow()" style="background:#2196F3;">🔄 Sync Now</button>
-                <button class="btn" onclick="gDriveSignOut()" style="background:#666;margin-top:8px;">Sign Out</button>
-                <div id="sync-status" style="font-size:0.8rem;color:#666;margin-top:12px;text-align:center;"></div>
-            </div>
-            <div id="last-sync-info" style="margin-top:12px;padding:10px;background:#f0f0f0;border-radius:8px;font-size:0.8rem;color:#555;text-align:center;"></div>
+            <h2>📧 Email Alerts</h2>
+            <label style="font-size:0.8rem;color:#666;margin-bottom:4px;">Send emails to:</label>
+            <input type="text" id="take-email-addr" placeholder="email1@gmail.com, email2@gmail.com" value="" onchange="localStorage.setItem('take_email_to',this.value);markUpdated()" style="margin:0 0 10px;padding:8px;font-size:0.85rem;">
+            <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#e3f2fd;border-radius:8px;margin-bottom:8px;"><input type="checkbox" id="email-on-take" onchange="localStorage.setItem('email_on_take',this.checked);markUpdated()" style="width:auto;margin:0;accent-color:#2196F3"> <span style="font-size:0.85rem;">📧 Email when medicine taken</span></label>
+            <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#fff3e0;border-radius:8px;margin-bottom:8px;"><input type="checkbox" id="email-on-miss" checked disabled style="width:auto;margin:0;accent-color:#FF9800"> <span style="font-size:0.85rem;">⚠️ Email when dose missed (auto)</span></label>
+            <button class="btn-sm" style="background:#2196F3;margin-top:6px;" onclick="testTakeEmail()">🧪 Test Email</button>
+            <details style="margin-top:10px;font-size:0.75rem;color:#666;"><summary style="cursor:pointer;color:#2196F3;">⚙️ EmailJS Setup (one-time)</summary>
+            <p style="margin:6px 0 4px;">Sign up free at <a href="https://emailjs.com" target="_blank">emailjs.com</a> → get these 3 values:</p>
+            <input type="text" id="emailjs-service" placeholder="Service ID (e.g. service_xxx)" onchange="localStorage.setItem('emailjs_service_id',this.value)" style="margin:4px 0;padding:6px;font-size:0.8rem;">
+            <input type="text" id="emailjs-template" placeholder="Template ID (e.g. template_xxx)" onchange="localStorage.setItem('emailjs_template_id',this.value)" style="margin:4px 0;padding:6px;font-size:0.8rem;">
+            <input type="text" id="emailjs-pubkey" placeholder="Public Key (e.g. abc123xyz)" onchange="localStorage.setItem('emailjs_public_key',this.value)" style="margin:4px 0;padding:6px;font-size:0.8rem;">
+            <p style="margin:4px 0;color:#999;">Template: To={{to_email}}, Subject={{title}}, Body={{{message}}}</p>
+            </details>
         </div>
         <div class="card">
-            <h2>📋 History & Export</h2>
-            <div id="history-list"></div>
-            <div class="export-bar">
-                <button class="btn-sm btn-export" onclick="exportWhatsApp()">📱 WhatsApp</button>
-                <button class="btn-sm btn-export" onclick="exportEmail()">📧 Email</button>
-                <button class="btn-sm btn-export" onclick="exportPDF()">📄 PDF</button>
-                <button class="btn-sm btn-export" onclick="exportExcel()">📊 Excel</button>
-            </div>
-            <button class="btn" onclick="monthlyPDFEmail()" style="background:#9C27B0;margin-top:8px;">📧 Setup Monthly Auto-Email Report</button>
+            <h2>💬 Caretaker (WhatsApp)</h2>
+            <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#f9f9f9;border-radius:8px;margin-bottom:8px;"><input type="checkbox" id="caretaker-enabled" onchange="localStorage.setItem('caretaker_enabled',this.checked);markUpdated()" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">⚠️ Alert if missed (30 min)</span></label>
+            <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#e8f5e9;border-radius:8px;margin-bottom:10px;"><input type="checkbox" id="notify-on-take" onchange="localStorage.setItem('notify_on_take',this.checked);markUpdated()" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">📤 Notify when I take</span></label>
+            <div id="caretaker-list"></div>
+            <button class="btn" onclick="addCaretaker()">+ Add Caretaker</button>
+            <button class="btn" style="background:#FF9800;margin-top:8px;" onclick="testCaretakerAlert()">🧪 Test Alert</button>
         </div>
-        <div class="card" id="install-card">
-            <h2>⚙️ Preferences</h2>
+        <div class="card">
+            <h2>⚙️ General</h2>
             <label style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0"><input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode()" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">🌙 Dark Mode</span></label>
-            <label style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0"><input type="checkbox" id="sound-toggle" checked onchange="localStorage.setItem('sound_on',this.checked)" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">🔊 Sound on notification</span></label>
+            <label style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0"><input type="checkbox" id="sound-toggle" checked onchange="localStorage.setItem('sound_on',this.checked);markUpdated()" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">🔊 Sound on notification</span></label>
             <div style="padding:8px 0;border-bottom:1px solid #f0f0f0"><button class="btn-sm" style="background:#FF9800;" onclick="changePin()">🔑 Change PIN</button></div>
             <label style="font-size:0.85rem;margin-top:8px;">🌐 Language</label>
             <select id="lang-select" onchange="setLanguage(this.value)" style="margin-top:4px;">
@@ -362,56 +353,55 @@
                 <option value="hi">हिन्दी (Hindi)</option>
                 <option value="gu">ગુજરાતી (Gujarati)</option>
             </select>
-            <label style="font-size:0.85rem;margin-top:12px;">📦 Reorder alert when stock is less than</label>
-            <select id="reorder-days" onchange="localStorage.setItem('reorder_days',this.value)" style="margin-top:4px;">
+        </div>
+        <div class="card">
+            <h2>📦 Reorder Alerts</h2>
+            <label style="font-size:0.85rem;">Alert when stock less than</label>
+            <select id="reorder-days" onchange="localStorage.setItem('reorder_days',this.value);markUpdated()" style="margin-top:4px;">
                 <option value="3">3 days</option>
                 <option value="5">5 days</option>
                 <option value="7" selected>7 days</option>
                 <option value="10">10 days</option>
                 <option value="14">14 days</option>
             </select>
-            <label style="font-size:0.85rem;margin-top:8px;">📦 Reorder alert via</label>
+            <label style="font-size:0.85rem;margin-top:8px;">Alert via</label>
             <div style="display:flex;gap:8px;margin-top:4px;">
                 <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;"><input type="checkbox" id="reorder-notif" checked onchange="saveReorderSettings()" style="width:auto;margin:0;"> 🔔 Notify</label>
                 <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;"><input type="checkbox" id="reorder-whatsapp" onchange="saveReorderSettings()" style="width:auto;margin:0;"> 📱 WhatsApp</label>
                 <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;"><input type="checkbox" id="reorder-email" onchange="saveReorderSettings()" style="width:auto;margin:0;"> 📧 Email</label>
             </div>
-            <label style="font-size:0.75rem;margin-top:8px;">📱 WhatsApp number for reorder alerts</label>
-            <input type="tel" id="reorder-phone" placeholder="e.g. 917405856226" onchange="saveReorderSettings()" style="margin-top:4px;font-size:0.85rem;">
-            <label style="font-size:0.75rem;margin-top:8px;">📧 Email for alerts & reports</label>
-            <input type="email" id="reorder-email-addr" placeholder="e.g. your@email.com" onchange="saveReorderSettings()" style="margin-top:4px;font-size:0.85rem;">
+            <input type="tel" id="reorder-phone" placeholder="WhatsApp number (e.g. 917405856226)" onchange="saveReorderSettings()" style="margin-top:8px;font-size:0.85rem;">
         </div>
         <div class="card">
-            <h2>📄 Reports & Print</h2>
-            <button class="btn" onclick="printMedCard()" style="background:#FF9800;">🖨️ Print Medicine Card (Fridge)</button>
-            <button class="btn" onclick="doctorReport()" style="background:#2196F3;">📊 Doctor Visit Report (PDF)</button>
+            <h2>📋 History & Reports</h2>
+            <div id="history-list"></div>
+            <div class="export-bar">
+                <button class="btn-sm btn-export" onclick="exportWhatsApp()">📱 WhatsApp</button>
+                <button class="btn-sm btn-export" onclick="exportEmail()">📧 Email</button>
+                <button class="btn-sm btn-export" onclick="exportPDF()">📄 PDF</button>
+                <button class="btn-sm btn-export" onclick="exportExcel()">📊 Excel</button>
+            </div>
+            <button class="btn" onclick="printMedCard()" style="background:#FF9800;margin-top:8px;">🖨️ Print Medicine Card</button>
+            <button class="btn" onclick="doctorReport()" style="background:#2196F3;margin-top:8px;">📊 Doctor Visit Report</button>
+            <button class="btn" onclick="monthlyPDFEmail()" style="background:#9C27B0;margin-top:8px;">📧 Monthly Auto-Email Report</button>
         </div>
         <div class="card">
             <h2>🔄 Backup / Restore</h2>
-            <p style="font-size:0.8rem;color:#666;margin-bottom:8px;">Share all data via WhatsApp or restore from file</p>
             <button class="btn" onclick="backupWhatsApp()" style="background:#25D366;">📤 Backup → WhatsApp</button>
-            <button class="btn" onclick="document.getElementById('restore-input').click()" style="background:#666;">📥 Restore from file</button>
+            <button class="btn" onclick="document.getElementById('restore-input').click()" style="background:#666;margin-top:8px;">📥 Restore from file</button>
             <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restoreBackup(this)">
         </div>
-        <div class="card">
-            <h2>📲 Install App</h2>
-            <p style="font-size:0.8rem;color:#666;margin-bottom:10px;">Install for fullscreen experience, home screen icon & offline access.</p>
-            <button class="btn" id="install-btn" onclick="installApp()" style="background:#2196F3;">📲 Install Medicine Reminder</button>
+        <div class="card" id="install-card">
+            <h2>📲 App</h2>
+            <button class="btn" id="install-btn" onclick="installApp()" style="background:#2196F3;">📲 Install App</button>
             <div id="install-ios" style="display:none;margin-top:10px;padding:12px;background:#f0f7ff;border-radius:8px;font-size:0.8rem;">
-                <strong>iOS Install:</strong><br>
-                1. Tap <strong>Share</strong> button (⬆️) at bottom<br>
-                2. Scroll down → <strong>"Add to Home Screen"</strong><br>
-                3. Tap <strong>Add</strong> ✅
+                <strong>iOS:</strong> Tap Share (⬆️) → "Add to Home Screen" → Add ✅
             </div>
             <div id="install-done" style="display:none;margin-top:10px;padding:12px;background:#e8f5e9;border-radius:8px;font-size:0.8rem;color:#2e7d32;">
-                ✅ App is installed! Open from your home screen.
+                ✅ App installed!
             </div>
-        </div>
-        <div class="card">
-            <h2>📢 Share This App</h2>
-            <p style="font-size:0.8rem;color:#666;margin-bottom:10px;">Share with family/friends — they get their own separate data with PIN protection.</p>
-            <button class="btn" onclick="shareApp('whatsapp')" style="background:#25D366;">📱 Share via WhatsApp</button>
-            <button class="btn" onclick="shareApp('copy')" style="background:#2196F3;margin-top:6px;">📋 Copy Link</button>
+            <button class="btn" onclick="shareApp('whatsapp')" style="background:#25D366;margin-top:8px;">📢 Share via WhatsApp</button>
+            <button class="btn" onclick="shareApp('copy')" style="background:#9E9E9E;margin-top:8px;">📋 Copy Link</button>
         </div>
         <div class="card">
             <h2 onclick="document.getElementById('about-content').style.display=document.getElementById('about-content').style.display==='none'?'block':'none'" style="cursor:pointer;">✨ About This App <span style="font-size:0.7rem;color:#666;">▼ tap to expand</span></h2>
@@ -450,7 +440,7 @@
             </div>
         </div>
         <div class="card" style="text-align:center;">
-            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v4.17</p>
+            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v5.0</p>
             <p style="font-size:0.7rem;color:#bbb;">Deployed: 25 Jun 2026, 07:45:00 AM IST</p>
             <p style="font-size:0.7rem;color:#888;margin-top:8px;">Made by <strong>Kalpesh Patel</strong></p>
             <p style="font-size:0.7rem;margin-top:4px;"><a href="tel:+917405856226" style="color:#4CAF50;text-decoration:none;">📞 +91 74058 56226</a> • <a href="https://wa.me/917405856226" style="color:#25D366;text-decoration:none;">💬 WhatsApp</a></p>
@@ -2048,12 +2038,10 @@
         document.getElementById('caretaker-enabled').checked=localStorage.getItem('caretaker_enabled')==='true';
         document.getElementById('notify-on-take').checked=localStorage.getItem('notify_on_take')==='true';
         document.getElementById('email-on-take').checked=localStorage.getItem('email_on_take')==='true';
-        document.getElementById('email-on-take-addr').style.display=localStorage.getItem('email_on_take')==='true'?'block':'none';
         document.getElementById('take-email-addr').value=localStorage.getItem('take_email_to')||'';
         document.getElementById('emailjs-service').value=localStorage.getItem('emailjs_service_id')||'service_vk3ychj';
         document.getElementById('emailjs-template').value=localStorage.getItem('emailjs_template_id')||'template_5sg9tcr';
         document.getElementById('emailjs-pubkey').value=localStorage.getItem('emailjs_public_key')||'k3rYSrSx7QoGpb0fy';
-        document.getElementById('email-on-take').onchange=function(){localStorage.setItem('email_on_take',this.checked);document.getElementById('email-on-take-addr').style.display=this.checked?'block':'none';markUpdated()};
         el.innerHTML=cts.map((c,i)=>`<div class="caretaker-row"><div class="caretaker-avatar">${c.icon||'👤'}</div><div style="flex:1"><strong style="font-size:0.85rem">${c.name}</strong><br><small>📱 ${c.phone}</small><br><label style="font-size:0.7rem;color:#666;display:flex;align-items:center;gap:4px;margin-top:3px;"><input type="checkbox" ${c.enabled!==false?'checked':''} onchange="toggleCaretaker(${i},this.checked)" style="width:auto;margin:0;accent-color:#4CAF50"> ${(LANG[currentLang]||LANG.en).alertsON}</label></div><button class="btn-sm btn-edit" onclick="editCaretaker(${i})">✏️</button><button class="btn-sm btn-del" onclick="removeCaretaker(${i})">✕</button></div>`).join('')||'<p style="font-size:0.8rem;color:#999;">'+(LANG[currentLang]||LANG.en).noCaretakers+'</p>';
     }
     function toggleCaretaker(i,enabled){
@@ -2265,7 +2253,7 @@
     async function syncNow(){
         if(!accessToken)return;setSyncStatus('⏳ Syncing...');
         try{
-            const local={medicines:getMedicines(),logs:getLogs(),doctors:getDoctors(),caretakers:getCaretakers(),bpLogs:getBPLogs(),appointments:getAppointments(),prescriptions:getPrescriptions(),snoozed:getSnoozed(),notifSettings:getNotifSettings(),settings:{email_on_take:localStorage.getItem('email_on_take'),take_email_to:localStorage.getItem('take_email_to'),emailjs_public_key:localStorage.getItem('emailjs_public_key'),emailjs_service_id:localStorage.getItem('emailjs_service_id'),emailjs_template_id:localStorage.getItem('emailjs_template_id'),caretaker_enabled:localStorage.getItem('caretaker_enabled'),pin:localStorage.getItem('med_pin'),lang:localStorage.getItem('med_lang')},updatedAt:parseInt(localStorage.getItem('data_updated')||'0')};
+            const local={medicines:getMedicines(),logs:getLogs(),doctors:getDoctors(),caretakers:getCaretakers(),bpLogs:getBPLogs(),appointments:getAppointments(),prescriptions:getPrescriptions(),snoozed:getSnoozed(),notifSettings:getNotifSettings(),settings:{email_on_take:localStorage.getItem('email_on_take'),take_email_to:localStorage.getItem('take_email_to'),emailjs_public_key:localStorage.getItem('emailjs_public_key'),emailjs_service_id:localStorage.getItem('emailjs_service_id'),emailjs_template_id:localStorage.getItem('emailjs_template_id'),caretaker_enabled:localStorage.getItem('caretaker_enabled'),notify_on_take:localStorage.getItem('notify_on_take'),pin:localStorage.getItem('app_pin'),lang:localStorage.getItem('app_lang'),dark_mode:localStorage.getItem('dark_mode'),sound_on:localStorage.getItem('sound_on'),reorder_days:localStorage.getItem('reorder_days'),reorder_settings:localStorage.getItem('reorder_settings'),report_email:localStorage.getItem('report_email')},updatedAt:parseInt(localStorage.getItem('data_updated')||'0')};
             const file=await findSyncFile();
             if(file){
                 const remote=await downloadSyncFile(file.id);
@@ -2278,7 +2266,7 @@
                     if(remote.appointments)localStorage.setItem('med_appointments',JSON.stringify(remote.appointments));
                     if(remote.prescriptions)localStorage.setItem('med_prescriptions',JSON.stringify(remote.prescriptions));
                     if(remote.snoozed)localStorage.setItem('snoozed',JSON.stringify(remote.snoozed));
-                    if(remote.settings){const s=remote.settings;if(s.email_on_take)localStorage.setItem('email_on_take',s.email_on_take);if(s.take_email_to)localStorage.setItem('take_email_to',s.take_email_to);if(s.emailjs_public_key)localStorage.setItem('emailjs_public_key',s.emailjs_public_key);if(s.emailjs_service_id)localStorage.setItem('emailjs_service_id',s.emailjs_service_id);if(s.emailjs_template_id)localStorage.setItem('emailjs_template_id',s.emailjs_template_id);if(s.caretaker_enabled)localStorage.setItem('caretaker_enabled',s.caretaker_enabled);if(s.pin)localStorage.setItem('med_pin',s.pin);if(s.lang)localStorage.setItem('med_lang',s.lang)}
+                    if(remote.settings){const s=remote.settings;if(s.email_on_take)localStorage.setItem('email_on_take',s.email_on_take);if(s.take_email_to)localStorage.setItem('take_email_to',s.take_email_to);if(s.emailjs_public_key)localStorage.setItem('emailjs_public_key',s.emailjs_public_key);if(s.emailjs_service_id)localStorage.setItem('emailjs_service_id',s.emailjs_service_id);if(s.emailjs_template_id)localStorage.setItem('emailjs_template_id',s.emailjs_template_id);if(s.caretaker_enabled)localStorage.setItem('caretaker_enabled',s.caretaker_enabled);if(s.notify_on_take)localStorage.setItem('notify_on_take',s.notify_on_take);if(s.pin)localStorage.setItem('app_pin',s.pin);if(s.lang)localStorage.setItem('app_lang',s.lang);if(s.dark_mode)localStorage.setItem('dark_mode',s.dark_mode);if(s.sound_on)localStorage.setItem('sound_on',s.sound_on);if(s.reorder_days)localStorage.setItem('reorder_days',s.reorder_days);if(s.reorder_settings)localStorage.setItem('reorder_settings',s.reorder_settings);if(s.report_email)localStorage.setItem('report_email',s.report_email)}
                     localStorage.setItem('data_updated',String(remote.updatedAt));
                     renderToday();setSyncStatus('✅ Downloaded • '+new Date().toLocaleTimeString());
                 }else{await uploadSyncFile(local,file.id);setSyncStatus('✅ Uploaded • '+new Date().toLocaleTimeString())}
@@ -2288,7 +2276,7 @@
     async function pullFromDrive(){
         if(!accessToken)return;
         try{const file=await findSyncFile();if(file){const remote=await downloadSyncFile(file.id);const localTs=parseInt(localStorage.getItem('data_updated')||'0');
-        if(remote.updatedAt>localTs){localStorage.setItem('medicines2',JSON.stringify(remote.medicines||[]));localStorage.setItem('med_logs2',JSON.stringify(remote.logs||[]));if(remote.doctors)localStorage.setItem('med_doctors',JSON.stringify(remote.doctors));if(remote.caretakers)localStorage.setItem('med_caretakers',JSON.stringify(remote.caretakers));if(remote.bpLogs)localStorage.setItem('bp_logs',JSON.stringify(remote.bpLogs));if(remote.appointments)localStorage.setItem('med_appointments',JSON.stringify(remote.appointments));if(remote.prescriptions)localStorage.setItem('med_prescriptions',JSON.stringify(remote.prescriptions));if(remote.snoozed)localStorage.setItem('snoozed',JSON.stringify(remote.snoozed));if(remote.settings){const s=remote.settings;if(s.email_on_take)localStorage.setItem('email_on_take',s.email_on_take);if(s.take_email_to)localStorage.setItem('take_email_to',s.take_email_to);if(s.emailjs_public_key)localStorage.setItem('emailjs_public_key',s.emailjs_public_key);if(s.emailjs_service_id)localStorage.setItem('emailjs_service_id',s.emailjs_service_id);if(s.emailjs_template_id)localStorage.setItem('emailjs_template_id',s.emailjs_template_id);if(s.caretaker_enabled)localStorage.setItem('caretaker_enabled',s.caretaker_enabled);if(s.pin)localStorage.setItem('med_pin',s.pin);if(s.lang)localStorage.setItem('med_lang',s.lang)}localStorage.setItem('data_updated',String(remote.updatedAt));renderToday()}}}catch(e){}
+        if(remote.updatedAt>localTs){localStorage.setItem('medicines2',JSON.stringify(remote.medicines||[]));localStorage.setItem('med_logs2',JSON.stringify(remote.logs||[]));if(remote.doctors)localStorage.setItem('med_doctors',JSON.stringify(remote.doctors));if(remote.caretakers)localStorage.setItem('med_caretakers',JSON.stringify(remote.caretakers));if(remote.bpLogs)localStorage.setItem('bp_logs',JSON.stringify(remote.bpLogs));if(remote.appointments)localStorage.setItem('med_appointments',JSON.stringify(remote.appointments));if(remote.prescriptions)localStorage.setItem('med_prescriptions',JSON.stringify(remote.prescriptions));if(remote.snoozed)localStorage.setItem('snoozed',JSON.stringify(remote.snoozed));if(remote.settings){const s=remote.settings;if(s.email_on_take)localStorage.setItem('email_on_take',s.email_on_take);if(s.take_email_to)localStorage.setItem('take_email_to',s.take_email_to);if(s.emailjs_public_key)localStorage.setItem('emailjs_public_key',s.emailjs_public_key);if(s.emailjs_service_id)localStorage.setItem('emailjs_service_id',s.emailjs_service_id);if(s.emailjs_template_id)localStorage.setItem('emailjs_template_id',s.emailjs_template_id);if(s.caretaker_enabled)localStorage.setItem('caretaker_enabled',s.caretaker_enabled);if(s.notify_on_take)localStorage.setItem('notify_on_take',s.notify_on_take);if(s.pin)localStorage.setItem('app_pin',s.pin);if(s.lang)localStorage.setItem('app_lang',s.lang);if(s.dark_mode)localStorage.setItem('dark_mode',s.dark_mode);if(s.sound_on)localStorage.setItem('sound_on',s.sound_on);if(s.reorder_days)localStorage.setItem('reorder_days',s.reorder_days);if(s.reorder_settings)localStorage.setItem('reorder_settings',s.reorder_settings);if(s.report_email)localStorage.setItem('report_email',s.report_email)}localStorage.setItem('data_updated',String(remote.updatedAt));renderToday()}}}catch(e){}
     }
     window.addEventListener('load',()=>{if(window.google)initGIS();setTimeout(pullFromDrive,2000)});
     // === PWA INSTALL ===
@@ -2317,7 +2305,7 @@
     document.addEventListener('visibilitychange',()=>{if(!document.hidden){pullFromDrive();checkForUpdate()}});
 
     // === UPDATE CHECK ===
-    const APP_VERSION='4.17';
+    const APP_VERSION='5.0';
     async function checkForUpdate(){
         try{
             const r=await fetch('version.json?t='+Date.now());const d=await r.json();
