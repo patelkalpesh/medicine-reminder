@@ -449,7 +449,7 @@
             </div>
         </div>
         <div class="card" style="text-align:center;">
-            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v4.12</p>
+            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v4.13</p>
             <p style="font-size:0.7rem;color:#bbb;">Deployed: 25 Jun 2026, 07:45:00 AM IST</p>
             <p style="font-size:0.7rem;color:#888;margin-top:8px;">Made by <strong>Kalpesh Patel</strong></p>
             <p style="font-size:0.7rem;margin-top:4px;"><a href="tel:+917405856226" style="color:#4CAF50;text-decoration:none;">📞 +91 74058 56226</a> • <a href="https://wa.me/917405856226" style="color:#25D366;text-decoration:none;">💬 WhatsApp</a></p>
@@ -1003,6 +1003,24 @@
             }
             gapHtml+='</div></div>';
             el.innerHTML=gapHtml+el.innerHTML;
+        }
+        // Between-slot gap (actual taken times)
+        const slotOrder=['Morning','Afternoon','Evening'];
+        const slotLastTaken=[];
+        slotOrder.forEach(slot=>{
+            const timings=slot==='Evening'?['Before Dinner','After Dinner','Bedtime']:TIMING_GROUPS[slot];
+            const slotLogs=logs.filter(l=>l.date===today()&&l.action==='taken'&&timings.includes(l.timing));
+            if(slotLogs.length){const latest=slotLogs.sort((a,b)=>new Date(b.time)-new Date(a.time))[0];slotLastTaken.push({slot,time:new Date(latest.time)})}
+        });
+        if(slotLastTaken.length>1){
+            let sgHtml='<div class="card" style="background:#e3f2fd;padding:10px 14px;"><strong style="font-size:0.8rem;">⏱️ Gap Between Doses</strong><div style="font-size:0.75rem;color:#555;margin-top:6px;">';
+            for(let i=0;i<slotLastTaken.length-1;i++){
+                const gap=Math.round((slotLastTaken[i+1].time-slotLastTaken[i].time)/60000);
+                const gh=Math.floor(gap/60),gm=gap%60;
+                sgHtml+=`${slotLastTaken[i].slot} → ${slotLastTaken[i+1].slot}: <strong>${gh>0?gh+'h ':''}${gm}min</strong><br>`;
+            }
+            sgHtml+='</div></div>';
+            el.innerHTML=sgHtml+el.innerHTML;
         }
         resumeSnoozes();
     }
@@ -2299,7 +2317,7 @@
     document.addEventListener('visibilitychange',()=>{if(!document.hidden){pullFromDrive();checkForUpdate()}});
 
     // === UPDATE CHECK ===
-    const APP_VERSION='4.12';
+    const APP_VERSION='4.13';
     async function checkForUpdate(){
         try{
             const r=await fetch('version.json?t='+Date.now());const d=await r.json();
