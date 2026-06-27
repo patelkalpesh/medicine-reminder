@@ -1,5 +1,5 @@
 {
-  "version": "4.10",
-  "deployed": "27 Jun 2026, 07:47:00 AM IST",
-  "features": "Fix zoom-out on refresh, professional login redesign, silent email on take + missed dose"
+  "version": "4.11",
+  "deployed": "27 Jun 2026, 07:55:00 AM IST",
+  "features": "Test email sends to all configured addresses"
 }
