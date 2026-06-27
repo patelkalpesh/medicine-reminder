@@ -1,5 +1,5 @@
 {
-  "version": "4.11",
-  "deployed": "27 Jun 2026, 07:55:00 AM IST",
-  "features": "Test email sends to all configured addresses"
+  "version": "4.12",
+  "deployed": "27 Jun 2026, 07:59:00 AM IST",
+  "features": "Sync settings (email config, PIN, language, caretaker toggle) across all devices via Google Drive"
 }

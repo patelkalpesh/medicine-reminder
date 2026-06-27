@@ -449,7 +449,7 @@
             </div>
         </div>
         <div class="card" style="text-align:center;">
-            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v4.11</p>
+            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v4.12</p>
             <p style="font-size:0.7rem;color:#bbb;">Deployed: 25 Jun 2026, 07:45:00 AM IST</p>
             <p style="font-size:0.7rem;color:#888;margin-top:8px;">Made by <strong>Kalpesh Patel</strong></p>
             <p style="font-size:0.7rem;margin-top:4px;"><a href="tel:+917405856226" style="color:#4CAF50;text-decoration:none;">📞 +91 74058 56226</a> • <a href="https://wa.me/917405856226" style="color:#25D366;text-decoration:none;">💬 WhatsApp</a></p>
@@ -2247,7 +2247,7 @@
     async function syncNow(){
         if(!accessToken)return;setSyncStatus('⏳ Syncing...');
         try{
-            const local={medicines:getMedicines(),logs:getLogs(),doctors:getDoctors(),caretakers:getCaretakers(),bpLogs:getBPLogs(),appointments:getAppointments(),prescriptions:getPrescriptions(),snoozed:getSnoozed(),notifSettings:getNotifSettings(),updatedAt:parseInt(localStorage.getItem('data_updated')||'0')};
+            const local={medicines:getMedicines(),logs:getLogs(),doctors:getDoctors(),caretakers:getCaretakers(),bpLogs:getBPLogs(),appointments:getAppointments(),prescriptions:getPrescriptions(),snoozed:getSnoozed(),notifSettings:getNotifSettings(),settings:{email_on_take:localStorage.getItem('email_on_take'),take_email_to:localStorage.getItem('take_email_to'),emailjs_public_key:localStorage.getItem('emailjs_public_key'),emailjs_service_id:localStorage.getItem('emailjs_service_id'),emailjs_template_id:localStorage.getItem('emailjs_template_id'),caretaker_enabled:localStorage.getItem('caretaker_enabled'),pin:localStorage.getItem('med_pin'),lang:localStorage.getItem('med_lang')},updatedAt:parseInt(localStorage.getItem('data_updated')||'0')};
             const file=await findSyncFile();
             if(file){
                 const remote=await downloadSyncFile(file.id);
@@ -2260,6 +2260,7 @@
                     if(remote.appointments)localStorage.setItem('med_appointments',JSON.stringify(remote.appointments));
                     if(remote.prescriptions)localStorage.setItem('med_prescriptions',JSON.stringify(remote.prescriptions));
                     if(remote.snoozed)localStorage.setItem('snoozed',JSON.stringify(remote.snoozed));
+                    if(remote.settings){const s=remote.settings;if(s.email_on_take)localStorage.setItem('email_on_take',s.email_on_take);if(s.take_email_to)localStorage.setItem('take_email_to',s.take_email_to);if(s.emailjs_public_key)localStorage.setItem('emailjs_public_key',s.emailjs_public_key);if(s.emailjs_service_id)localStorage.setItem('emailjs_service_id',s.emailjs_service_id);if(s.emailjs_template_id)localStorage.setItem('emailjs_template_id',s.emailjs_template_id);if(s.caretaker_enabled)localStorage.setItem('caretaker_enabled',s.caretaker_enabled);if(s.pin)localStorage.setItem('med_pin',s.pin);if(s.lang)localStorage.setItem('med_lang',s.lang)}
                     localStorage.setItem('data_updated',String(remote.updatedAt));
                     renderToday();setSyncStatus('✅ Downloaded • '+new Date().toLocaleTimeString());
                 }else{await uploadSyncFile(local,file.id);setSyncStatus('✅ Uploaded • '+new Date().toLocaleTimeString())}
@@ -2269,7 +2270,7 @@
     async function pullFromDrive(){
         if(!accessToken)return;
         try{const file=await findSyncFile();if(file){const remote=await downloadSyncFile(file.id);const localTs=parseInt(localStorage.getItem('data_updated')||'0');
-        if(remote.updatedAt>localTs){localStorage.setItem('medicines2',JSON.stringify(remote.medicines||[]));localStorage.setItem('med_logs2',JSON.stringify(remote.logs||[]));if(remote.doctors)localStorage.setItem('med_doctors',JSON.stringify(remote.doctors));if(remote.caretakers)localStorage.setItem('med_caretakers',JSON.stringify(remote.caretakers));if(remote.bpLogs)localStorage.setItem('bp_logs',JSON.stringify(remote.bpLogs));if(remote.appointments)localStorage.setItem('med_appointments',JSON.stringify(remote.appointments));if(remote.prescriptions)localStorage.setItem('med_prescriptions',JSON.stringify(remote.prescriptions));if(remote.snoozed)localStorage.setItem('snoozed',JSON.stringify(remote.snoozed));localStorage.setItem('data_updated',String(remote.updatedAt));renderToday()}}}catch(e){}
+        if(remote.updatedAt>localTs){localStorage.setItem('medicines2',JSON.stringify(remote.medicines||[]));localStorage.setItem('med_logs2',JSON.stringify(remote.logs||[]));if(remote.doctors)localStorage.setItem('med_doctors',JSON.stringify(remote.doctors));if(remote.caretakers)localStorage.setItem('med_caretakers',JSON.stringify(remote.caretakers));if(remote.bpLogs)localStorage.setItem('bp_logs',JSON.stringify(remote.bpLogs));if(remote.appointments)localStorage.setItem('med_appointments',JSON.stringify(remote.appointments));if(remote.prescriptions)localStorage.setItem('med_prescriptions',JSON.stringify(remote.prescriptions));if(remote.snoozed)localStorage.setItem('snoozed',JSON.stringify(remote.snoozed));if(remote.settings){const s=remote.settings;if(s.email_on_take)localStorage.setItem('email_on_take',s.email_on_take);if(s.take_email_to)localStorage.setItem('take_email_to',s.take_email_to);if(s.emailjs_public_key)localStorage.setItem('emailjs_public_key',s.emailjs_public_key);if(s.emailjs_service_id)localStorage.setItem('emailjs_service_id',s.emailjs_service_id);if(s.emailjs_template_id)localStorage.setItem('emailjs_template_id',s.emailjs_template_id);if(s.caretaker_enabled)localStorage.setItem('caretaker_enabled',s.caretaker_enabled);if(s.pin)localStorage.setItem('med_pin',s.pin);if(s.lang)localStorage.setItem('med_lang',s.lang)}localStorage.setItem('data_updated',String(remote.updatedAt));renderToday()}}}catch(e){}
     }
     window.addEventListener('load',()=>{if(window.google)initGIS();setTimeout(pullFromDrive,2000)});
     // === PWA INSTALL ===
@@ -2298,7 +2299,7 @@
     document.addEventListener('visibilitychange',()=>{if(!document.hidden){pullFromDrive();checkForUpdate()}});
 
     // === UPDATE CHECK ===
-    const APP_VERSION='4.11';
+    const APP_VERSION='4.12';
     async function checkForUpdate(){
         try{
             const r=await fetch('version.json?t='+Date.now());const d=await r.json();
