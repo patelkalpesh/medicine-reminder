@@ -1,5 +1,5 @@
 {
-  "version": "4.14",
-  "deployed": "27 Jun 2026, 08:16:00 AM IST",
-  "features": "Fix multi-email: send one email with all recipients (comma-separated) instead of separate calls"
+  "version": "4.15",
+  "deployed": "27 Jun 2026, 08:19:00 AM IST",
+  "features": "Fix PIN login screen - broken CSS was preventing button clicks"
 }

@@ -74,7 +74,7 @@
         .paused{opacity:0.4;border-left:3px solid #FF9800}
         .pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid #c5cae9;transition:all 0.2s;background:#e8eaf6}
         .pin-dot.filled{background:#3949ab;border-color:#3949ab;transform:scale(1.2);box-shadow:0 2px 8px rgba(57,73,171,0.4)}
-        .pin-key{width:60px;height:60px;border-radius:50%;border:none;background:#f5f5f5;font-size:1.3rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;color:#1a237e}a(0,0,0,0.05)}
+        .pin-key{width:60px;height:60px;border-radius:50%;border:none;background:#f5f5f5;font-size:1.3rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;color:#1a237e;box-shadow:0 2px 4px rgba(0,0,0,0.05)}
         .pin-key:active{background:#3949ab;color:#fff;transform:scale(0.9)}
         @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
         body.dark{background:#1a1a1a;color:#eee}
@@ -449,7 +449,7 @@
             </div>
         </div>
         <div class="card" style="text-align:center;">
-            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v4.14</p>
+            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v4.15</p>
             <p style="font-size:0.7rem;color:#bbb;">Deployed: 25 Jun 2026, 07:45:00 AM IST</p>
             <p style="font-size:0.7rem;color:#888;margin-top:8px;">Made by <strong>Kalpesh Patel</strong></p>
             <p style="font-size:0.7rem;margin-top:4px;"><a href="tel:+917405856226" style="color:#4CAF50;text-decoration:none;">📞 +91 74058 56226</a> • <a href="https://wa.me/917405856226" style="color:#25D366;text-decoration:none;">💬 WhatsApp</a></p>
@@ -2312,7 +2312,7 @@
     document.addEventListener('visibilitychange',()=>{if(!document.hidden){pullFromDrive();checkForUpdate()}});
 
     // === UPDATE CHECK ===
-    const APP_VERSION='4.14';
+    const APP_VERSION='4.15';
     async function checkForUpdate(){
         try{
             const r=await fetch('version.json?t='+Date.now());const d=await r.json();
