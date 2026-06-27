@@ -1080,14 +1080,12 @@
         localStorage.setItem('report_email',s.emailAddr);
     }
     function loadReorderSettings(){
-        const s=JSON.parse(localStorage.getItem('reorder_settings')||'{"notif":true,"whatsapp":false,"email":false,"phone":"917405856226","emailAddr":"kal.shooter007@gmail.com"}');
+        const s=JSON.parse(localStorage.getItem('reorder_settings')||'{"notif":true,"whatsapp":false,"email":false,"phone":"917405856226"}');
         document.getElementById('reorder-notif').checked=s.notif;
         document.getElementById('reorder-whatsapp').checked=s.whatsapp;
         document.getElementById('reorder-email').checked=s.email;
         document.getElementById('reorder-phone').value=s.phone||'917405856226';
-        document.getElementById('reorder-email-addr').value=s.emailAddr||'kal.shooter007@gmail.com';
         document.getElementById('reorder-days').value=localStorage.getItem('reorder_days')||'7';
-        localStorage.setItem('report_email',s.emailAddr||'kal.shooter007@gmail.com');
     }
 
     // === CALENDAR ===
