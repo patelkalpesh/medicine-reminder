@@ -449,7 +449,7 @@
             </div>
         </div>
         <div class="card" style="text-align:center;">
-            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v4.13</p>
+            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v4.14</p>
             <p style="font-size:0.7rem;color:#bbb;">Deployed: 25 Jun 2026, 07:45:00 AM IST</p>
             <p style="font-size:0.7rem;color:#888;margin-top:8px;">Made by <strong>Kalpesh Patel</strong></p>
             <p style="font-size:0.7rem;margin-top:4px;"><a href="tel:+917405856226" style="color:#4CAF50;text-decoration:none;">📞 +91 74058 56226</a> • <a href="https://wa.me/917405856226" style="color:#25D366;text-decoration:none;">💬 WhatsApp</a></p>
@@ -1537,9 +1537,7 @@
                     const svcId=localStorage.getItem('emailjs_service_id')||'service_vk3ychj';
                     const tplId=localStorage.getItem('emailjs_template_id')||'template_5sg9tcr';
                     if(pubKey&&svcId&&tplId){
-                        toEmails.split(',').map(e=>e.trim()).filter(Boolean).forEach(email=>{
-                            emailjs.send(svcId,tplId,{to_email:email,title:'💊 '+(med?med.name:'Medicine')+' taken ('+timing+')',name:'Medicine Reminder',email:'noreply@medicinereminder.app',time:timeStr+' • '+today(),message:'✅ Medicine Taken<br><br>💊 Medicine: '+(med?med.name+' '+(med.dosage||''):'Medicine')+'<br>⏰ Timing: '+timing+'<br>🕐 Taken At: '+timeStr+'<br>📅 Date: '+today()+'<br><br><a href="https://patelkalpesh.github.io/medicine-reminder/">Open App</a>'},{publicKey:pubKey}).catch(()=>{});
-                        });
+                        emailjs.send(svcId,tplId,{to_email:toEmails,title:'💊 '+(med?med.name:'Medicine')+' taken ('+timing+')',name:'Medicine Reminder',email:'noreply@medicinereminder.app',time:timeStr+' • '+today(),message:'✅ Medicine Taken<br><br>💊 Medicine: '+(med?med.name+' '+(med.dosage||''):'Medicine')+'<br>⏰ Timing: '+timing+'<br>🕐 Taken At: '+timeStr+'<br>📅 Date: '+today()+'<br><br><a href="https://patelkalpesh.github.io/medicine-reminder/">Open App</a>'},{publicKey:pubKey}).catch(()=>{});
                     }
                 }
             }
@@ -2173,9 +2171,7 @@
         const tplId=localStorage.getItem('emailjs_template_id')||'template_5sg9tcr';
         if(!pubKey||!svcId||!tplId)return;
         const nowStr=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-        toEmails.split(',').map(e=>e.trim()).filter(Boolean).forEach(email=>{
-            emailjs.send(svcId,tplId,{to_email:email,title:'⚠️ MISSED: '+(med.name||'Medicine')+' ('+timing+')',name:'Medicine Reminder',email:'noreply@medicinereminder.app',time:nowStr+' • '+today(),message:'⚠️ Missed Dose Alert<br><br>💊 Medicine: '+(med.name+' '+(med.dosage||''))+'<br>⏰ Timing: '+timing+'<br>📅 Date: '+today()+'<br><br>This dose was not taken within 30 minutes of scheduled time.<br><br><a href="https://patelkalpesh.github.io/medicine-reminder/">Open App</a>'},{publicKey:pubKey}).catch(()=>{});
-        });
+        emailjs.send(svcId,tplId,{to_email:toEmails,title:'⚠️ MISSED: '+(med.name||'Medicine')+' ('+timing+')',name:'Medicine Reminder',email:'noreply@medicinereminder.app',time:nowStr+' • '+today(),message:'⚠️ Missed Dose Alert<br><br>💊 Medicine: '+(med.name+' '+(med.dosage||''))+'<br>⏰ Timing: '+timing+'<br>📅 Date: '+today()+'<br><br>This dose was not taken within 30 minutes of scheduled time.<br><br><a href="https://patelkalpesh.github.io/medicine-reminder/">Open App</a>'},{publicKey:pubKey}).catch(()=>{});
     }
     function testCaretakerAlert(){
         const cts=getCaretakers();
@@ -2202,9 +2198,8 @@
         if(!pubKey||!svcId||!tplId){alert('⚙️ Please configure EmailJS first (expand setup section below email field)');return}
         if(!window.emailjs){alert('EmailJS not loaded. Check internet.');return}
         const nowStr=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-        const emails=toEmails.split(',').map(e=>e.trim()).filter(Boolean);
-        let sent=0;
-        emails.forEach(email=>{emailjs.send(svcId,tplId,{to_email:email,title:'💊 TEST Medicine taken (After Breakfast)',name:'Medicine Reminder',email:'noreply@medicinereminder.app',time:nowStr+' • '+today(),message:'✅ Medicine Taken<br><br>💊 Medicine: TEST Medicine 500mg<br>⏰ Timing: After Breakfast<br>🕐 Taken At: '+nowStr+'<br>📅 Date: '+today()+'<br><br><a href="https://patelkalpesh.github.io/medicine-reminder/">Open App</a>'},{publicKey:pubKey}).then(()=>{sent++;if(sent===emails.length)alert('✅ Test email sent to '+emails.join(', '))}).catch(e=>alert('❌ Failed for '+email+': '+e.text))});
+        const nowStr=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+        emailjs.send(svcId,tplId,{to_email:toEmails,title:'💊 TEST Medicine taken (After Breakfast)',name:'Medicine Reminder',email:'noreply@medicinereminder.app',time:nowStr+' • '+today(),message:'✅ Medicine Taken<br><br>💊 Medicine: TEST Medicine 500mg<br>⏰ Timing: After Breakfast<br>🕐 Taken At: '+nowStr+'<br>📅 Date: '+today()+'<br><br><a href="https://patelkalpesh.github.io/medicine-reminder/">Open App</a>'},{publicKey:pubKey}).then(()=>alert('✅ Test email sent to '+toEmails)).catch(e=>alert('❌ Failed: '+e.text));
     }
     setInterval(checkReminders,15000);setTimeout(checkReminders,2000);
     // Re-check immediately when tab becomes visible (phone unlock, switch back)
@@ -2317,7 +2312,7 @@
     document.addEventListener('visibilitychange',()=>{if(!document.hidden){pullFromDrive();checkForUpdate()}});
 
     // === UPDATE CHECK ===
-    const APP_VERSION='4.13';
+    const APP_VERSION='4.14';
     async function checkForUpdate(){
         try{
             const r=await fetch('version.json?t='+Date.now());const d=await r.json();
