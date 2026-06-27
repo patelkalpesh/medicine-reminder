@@ -1,4 +1,4 @@
-const CACHE_NAME = 'med-reminder-v4.15';
+const CACHE_NAME = 'med-reminder-v4.15b';
 const ASSETS = ['/', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon.svg'];
 
 self.addEventListener('install', e => {

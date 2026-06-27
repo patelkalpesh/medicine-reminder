@@ -2198,7 +2198,6 @@
         if(!pubKey||!svcId||!tplId){alert('⚙️ Please configure EmailJS first (expand setup section below email field)');return}
         if(!window.emailjs){alert('EmailJS not loaded. Check internet.');return}
         const nowStr=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-        const nowStr=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
         emailjs.send(svcId,tplId,{to_email:toEmails,title:'💊 TEST Medicine taken (After Breakfast)',name:'Medicine Reminder',email:'noreply@medicinereminder.app',time:nowStr+' • '+today(),message:'✅ Medicine Taken<br><br>💊 Medicine: TEST Medicine 500mg<br>⏰ Timing: After Breakfast<br>🕐 Taken At: '+nowStr+'<br>📅 Date: '+today()+'<br><br><a href="https://patelkalpesh.github.io/medicine-reminder/">Open App</a>'},{publicKey:pubKey}).then(()=>alert('✅ Test email sent to '+toEmails)).catch(e=>alert('❌ Failed: '+e.text));
     }
     setInterval(checkReminders,15000);setTimeout(checkReminders,2000);
