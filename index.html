@@ -434,7 +434,7 @@
             </div>
         </div>
         <div class="card" style="text-align:center;">
-            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v5.2</p>
+            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v5.3</p>
             <p style="font-size:0.7rem;color:#bbb;">Deployed: 25 Jun 2026, 07:45:00 AM IST</p>
             <p style="font-size:0.7rem;color:#888;margin-top:8px;">Made by <strong>Kalpesh Patel</strong></p>
             <p style="font-size:0.7rem;margin-top:4px;"><a href="tel:+917405856226" style="color:#4CAF50;text-decoration:none;">📞 +91 74058 56226</a> • <a href="https://wa.me/917405856226" style="color:#25D366;text-decoration:none;">💬 WhatsApp</a></p>
@@ -1038,7 +1038,8 @@
         let totalDoses=0,takenDoses=0;
         last7.forEach(date=>{meds.filter(m=>m.freq!=='sos'&&!m.paused).forEach(m=>{const f=parseInt(m.freq)||1;totalDoses+=f;takenDoses+=logs.filter(l=>l.date===date&&l.medId===m.id&&l.action==='taken').length})});
         const pct=totalDoses?Math.round(takenDoses/totalDoses*100):0;
-        document.getElementById('adherence-box').innerHTML=`<h2>${(LANG[currentLang]||LANG.en).weeklyAdherence}</h2><div class="adherence-bar"><div class="adherence-fill" style="width:${pct}%">${pct}%</div></div>`;
+        const rangeStart=last7[6].split('-').reverse().join('/');const rangeEnd=last7[0].split('-').reverse().join('/');
+        document.getElementById('adherence-box').innerHTML=`<h2>${(LANG[currentLang]||LANG.en).weeklyAdherence}</h2><p style="font-size:0.7rem;color:#999;margin:-6px 0 8px;">${rangeStart} – ${rangeEnd}</p><div class="adherence-bar"><div class="adherence-fill" style="width:${pct}%">${pct}%</div></div>`;
     }
 
     // === REFILL ALERTS ===
@@ -2294,7 +2295,7 @@
     document.addEventListener('visibilitychange',()=>{if(!document.hidden){pullFromDrive();checkForUpdate()}});
 
     // === UPDATE CHECK ===
-    const APP_VERSION='5.2';
+    const APP_VERSION='5.3';
     async function checkForUpdate(){
         try{
             const r=await fetch('version.json?t='+Date.now());const d=await r.json();

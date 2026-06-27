@@ -1,5 +1,5 @@
 {
-  "version": "5.2",
-  "deployed": "27 Jun 2026, 01:11:00 PM IST",
-  "features": "Force Upload button to overwrite cloud data from current device"
+  "version": "5.3",
+  "deployed": "27 Jun 2026, 01:35:00 PM IST",
+  "features": "Show date range on weekly adherence, fix reorder settings null error"
 }
