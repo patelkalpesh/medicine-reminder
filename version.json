@@ -1,5 +1,5 @@
 {
-  "version": "4.9",
-  "deployed": "27 Jun 2026, 07:43:00 AM IST",
-  "features": "Silent email on take + missed dose (hardcoded EmailJS defaults, fires independently of caretaker toggle)"
+  "version": "4.10",
+  "deployed": "27 Jun 2026, 07:47:00 AM IST",
+  "features": "Fix zoom-out on refresh, professional login redesign, silent email on take + missed dose"
 }
