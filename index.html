@@ -302,6 +302,7 @@
             <div id="sync-signed-in" style="display:none;">
                 <div style="background:#e8f5e9;padding:12px;border-radius:8px;margin-bottom:12px;"><strong>✅</strong> <span id="sync-email"></span></div>
                 <button class="btn" onclick="syncNow()" style="background:#2196F3;">🔄 Sync Now</button>
+                <button class="btn" onclick="forceUpload()" style="background:#FF9800;margin-top:8px;">⬆️ Force Upload (overwrite cloud)</button>
                 <button class="btn" onclick="gDriveSignOut()" style="background:#666;margin-top:8px;">Sign Out</button>
                 <div id="sync-status" style="font-size:0.8rem;color:#666;margin-top:12px;text-align:center;"></div>
             </div>
@@ -433,7 +434,7 @@
             </div>
         </div>
         <div class="card" style="text-align:center;">
-            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v5.1</p>
+            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v5.2</p>
             <p style="font-size:0.7rem;color:#bbb;">Deployed: 25 Jun 2026, 07:45:00 AM IST</p>
             <p style="font-size:0.7rem;color:#888;margin-top:8px;">Made by <strong>Kalpesh Patel</strong></p>
             <p style="font-size:0.7rem;margin-top:4px;"><a href="tel:+917405856226" style="color:#4CAF50;text-decoration:none;">📞 +91 74058 56226</a> • <a href="https://wa.me/917405856226" style="color:#25D366;text-decoration:none;">💬 WhatsApp</a></p>
@@ -2253,6 +2254,16 @@
             }else{local.updatedAt=Date.now();localStorage.setItem('data_updated',String(local.updatedAt));await uploadSyncFile(local);setSyncStatus('✅ First sync • '+new Date().toLocaleTimeString())}
         }catch(e){setSyncStatus('❌ '+e.message)}
     }
+    async function forceUpload(){
+        if(!accessToken)return;setSyncStatus('⬆️ Force uploading...');
+        try{
+            localStorage.setItem('data_updated',String(Date.now()));
+            const local={medicines:getMedicines(),logs:getLogs(),doctors:getDoctors(),caretakers:getCaretakers(),bpLogs:getBPLogs(),appointments:getAppointments(),prescriptions:getPrescriptions(),snoozed:getSnoozed(),notifSettings:getNotifSettings(),settings:{email_on_take:localStorage.getItem('email_on_take'),take_email_to:localStorage.getItem('take_email_to'),caretaker_enabled:localStorage.getItem('caretaker_enabled'),notify_on_take:localStorage.getItem('notify_on_take'),pin:localStorage.getItem('app_pin'),lang:localStorage.getItem('app_lang'),dark_mode:localStorage.getItem('dark_mode'),sound_on:localStorage.getItem('sound_on'),reorder_days:localStorage.getItem('reorder_days'),reorder_settings:localStorage.getItem('reorder_settings'),report_email:localStorage.getItem('report_email')},updatedAt:parseInt(localStorage.getItem('data_updated'))};
+            const file=await findSyncFile();
+            await uploadSyncFile(local,file?file.id:null);
+            setSyncStatus('✅ Force uploaded • '+new Date().toLocaleTimeString());
+        }catch(e){setSyncStatus('❌ '+e.message)}
+    }
     async function pullFromDrive(){
         if(!accessToken)return;
         try{const file=await findSyncFile();if(file){const remote=await downloadSyncFile(file.id);const localTs=parseInt(localStorage.getItem('data_updated')||'0');
@@ -2285,7 +2296,7 @@
     document.addEventListener('visibilitychange',()=>{if(!document.hidden){pullFromDrive();checkForUpdate()}});
 
     // === UPDATE CHECK ===
-    const APP_VERSION='5.1';
+    const APP_VERSION='5.2';
     async function checkForUpdate(){
         try{
             const r=await fetch('version.json?t='+Date.now());const d=await r.json();

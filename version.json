@@ -1,5 +1,5 @@
 {
-  "version": "5.1",
-  "deployed": "27 Jun 2026, 11:17:00 AM IST",
-  "features": "Replaced EmailJS with Google Apps Script - 100 emails/day, sends from your Gmail directly"
+  "version": "5.2",
+  "deployed": "27 Jun 2026, 01:11:00 PM IST",
+  "features": "Force Upload button to overwrite cloud data from current device"
 }
