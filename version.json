@@ -1,5 +1,5 @@
 {
-  "version": "4.8",
-  "deployed": "25 Jun 2026, 07:45:00 AM IST",
-  "features": "Better notifications, morning gap display, swipeable photo gallery with full info, improved PIN screen, collapsible history, email autofill"
+  "version": "4.9",
+  "deployed": "27 Jun 2026, 07:43:00 AM IST",
+  "features": "Silent email on take + missed dose (hardcoded EmailJS defaults, fires independently of caretaker toggle)"
 }
