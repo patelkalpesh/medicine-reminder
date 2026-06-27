@@ -1,5 +1,5 @@
 {
-  "version": "4.16",
-  "deployed": "27 Jun 2026, 08:29:00 AM IST",
-  "features": "Update banner on login screen - tap to refresh when new version available"
+  "version": "4.17",
+  "deployed": "27 Jun 2026, 08:34:00 AM IST",
+  "features": "Email config syncs across all devices via Google Drive, removed hardcoded email"
 }

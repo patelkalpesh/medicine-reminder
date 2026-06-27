@@ -299,7 +299,7 @@
             <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#e8f5e9;border-radius:8px;margin-bottom:10px;"><input type="checkbox" id="notify-on-take" onchange="localStorage.setItem('notify_on_take',this.checked);markUpdated()" style="width:auto;margin:0;accent-color:#4CAF50"> <span style="font-size:0.85rem;">📤 WhatsApp when I take medicine</span></label>
             <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#e3f2fd;border-radius:8px;margin-bottom:10px;"><input type="checkbox" id="email-on-take" onchange="localStorage.setItem('email_on_take',this.checked);document.getElementById('email-on-take-addr').style.display=this.checked?'block':'none';markUpdated()" style="width:auto;margin:0;accent-color:#2196F3"> <span style="font-size:0.85rem;">📧 Email when I take medicine</span></label>
             <div id="email-on-take-addr" style="display:none;margin-bottom:10px;">
-                <input type="text" id="take-email-addr" placeholder="Caretaker email (e.g. kal.shooter007@gmail.com)" value="kal.shooter007@gmail.com" onchange="localStorage.setItem('take_email_to',this.value);markUpdated()" style="margin:0;padding:8px;font-size:0.85rem;">
+                <input type="text" id="take-email-addr" placeholder="email1@gmail.com, email2@gmail.com" value="" onchange="localStorage.setItem('take_email_to',this.value);markUpdated()" style="margin:0;padding:8px;font-size:0.85rem;">
                 <button class="btn-sm" style="background:#2196F3;margin-top:6px;" onclick="testTakeEmail()">🧪 Test Email</button>
                 <details style="margin-top:6px;font-size:0.75rem;color:#666;"><summary style="cursor:pointer;color:#2196F3;">⚙️ EmailJS Setup (one-time)</summary>
                 <p style="margin:6px 0 4px;">Sign up free at <a href="https://emailjs.com" target="_blank">emailjs.com</a> → get these 3 values:</p>
@@ -450,7 +450,7 @@
             </div>
         </div>
         <div class="card" style="text-align:center;">
-            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v4.16</p>
+            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v4.17</p>
             <p style="font-size:0.7rem;color:#bbb;">Deployed: 25 Jun 2026, 07:45:00 AM IST</p>
             <p style="font-size:0.7rem;color:#888;margin-top:8px;">Made by <strong>Kalpesh Patel</strong></p>
             <p style="font-size:0.7rem;margin-top:4px;"><a href="tel:+917405856226" style="color:#4CAF50;text-decoration:none;">📞 +91 74058 56226</a> • <a href="https://wa.me/917405856226" style="color:#25D366;text-decoration:none;">💬 WhatsApp</a></p>
@@ -2317,7 +2317,7 @@
     document.addEventListener('visibilitychange',()=>{if(!document.hidden){pullFromDrive();checkForUpdate()}});
 
     // === UPDATE CHECK ===
-    const APP_VERSION='4.16';
+    const APP_VERSION='4.17';
     async function checkForUpdate(){
         try{
             const r=await fetch('version.json?t='+Date.now());const d=await r.json();
