@@ -1,5 +1,5 @@
 {
-  "version": "4.15",
-  "deployed": "27 Jun 2026, 08:19:00 AM IST",
-  "features": "Fix PIN login screen - broken CSS was preventing button clicks"
+  "version": "4.16",
+  "deployed": "27 Jun 2026, 08:29:00 AM IST",
+  "features": "Update banner on login screen - tap to refresh when new version available"
 }
