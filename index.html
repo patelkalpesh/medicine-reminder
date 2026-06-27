@@ -434,7 +434,7 @@
             </div>
         </div>
         <div class="card" style="text-align:center;">
-            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v5.3</p>
+            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v5.4</p>
             <p style="font-size:0.7rem;color:#bbb;">Deployed: 25 Jun 2026, 07:45:00 AM IST</p>
             <p style="font-size:0.7rem;color:#888;margin-top:8px;">Made by <strong>Kalpesh Patel</strong></p>
             <p style="font-size:0.7rem;margin-top:4px;"><a href="tel:+917405856226" style="color:#4CAF50;text-decoration:none;">📞 +91 74058 56226</a> • <a href="https://wa.me/917405856226" style="color:#25D366;text-decoration:none;">💬 WhatsApp</a></p>
@@ -2133,7 +2133,11 @@
             if(ns.m5&&diff<=6&&diff>0&&!reminded[key+'_5']){new Notification('💊 '+m.name,{body:`5 min before — ${timing} at ${formatTime12(m.times[i])}`,icon:'icon-192.png',tag:key+'_5',requireInteraction:true});playAlertSound();reminded[key+'_5']=true}
             if(ns.m0&&diff<=1&&diff>-30&&!reminded[key+'_0']){new Notification('⏰ Take '+m.name+' NOW',{body:`${timing} — ${m.dosage}`,icon:'icon-192.png',tag:key+'_0',requireInteraction:true});playAlertSound();reminded[key+'_0']=true}
             // Caretaker alert if missed by 30 min
-            if(diff<-30&&!reminded[key+'_missed']){sendCaretakerAlert(m,timing);sendMissedEmail(m,timing);reminded[key+'_missed']=true}
+            if(diff<-30&&!reminded[key+'_missed']){
+                const freshLogs=getTodayStatus();
+                if(!freshLogs.find(l=>l.medId===m.id&&l.timing===timing)){sendCaretakerAlert(m,timing);sendMissedEmail(m,timing)}
+                reminded[key+'_missed']=true
+            }
         })});
         localStorage.setItem('reminded_'+today(),JSON.stringify(reminded));
     }
@@ -2295,7 +2299,7 @@
     document.addEventListener('visibilitychange',()=>{if(!document.hidden){pullFromDrive();checkForUpdate()}});
 
     // === UPDATE CHECK ===
-    const APP_VERSION='5.3';
+    const APP_VERSION='5.4';
     async function checkForUpdate(){
         try{
             const r=await fetch('version.json?t='+Date.now());const d=await r.json();

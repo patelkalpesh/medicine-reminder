@@ -1,5 +1,5 @@
 {
-  "version": "5.3",
-  "deployed": "27 Jun 2026, 01:35:00 PM IST",
-  "features": "Show date range on weekly adherence, fix reorder settings null error"
+  "version": "5.4",
+  "deployed": "27 Jun 2026, 09:48:00 PM IST",
+  "features": "Fix false missed-dose emails - re-checks logs before sending missed alert"
 }
