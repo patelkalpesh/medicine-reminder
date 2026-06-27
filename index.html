@@ -2231,7 +2231,7 @@
         await driveRequest(url,{method:existingId?'PATCH':'POST',body:form});
     }
     async function syncNow(){
-        if(!accessToken)return;setSyncStatus('⏳ Syncing...');
+        if(!accessToken){setSyncStatus('❌ Not signed in. Sign in first.');return}setSyncStatus('⏳ Syncing...');
         try{
             const local={medicines:getMedicines(),logs:getLogs(),doctors:getDoctors(),caretakers:getCaretakers(),bpLogs:getBPLogs(),appointments:getAppointments(),prescriptions:getPrescriptions(),snoozed:getSnoozed(),notifSettings:getNotifSettings(),settings:{email_on_take:localStorage.getItem('email_on_take'),take_email_to:localStorage.getItem('take_email_to'),emailjs_public_key:localStorage.getItem('emailjs_public_key'),emailjs_service_id:localStorage.getItem('emailjs_service_id'),emailjs_template_id:localStorage.getItem('emailjs_template_id'),caretaker_enabled:localStorage.getItem('caretaker_enabled'),notify_on_take:localStorage.getItem('notify_on_take'),pin:localStorage.getItem('app_pin'),lang:localStorage.getItem('app_lang'),dark_mode:localStorage.getItem('dark_mode'),sound_on:localStorage.getItem('sound_on'),reorder_days:localStorage.getItem('reorder_days'),reorder_settings:localStorage.getItem('reorder_settings'),report_email:localStorage.getItem('report_email')},updatedAt:parseInt(localStorage.getItem('data_updated')||'0')};
             const file=await findSyncFile();
@@ -2254,7 +2254,7 @@
         }catch(e){setSyncStatus('❌ '+e.message)}
     }
     async function forceUpload(){
-        if(!accessToken)return;setSyncStatus('⬆️ Force uploading...');
+        if(!accessToken){setSyncStatus('❌ Not signed in. Sign in first.');return}setSyncStatus('⬆️ Force uploading...');
         try{
             localStorage.setItem('data_updated',String(Date.now()));
             const local={medicines:getMedicines(),logs:getLogs(),doctors:getDoctors(),caretakers:getCaretakers(),bpLogs:getBPLogs(),appointments:getAppointments(),prescriptions:getPrescriptions(),snoozed:getSnoozed(),notifSettings:getNotifSettings(),settings:{email_on_take:localStorage.getItem('email_on_take'),take_email_to:localStorage.getItem('take_email_to'),caretaker_enabled:localStorage.getItem('caretaker_enabled'),notify_on_take:localStorage.getItem('notify_on_take'),pin:localStorage.getItem('app_pin'),lang:localStorage.getItem('app_lang'),dark_mode:localStorage.getItem('dark_mode'),sound_on:localStorage.getItem('sound_on'),reorder_days:localStorage.getItem('reorder_days'),reorder_settings:localStorage.getItem('reorder_settings'),report_email:localStorage.getItem('report_email')},updatedAt:parseInt(localStorage.getItem('data_updated'))};
