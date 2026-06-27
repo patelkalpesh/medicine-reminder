@@ -1,5 +1,5 @@
 {
-  "version": "5.0",
-  "deployed": "27 Jun 2026, 08:46:00 AM IST",
-  "features": "Settings page reorganized, full sync (all settings across devices), Stock tab cleaned up, Doctor/Pharmacy moved to Health"
+  "version": "5.1",
+  "deployed": "27 Jun 2026, 11:17:00 AM IST",
+  "features": "Replaced EmailJS with Google Apps Script - 100 emails/day, sends from your Gmail directly"
 }

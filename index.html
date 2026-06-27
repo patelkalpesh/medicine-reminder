@@ -326,13 +326,6 @@
             <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#e3f2fd;border-radius:8px;margin-bottom:8px;"><input type="checkbox" id="email-on-take" onchange="localStorage.setItem('email_on_take',this.checked);markUpdated()" style="width:auto;margin:0;accent-color:#2196F3"> <span style="font-size:0.85rem;">📧 Email when medicine taken</span></label>
             <label style="display:flex;align-items:center;gap:8px;padding:8px;background:#fff3e0;border-radius:8px;margin-bottom:8px;"><input type="checkbox" id="email-on-miss" checked disabled style="width:auto;margin:0;accent-color:#FF9800"> <span style="font-size:0.85rem;">⚠️ Email when dose missed (auto)</span></label>
             <button class="btn-sm" style="background:#2196F3;margin-top:6px;" onclick="testTakeEmail()">🧪 Test Email</button>
-            <details style="margin-top:10px;font-size:0.75rem;color:#666;"><summary style="cursor:pointer;color:#2196F3;">⚙️ EmailJS Setup (one-time)</summary>
-            <p style="margin:6px 0 4px;">Sign up free at <a href="https://emailjs.com" target="_blank">emailjs.com</a> → get these 3 values:</p>
-            <input type="text" id="emailjs-service" placeholder="Service ID (e.g. service_xxx)" onchange="localStorage.setItem('emailjs_service_id',this.value)" style="margin:4px 0;padding:6px;font-size:0.8rem;">
-            <input type="text" id="emailjs-template" placeholder="Template ID (e.g. template_xxx)" onchange="localStorage.setItem('emailjs_template_id',this.value)" style="margin:4px 0;padding:6px;font-size:0.8rem;">
-            <input type="text" id="emailjs-pubkey" placeholder="Public Key (e.g. abc123xyz)" onchange="localStorage.setItem('emailjs_public_key',this.value)" style="margin:4px 0;padding:6px;font-size:0.8rem;">
-            <p style="margin:4px 0;color:#999;">Template: To={{to_email}}, Subject={{title}}, Body={{{message}}}</p>
-            </details>
         </div>
         <div class="card">
             <h2>💬 Caretaker (WhatsApp)</h2>
@@ -440,7 +433,7 @@
             </div>
         </div>
         <div class="card" style="text-align:center;">
-            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v5.0</p>
+            <p style="font-size:0.75rem;color:#999;">💊 Medicine Reminder v5.1</p>
             <p style="font-size:0.7rem;color:#bbb;">Deployed: 25 Jun 2026, 07:45:00 AM IST</p>
             <p style="font-size:0.7rem;color:#888;margin-top:8px;">Made by <strong>Kalpesh Patel</strong></p>
             <p style="font-size:0.7rem;margin-top:4px;"><a href="tel:+917405856226" style="color:#4CAF50;text-decoration:none;">📞 +91 74058 56226</a> • <a href="https://wa.me/917405856226" style="color:#25D366;text-decoration:none;">💬 WhatsApp</a></p>
@@ -460,6 +453,11 @@
     </div><!-- /app-container -->
 
     <script>
+    // === EMAIL VIA GOOGLE APPS SCRIPT ===
+    const GAS_URL='https://script.google.com/macros/s/AKfycbzzxYLACO7nIWk66GIlQ3C2Bk7BgepOGCtiYXFgNxaodbs0Znt-MX0Nxm43vZbxmmf0/exec';
+    function sendEmailViaGAS(to,subject,message,showAlert){
+        fetch(GAS_URL,{method:'POST',body:JSON.stringify({to:to,subject:subject,message:message}),headers:{'Content-Type':'text/plain'}}).then(r=>{if(showAlert)alert('✅ Test email sent to '+to)}).catch(e=>{if(showAlert)alert('❌ Failed: '+e.message)});
+    }
     // === PIN LOCK ===
     let pinBuffer='';
     const FIXED_EMAIL='kal.shooter007@gmail.com';
@@ -1523,13 +1521,8 @@
                 const med=getMedicines().find(m=>m.id===medId);
                 const timeStr=new Date(takenTime).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
                 const toEmails=localStorage.getItem('take_email_to')||'';
-                if(toEmails&&window.emailjs){
-                    const pubKey=localStorage.getItem('emailjs_public_key')||'k3rYSrSx7QoGpb0fy';
-                    const svcId=localStorage.getItem('emailjs_service_id')||'service_vk3ychj';
-                    const tplId=localStorage.getItem('emailjs_template_id')||'template_5sg9tcr';
-                    if(pubKey&&svcId&&tplId){
-                        emailjs.send(svcId,tplId,{to_email:toEmails,title:'💊 '+(med?med.name:'Medicine')+' taken ('+timing+')',name:'Medicine Reminder',email:'noreply@medicinereminder.app',time:timeStr+' • '+today(),message:'✅ Medicine Taken<br><br>💊 Medicine: '+(med?med.name+' '+(med.dosage||''):'Medicine')+'<br>⏰ Timing: '+timing+'<br>🕐 Taken At: '+timeStr+'<br>📅 Date: '+today()+'<br><br><a href="https://patelkalpesh.github.io/medicine-reminder/">Open App</a>'},{publicKey:pubKey}).catch(()=>{});
-                    }
+                if(toEmails){
+                    sendEmailViaGAS(toEmails,'💊 '+(med?med.name:'Medicine')+' taken ('+timing+')','✅ Medicine Taken<br><br>💊 Medicine: '+(med?med.name+' '+(med.dosage||''):'Medicine')+'<br>⏰ Timing: '+timing+'<br>🕐 Taken At: '+timeStr+'<br>📅 Date: '+today()+'<br><br><a href="https://patelkalpesh.github.io/medicine-reminder/">Open App</a>');
                 }
             }
         }
@@ -2039,9 +2032,6 @@
         document.getElementById('notify-on-take').checked=localStorage.getItem('notify_on_take')==='true';
         document.getElementById('email-on-take').checked=localStorage.getItem('email_on_take')==='true';
         document.getElementById('take-email-addr').value=localStorage.getItem('take_email_to')||'';
-        document.getElementById('emailjs-service').value=localStorage.getItem('emailjs_service_id')||'service_vk3ychj';
-        document.getElementById('emailjs-template').value=localStorage.getItem('emailjs_template_id')||'template_5sg9tcr';
-        document.getElementById('emailjs-pubkey').value=localStorage.getItem('emailjs_public_key')||'k3rYSrSx7QoGpb0fy';
         el.innerHTML=cts.map((c,i)=>`<div class="caretaker-row"><div class="caretaker-avatar">${c.icon||'👤'}</div><div style="flex:1"><strong style="font-size:0.85rem">${c.name}</strong><br><small>📱 ${c.phone}</small><br><label style="font-size:0.7rem;color:#666;display:flex;align-items:center;gap:4px;margin-top:3px;"><input type="checkbox" ${c.enabled!==false?'checked':''} onchange="toggleCaretaker(${i},this.checked)" style="width:auto;margin:0;accent-color:#4CAF50"> ${(LANG[currentLang]||LANG.en).alertsON}</label></div><button class="btn-sm btn-edit" onclick="editCaretaker(${i})">✏️</button><button class="btn-sm btn-del" onclick="removeCaretaker(${i})">✕</button></div>`).join('')||'<p style="font-size:0.8rem;color:#999;">'+(LANG[currentLang]||LANG.en).noCaretakers+'</p>';
     }
     function toggleCaretaker(i,enabled){
@@ -2154,13 +2144,8 @@
     }
     function sendMissedEmail(med,timing){
         const toEmails=localStorage.getItem('take_email_to')||'';
-        if(!toEmails||!window.emailjs)return;
-        const pubKey=localStorage.getItem('emailjs_public_key')||'k3rYSrSx7QoGpb0fy';
-        const svcId=localStorage.getItem('emailjs_service_id')||'service_vk3ychj';
-        const tplId=localStorage.getItem('emailjs_template_id')||'template_5sg9tcr';
-        if(!pubKey||!svcId||!tplId)return;
-        const nowStr=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-        emailjs.send(svcId,tplId,{to_email:toEmails,title:'⚠️ MISSED: '+(med.name||'Medicine')+' ('+timing+')',name:'Medicine Reminder',email:'noreply@medicinereminder.app',time:nowStr+' • '+today(),message:'⚠️ Missed Dose Alert<br><br>💊 Medicine: '+(med.name+' '+(med.dosage||''))+'<br>⏰ Timing: '+timing+'<br>📅 Date: '+today()+'<br><br>This dose was not taken within 30 minutes of scheduled time.<br><br><a href="https://patelkalpesh.github.io/medicine-reminder/">Open App</a>'},{publicKey:pubKey}).catch(()=>{});
+        if(!toEmails)return;
+        sendEmailViaGAS(toEmails,'⚠️ MISSED: '+(med.name||'Medicine')+' ('+timing+')','⚠️ Missed Dose Alert<br><br>💊 Medicine: '+(med.name+' '+(med.dosage||''))+'<br>⏰ Timing: '+timing+'<br>📅 Date: '+today()+'<br><br>This dose was not taken within 30 minutes of scheduled time.<br><br><a href="https://patelkalpesh.github.io/medicine-reminder/">Open App</a>');
     }
     function testCaretakerAlert(){
         const cts=getCaretakers();
@@ -2181,13 +2166,9 @@
     }
     function testTakeEmail(){
         const toEmails=localStorage.getItem('take_email_to')||document.getElementById('take-email-addr').value||'kal.shooter007@gmail.com';
-        const pubKey=localStorage.getItem('emailjs_public_key')||'k3rYSrSx7QoGpb0fy';
-        const svcId=localStorage.getItem('emailjs_service_id')||'service_vk3ychj';
-        const tplId=localStorage.getItem('emailjs_template_id')||'template_5sg9tcr';
-        if(!pubKey||!svcId||!tplId){alert('⚙️ Please configure EmailJS first (expand setup section below email field)');return}
-        if(!window.emailjs){alert('EmailJS not loaded. Check internet.');return}
+        if(!toEmails){alert('Enter email address first');return}
         const nowStr=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-        emailjs.send(svcId,tplId,{to_email:toEmails,title:'💊 TEST Medicine taken (After Breakfast)',name:'Medicine Reminder',email:'noreply@medicinereminder.app',time:nowStr+' • '+today(),message:'✅ Medicine Taken<br><br>💊 Medicine: TEST Medicine 500mg<br>⏰ Timing: After Breakfast<br>🕐 Taken At: '+nowStr+'<br>📅 Date: '+today()+'<br><br><a href="https://patelkalpesh.github.io/medicine-reminder/">Open App</a>'},{publicKey:pubKey}).then(()=>alert('✅ Test email sent to '+toEmails)).catch(e=>alert('❌ Failed: '+e.text));
+        sendEmailViaGAS(toEmails,'💊 TEST Medicine taken (After Breakfast)','✅ Medicine Taken<br><br>💊 Medicine: TEST Medicine 500mg<br>⏰ Timing: After Breakfast<br>🕐 Taken At: '+nowStr+'<br>📅 Date: '+today()+'<br><br><a href="https://patelkalpesh.github.io/medicine-reminder/">Open App</a>',true);
     }
     setInterval(checkReminders,15000);setTimeout(checkReminders,2000);
     // Re-check immediately when tab becomes visible (phone unlock, switch back)
@@ -2226,7 +2207,6 @@
     </script>
 
     <script src="https://accounts.google.com/gsi/client"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script>
     const GDRIVE_CLIENT_ID='157005612520-70t1peegtr1uoinrnjv2g9uk1geni5j8.apps.googleusercontent.com';
     const GDRIVE_SCOPE='https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.email';
@@ -2305,7 +2285,7 @@
     document.addEventListener('visibilitychange',()=>{if(!document.hidden){pullFromDrive();checkForUpdate()}});
 
     // === UPDATE CHECK ===
-    const APP_VERSION='5.0';
+    const APP_VERSION='5.1';
     async function checkForUpdate(){
         try{
             const r=await fetch('version.json?t='+Date.now());const d=await r.json();
